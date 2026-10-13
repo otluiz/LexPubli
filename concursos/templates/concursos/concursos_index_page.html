@@ -1,22 +1,55 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags lexpubli %}
 {% block content %}
-  <h1>{{ page.title }}</h1>
-  {% if page.introducao %}<div class="intro">{{ page.introducao|richtext }}</div>{% endif %}
-  <ul class="lista">
-    {% for c in concursos %}
-      <li class="cartao">
-        <a href="{% pageurl c %}"><strong>{{ c.title }}</strong></a>
-        <span class="selo selo-{{ c.status }}">{{ c.get_status_display }}</span>
-        <p>{{ c.orgao.nome }}{% if c.banca %} · {{ c.banca.nome }}{% endif %}</p>
-        <p class="numeros">
-          {% if c.total_vagas %}{{ c.total_vagas }} vaga{{ c.total_vagas|pluralize }}{% endif %}
-          {% if c.maior_salario %} · até {{ c.maior_salario|brl }}{% endif %}
-          {% if c.inscricoes_fim %} · inscrições até {{ c.inscricoes_fim|date:"d/m/Y" }}{% endif %}
-        </p>
-      </li>
-    {% empty %}
-      <li>Nenhum concurso publicado ainda.</li>
-    {% endfor %}
-  </ul>
+  <section class="abertura">
+    <h1>Saiba do concurso antes do edital.</h1>
+    <p class="subtitulo">O LexPubli acompanha direto nas fontes oficiais as páginas de concursos e as notícias
+      de tribunais, ministérios públicos, Legislativo e Executivo. Comissão formada, banca contratada, autorização
+      publicada: os sinais de um concurso aparecem ali antes do edital, e chegam aqui conferidos.</p>
+    {% if page.introducao %}<div class="intro">{{ page.introducao|richtext }}</div>{% endif %}
+  </section>
+
+  <section class="numeros-grade" aria-label="O que acompanhamos">
+    <div><strong>{{ fontes_total }}</strong><span>fontes oficiais acompanhadas</span></div>
+    {% if fontes_noticias %}<div><strong>{{ fontes_noticias }}</strong><span>páginas de notícias de órgãos públicos</span></div>{% endif %}
+    <div><strong>{{ concursos|length }}</strong><span>concurso{{ concursos|length|pluralize }} publicado{{ concursos|length|pluralize }}</span></div>
+  </section>
+  {% if fontes_por_poder %}
+    <p class="poderes">{% for nome, n in fontes_por_poder %}{{ nome }}: {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  {% endif %}
+
+  {% for chave, titulo, lista in grupos %}
+    {% if lista %}
+      <section class="grupo grupo-{{ chave }}">
+        <h2>{{ titulo }}</h2>
+        <ul class="lista">
+          {% for c in lista %}
+            <li class="cartao">
+              <a href="{% pageurl c %}"><strong>{{ c.title }}</strong></a>
+              <span class="selo selo-{{ c.status }}">{{ c.get_status_display }}</span>
+              <p>{{ c.orgao.nome }}{% if c.banca %} · {{ c.banca.nome }}{% endif %}</p>
+              <p class="numeros">
+                {% if c.total_vagas %}{{ c.total_vagas }} vaga{{ c.total_vagas|pluralize }}{% endif %}
+                {% if c.maior_salario %} · até {{ c.maior_salario|brl }}{% endif %}
+                {% if c.inscricoes_fim %} · inscrições até {{ c.inscricoes_fim|date:"d/m/Y" }}{% endif %}
+              </p>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  {% empty %}{% endfor %}
+  {% if not concursos %}<p>Nenhum concurso publicado ainda.</p>{% endif %}
+
+  <section class="como">
+    <h2>Como funciona</h2>
+    <ol class="passos">
+      <li><strong>Vigiamos as fontes oficiais.</strong> Páginas de concursos e notícias dos órgãos públicos.
+        Agregadores e cursinhos servem só de pista, nunca de fonte.</li>
+      <li><strong>Uma pessoa confere.</strong> Cada novidade passa pela curadoria, que confirma no documento
+        oficial antes de publicar.</li>
+      <li><strong>Publicamos com o link oficial.</strong> Toda página de concurso aponta para o edital e para a
+        fonte de onde a informação veio.</li>
+    </ol>
+  </section>
 {% endblock %}

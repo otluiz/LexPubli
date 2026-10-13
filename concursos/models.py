@@ -141,12 +141,34 @@ class ConcursosIndexPage(Page):
     class Meta:
         verbose_name = "índice de concursos"
 
+    # a página inicial agrupa os concursos pela fase: o que está no radar
+    # (antes do edital) é o diferencial do portal
+    GRUPOS = [
+        ("radar", "No radar: antes do edital", [StatusConcurso.PREVISTO, StatusConcurso.AUTORIZADO]),
+        ("abertos", "Inscrições abertas", [StatusConcurso.EDITAL_ABERTO]),
+        ("andamento", "Em andamento", [StatusConcurso.INSCRICOES_ENCERRADAS,
+                                       StatusConcurso.PROVA_REALIZADA, StatusConcurso.RESULTADO]),
+    ]
+
     def get_context(self, request, *args, **kwargs):
+        from django.db.models import Count
+
         ctx = super().get_context(request, *args, **kwargs)
-        ctx["concursos"] = (
+        concursos = list(
             ConcursoPage.objects.child_of(self).live().public()
             .select_related("orgao", "banca").order_by("-first_published_at")
         )
+        ctx["concursos"] = concursos
+        ctx["grupos"] = [(chave, titulo, [c for c in concursos if c.status in status])
+                         for chave, titulo, status in self.GRUPOS]
+        # "acompanhada" = ativa e com watch no changedetection: o número da
+        # página é o que está sendo vigiado de fato, não o que está cadastrado
+        ativas = Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")
+        ctx["fontes_total"] = ativas.count()
+        ctx["fontes_noticias"] = ativas.filter(conteudo=Fonte.Conteudo.NOTICIAS).count()
+        rotulos = dict(Fonte.Poder.choices)
+        ctx["fontes_por_poder"] = [(rotulos[p["poder"]], p["n"]) for p in
+                                   ativas.values("poder").annotate(n=Count("id")).order_by("-n")]
         return ctx
 
 
