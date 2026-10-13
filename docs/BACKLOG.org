@@ -206,7 +206,7 @@
          provisória com #concursos/#noticias: procurar a página à mão
    - [ ] Medir: avisos recebidos x ignorados por fonte de notícias depois de
          2 semanas; ajustar o filtro (RE_CONCURSO) ou desativar a fonte
-** TODO [#A] ADR-0008: radar de sinais de concurso futuro (PROPOSTO)
+** EM-ANDAMENTO [#A] ADR-0008: radar de sinais de concurso futuro
    Pedido do dono do produto (13/10): previsão orçamentária e o "movimento"
    que os sites de concursos e cursinhos já vendem como concurso futuro.
    Revisto no mesmo dia: só documento oficial é Sinal (força 1 pedido ...
@@ -215,9 +215,8 @@
    depois do Carnaval; contratação: 3-4 meses), num arquivo versionado.
    Pontuação = sinal mais forte; prazo vencido = "atrasado". Site de
    concursos não pontua: só dispara a busca oficial. Primeira coleta: PNCP.
-   A decidir no aceite: o curador publica a chamada, ou o radar publica
-   sozinho da força 4 em diante.
-   - [ ] Aceite do ADR-0008
+   - [X] Aceite do ADR-0008 (13/10), opção (b): o radar publica sozinho a
+         chamada a partir da força 4 (autorização); o curador revisa depois
    - [ ] Modelo Sinal + painel + linha do tempo na página do concurso
    - [ ] Coletor do PNCP
    - [ ] Pistas dos sites de concursos (Fonte tipo pista; RSS/listagem)

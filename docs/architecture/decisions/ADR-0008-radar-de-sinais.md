@@ -7,8 +7,9 @@
 
 # ADR-0008: Radar de sinais de concurso futuro
 
-- Status: **Proposto** (revisto em 2026-10-13 com as regras de tempo do dono
-  do produto)
+- Status: **Aceito** em 2026-10-13 pelo dono do produto, com a opção (b) do
+  §5: o radar publica sozinho a partir da autorização (força 4). Revisto no
+  mesmo dia com as regras de tempo do dono do produto.
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fonte oficial obrigatória; agregador só como
@@ -121,11 +122,13 @@ do TCU sobre **terceirizados**, LDO e LOA **estaduais** (onda C).
   …") e nunca atribui um boato a um site concorrente. O argumento de venda é
   **o LexPubli confere**.
 - Toda chamada leva a chamada ao LexLearn ("comece antes do edital").
-- **Quem decide publicar** (a calibrar no aceite): o radar calcula a
-  pontuação e a previsão sozinho; a publicação da chamada fica com o curador,
-  como todo o resto do portal (ADR-0007 §4). Alternativa: publicar sozinho a
-  partir da força 4 (autorização), sempre com o documento oficial, e o
-  curador revisa depois.
+- **Quem publica (decidido no aceite, opção b):** o radar calcula a
+  pontuação e a previsão sozinho e **publica sozinho a chamada a partir da
+  força 4** (autorização), sempre com o documento oficial. O curador revisa
+  depois e pode despublicar. Abaixo da força 4, a chamada só sai pelo
+  curador. É a exceção à regra do ADR-0007 §4, e vale só para a chamada de
+  concurso Previsto ou Autorizado: o `contest.discovery.created` continua
+  saindo só da aprovação do curador (§7).
 
 ### 6. Medir e calibrar
 

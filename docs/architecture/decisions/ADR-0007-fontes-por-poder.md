@@ -9,6 +9,11 @@
 - **REVISÃO (2026-10-13, dono do produto):** notícias oficiais sobre a
   iminência de um concurso também são fonte (§3a). O LexPubli fala de
   concursos, e avisar antes do edital é argumento de marketing e de venda.
+- **REVISÃO (2026-10-13, ADR-0008):** o §4 ("nenhuma fonte publica concurso
+  sozinha") ganha uma exceção: o radar de sinais publica sozinho a chamada de
+  um concurso Previsto ou Autorizado a partir da autorização oficial (força
+  4), e o curador revisa depois. O evento para o LexCorpus continua só na
+  aprovação do curador.
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0001 (changedetection.io como gatilho), ADR-0002 (fonte
