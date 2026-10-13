@@ -8,7 +8,7 @@
 - Status: **Aceito** em 2026-10-12 pelo dono do produto, junto com o espelho
   no LexCorpus (ADR-0007), que revisa uma regra do ADR-0006 de lá.
 - Data: 2026-10-12
-- Autores: Prof. Othon Luiz, Claude (Anthropic)
+- Autor: Prof. Othon Luiz
 - Relacionados: ADR-0001 (LexPubli, plataforma); ADR-0001 e ADR-0006 do
   LexCorpus (agregador como índice; buscador, catálogo e orquestrador).
 

@@ -35,7 +35,7 @@ def _registro() -> tuple[Registry, dict[str, dict]]:
         schema = json.loads(arq.read_text(encoding="utf-8"))
         registro = registro.with_resource(schema["$id"], Resource.from_contents(schema))
         nome = arq.name.removesuffix(".schema.json")
-        if nome != "envelope":
+        if "." in nome:  # event_type tem ponto; envelope e common são só peças
             por_tipo[nome] = schema
     return registro, por_tipo
 

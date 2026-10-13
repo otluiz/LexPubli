@@ -8,7 +8,7 @@
 - Status: **Aceito** em 2026-10-12 pelo dono do produto, depois do spike
   (todos os itens da validação atendidos).
 - Data: 2026-10-12
-- Autores: Prof. Othon Luiz, Claude (Anthropic)
+- Autor: Prof. Othon Luiz
 
 ## Contexto
 
