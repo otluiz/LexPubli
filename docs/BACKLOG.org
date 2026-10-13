@@ -103,9 +103,23 @@
    Recomendado: NVMe novo em passthrough para uma VM KVM do LexPubli, rede
    própria (VLAN no MikroTik), exposição por Cloudflare Tunnel de dentro da
    VM, e editais por PULL do lado do LexLearn (a VM não monta /data).
-   - [ ] Conferir slot livre (M.2 ou PCIe com adaptador) e o grupo IOMMU
-         do NVMe novo
-   - [ ] Decidir: VM no gpu01 x máquina/VPS separada → ADR
+   DECIDIDO pelo dono do produto em 13/10: até o lançamento, gpu01 + NVMe
+   novo dedicado ao LexPubli + rede própria (VLAN) no MikroTik. Máquina
+   nova fica para depois do lançamento.
+   Topologia PCIe lida em 13/10 (lspci -tv, grupos IOMMU):
+   - M.2 NVMe da placa: OCUPADO (Kingston NV3, porta da CPU 00:01.1)
+   - GPU na porta da CPU 00:02.0 (x16)
+   - LIVRES na CPU: 00:01.0 e 00:03.0, cada uma no SEU grupo IOMMU (31 e
+     34): passthrough limpo para uma VM
+   - O "M.2 SATA" da placa não serve: é SATA, e o lspci não mostra
+     controlador SATA ativo
+   Compra: adaptador PCIe x4 → M.2 NVMe (passivo, sem bifurcação) + SSD
+   M.2 2280 TLC com DRAM; ideal com PLP (Kingston DC2000B) ou NAS (WD Red
+   SN700). O slot é PCIe 3.0: SSD Gen4 funciona, a ~3,5 GB/s.
+   - [ ] Comprar e instalar; conferir em lspci -tv que o NVMe ficou sob
+         00:01.0 ou 00:03.0 (CPU), não no chipset; e que a GPU não cobre o slot
+   - [ ] ADR do isolamento: VM KVM com o NVMe em passthrough, VLAN, Cloudflare
+         Tunnel de dentro da VM, editais por pull do lado do LexLearn, TLS no AMQP
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
