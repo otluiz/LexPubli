@@ -103,6 +103,20 @@
    Agregadores (PCI) só como índice; fonte oficial obrigatória para aprovar.
    - [X] Escrever o ADR e o espelho no LexCorpus
    - [X] Aceite do dono do produto (12/10)
+** EM-ANDAMENTO [#A] ADR-0004: concurso-alvo como eixo do ecossistema :ALINHAR_LexCorpus:ALINHAR_LexLearn:
+   Escrito em 13/10 (status: Proposto):
+   docs/architecture/decisions/ADR-0004-concurso-alvo.md
+   O contest_id do LexPubli é a chave comum. LexPubli diz QUAL é o alvo
+   (carreira, data da prova, prioridade); LexCorpus diz QUAIS documentos
+   servem (current, previous e o novo related: mesma banca + mesma
+   carreira); LexLearn decide COMO preparar e avisa study.target.ready.
+   Lição: com additionalProperties:false, até campo opcional novo exige
+   consumidor primeiro.
+   - [X] Escrever o ADR
+   - [ ] Aceite do dono do produto
+   - [ ] Espelho no LexCorpus (ADR-0008) e ADR próprio no LexLearn
+   - [ ] Fase 1: carreira + exam_date no LexPubli; contratos v1.1;
+         related a partir do acervo no LexCorpus
 ** FEITO [#A] Contratos document.acquisition.* (v1)          :ALINHAR_LexCorpus:
    CLOSED: 2026-10-12
    completed, awaiting_operator e failed em contracts/events/v1/, mais
