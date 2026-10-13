@@ -1,0 +1,16 @@
+{
+  "versao": 1,
+  "origem": "Experiência de mercado do dono do produto (13/10/2026), ADR-0008 §1. Calibrar com a medição (§6).",
+  "tipos": {
+    "pedido_autorizacao":    {"forca": 1, "rotulo": "Pedido de autorização", "janela": null},
+    "previsao_orcamentaria": {"forca": 2, "rotulo": "Previsão orçamentária (PLOA/LDO)", "janela": "exercicio_seguinte"},
+    "orcamento_aprovado":    {"forca": 3, "rotulo": "Orçamento aprovado com provimento (LOA)", "janela": "exercicio"},
+    "autorizacao":           {"forca": 4, "rotulo": "Autorização do concurso", "janela": {"meses": [2, 3], "fim_de_ano": [3, 5]}},
+    "comissao":              {"forca": 5, "rotulo": "Comissão do concurso designada", "janela": "da_autorizacao"},
+    "licitacao_banca":       {"forca": 6, "rotulo": "Licitação ou aviso de contratação da banca", "janela": {"meses": [4, 6]},
+                              "nota": "A contratação vem a seguir e o edital 3 a 4 meses depois dela: 4 a 6 meses, estimativa a calibrar."},
+    "banca_contratada":      {"forca": 7, "rotulo": "Banca contratada", "janela": {"meses": [3, 4]}}
+  },
+  "fim_de_ano_meses": [10, 11, 12],
+  "forca_para_publicar_sozinho": 4
+}

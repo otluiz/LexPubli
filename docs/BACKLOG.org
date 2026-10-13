@@ -217,7 +217,14 @@
    concursos não pontua: só dispara a busca oficial. Primeira coleta: PNCP.
    - [X] Aceite do ADR-0008 (13/10), opção (b): o radar publica sozinho a
          chamada a partir da força 4 (autorização); o curador revisa depois
-   - [ ] Modelo Sinal + painel + linha do tempo na página do concurso
+   - [X] Modelo Sinal + painel "Radar" + linha do tempo na página do
+         concurso (13/10). Janelas em concursos/dados/janelas_sinais.json
+         (autorização 2-3 meses, 3-5 de out a dez; licitação 4-6, estimativa;
+         banca contratada 3-4; comissão usa a da autorização; orçamento: o
+         exercício). Nota = sinal mais forte; prazo vencido = atrasado.
+         Gravar um Sinal de força >= 4 publica sozinho a chamada (concurso
+         Autorizado) ou sobe a Prevista do curador; sinais soltos do órgão
+         são ligados a ela. Documento só oficial; sem evento ao LexCorpus
    - [ ] Coletor do PNCP
    - [ ] Pistas dos sites de concursos (Fonte tipo pista; RSS/listagem)
    - [ ] Anexo V do PLOA/LOA (anual)

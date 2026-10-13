@@ -38,3 +38,10 @@ a { color: var(--acento); }
 .botao { display: inline-block; padding: 10px 18px; border-radius: 8px; background: #fff; color: #1f5fbf;
   font-weight: 600; text-decoration: none; white-space: nowrap; }
 @media (prefers-color-scheme: dark) { .chamada { color: #0d1117; } .botao { background: #0d1117; color: #7fb0ff; } }
+/* radar de sinais (ADR-0008) */
+.radar { border: 1px solid var(--borda); border-left: 4px solid var(--acento); border-radius: 8px; padding: 12px 16px; margin: 24px 0; }
+.radar h2 { margin-top: 4px; }
+.linha-do-tempo { padding-left: 20px; }
+.linha-do-tempo li { margin: 6px 0; }
+.selo-prazo-no_prazo { border-color: #2e8b57; color: #2e8b57; }
+.selo-prazo-atrasado { border-color: #b35900; color: #b35900; }
