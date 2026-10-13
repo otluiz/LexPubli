@@ -8,6 +8,36 @@ O contrato v2.1 LexCorpus → LexLearn (`concurso.disponivel` /
 `concurso.atualizado`) **não** está aqui e não usa este envelope. Ele mora no
 LexCorpus (`docs/CONTRATO.md`).
 
+## Fronteira do ecossistema: a automação é só LexPubli ↔ LexCorpus
+
+Regra definida pelo dono do produto em 13/10/2026 (ADR-0005). Vale para
+todo contrato desta pasta e para qualquer contrato novo:
+
+- **Eventos e filas existem somente entre o LexPubli e o LexCorpus.**
+- **O LexPubli não fala com o LexLearn**: não publica para ele, não assina
+  nada dele e não chama a API dele. O único ponto de contato é a pasta
+  `/data/raw/editais/`, gravada sob autorização humana (ADR-0003). O que
+  o LexLearn faz com um edital, e quando, é decisão do Administrador do
+  LexLearn.
+- **O LexLearn não assina `lexpubli.events` nem os `document.*` do
+  `lexcorpus.events`.** O que chega a ele é só o contrato v2.1 do LexCorpus
+  (`concurso.*`, `/data/raw/exams/`), que continua automático.
+
+Por quê:
+
+- O **DNA das bancas** (LexLearn) se alimenta das questões que o LexCorpus
+  coleta a partir dos concursos que o LexPubli descobre. Por isso o acervo
+  continua sendo abastecido sem intervenção (v2.1).
+- A **geração de questões** no LexLearn é **por demanda, controlada**. Ela
+  usa GPU e, com usuários pagantes, vira serviço cobrado. Os serviços pagos
+  usam a geração do LexLearn, mas não têm acesso ao LexCorpus nem ao
+  LexPubli. O que gerar, para qual concurso e em que ordem é decisão do
+  Administrador do LexLearn, nunca de um evento do LexPubli.
+
+Consequência para os contratos: nenhum schema daqui pode ter o LexLearn
+como produtor ou consumidor. O padrão `lexlearn` em `producer` do envelope
+fica reservado e não é usado por nenhum evento.
+
 ## Eventos
 
 | Evento | Produtor | Exchange | Quando |

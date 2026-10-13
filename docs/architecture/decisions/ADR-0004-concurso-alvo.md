@@ -7,6 +7,12 @@
 
 - Status: **Aceito** em 2026-10-13 pelo dono do produto. Afeta os três
   projetos. Espelhos: LexCorpus ADR-0008 e LexLearn ADR-0012.
+- **REVISÃO (2026-10-13, ADR-0005):** a automação é só LexPubli ↔ LexCorpus.
+  Ficam **revogados** o §4 (o LexLearn assina os eventos) e o §5
+  (`study.target.ready`). O §1 (linha LexLearn), o §2 (prioridade), o §6
+  (métrica), a tabela de mudanças de contrato e as fases 2–4 foram revistos
+  no ADR-0005 §5–6. O LexLearn recebe provas pelo v2.1 e editais pela pasta;
+  o que gerar é decisão do Administrador dele.
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fronteira LexPubli × LexCorpus), ADR-0003
