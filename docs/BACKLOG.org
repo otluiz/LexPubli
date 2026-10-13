@@ -111,26 +111,24 @@
    produtor travado por evento; sem caminho de storage. Envelope v1
    aceita os produtores lexpubli|lexcorpus|lexlearn (mudança compatível).
    Guia para o LexCorpus: contracts/README.md. Testes: tests/test_contratos.py.
-** TODO [#A] ADR-0003: LexPubli publica editais em /data/raw/editais/ :ALINHAR_LexLearn:ALINHAR_LexCorpus:
-   Pedido do dono do produto em 12/10. Hoje o diretório compartilhado tem
-   donos definidos no contrato v2.1 (LexCorpus docs/CONTRATO.md §2): o
-   LexCorpus escreve SÓ em /data/raw/exams/{banca}/{concurso}/ e o
-   LexLearn é dono de laws/. O LexLearn consome banca, concurso e o
-   pasta_uri dos eventos concurso.* — nada disso pode mudar sem acordo.
-   Proposta a decidir no ADR:
-   - O LexPubli passa a ser o ÚNICO escritor de /data/raw/editais/,
-     quando encontra editais (fonte oficial)
-   - SÓ COM AUTORIZAÇÃO HUMANA: o curador aprova o edital no painel, como
-     já aprova a descoberta; nada é gravado automaticamente
-   - Mesmo padrão do exams/: pasta plana por concurso, sidecar .meta.json,
-     checksum, escrita atômica, evento (Claim Check) para o LexLearn
-   - Questões a responder: estrutura da pasta ({banca}/{concurso} igual
-     ao exams/, para o LexLearn casar edital e prova pelo mesmo slug?);
-     nome e schema do evento (edital.disponivel? envelope v1 ou v2.1?);
-     o LexLearn quer os editais (conteúdo programático) e como os consome;
-     retificações (edital nº 2, 3...) como versões do mesmo concurso
-   - Implantação: consumidor primeiro (o LexLearn) antes de o LexPubli
-     escrever qualquer arquivo
+** EM-ANDAMENTO [#A] ADR-0003: editais em /data/raw/editais/ :ALINHAR_LexLearn:
+   Escrito em 12/10 (status: Proposto):
+   docs/architecture/decisions/ADR-0003-editais-no-storage-compartilhado.md
+   Apurado no LexLearn: a pasta {banca}/{concurso}/ e o formato do sidecar
+   JÁ EXISTEM (4 editais da Transpetro, baixados à mão do PCI); a ingestão
+   é manual (POST /exams/ingerir-lote, subdir=editais); não há evento.
+   Decidido no ADR (a confirmar com o LexLearn):
+   - LexPubli é o único escritor automatizado; SÓ com autorização humana
+     no painel; fonte oficial obrigatória; nunca apaga nem sobrescreve
+   - {concurso} = contest_slug do LexPubli + contest_id no sidecar; o
+     pareamento edital ↔ provas é pelo contest_id (ADR-0004)
+   - Sidecar edital-1.0 compatível com o que o LexLearn lê (papel
+     edital_*, checksum_sha256); sidecar renomeado ANTES do PDF
+   - Fase 1 sem evento (ingerir-lote); fase 2 edital.available
+   - Worker monta só /data/raw/editais
+   - [X] Escrever o ADR
+   - [ ] Aceite do dono do produto
+   - [ ] Nota no ADR-0007 do LexLearn (fronteira de ingestão)
 ** TODO [#B] Consumir as respostas do LexCorpus
    Estado da aquisição por concurso; a página mostra "provas anteriores
    disponíveis" e o link para o LexLearn.
