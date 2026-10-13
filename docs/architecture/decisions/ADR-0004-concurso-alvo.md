@@ -5,9 +5,8 @@
 
 # ADR-0004: Concurso-alvo como eixo do ecossistema
 
-- Status: **Proposto**. Afeta os três projetos. Espelhos a escrever:
-  LexCorpus (ADR-0008) e LexLearn (ADR próprio, pelas regras do
-  repositório de lá).
+- Status: **Aceito** em 2026-10-13 pelo dono do produto. Afeta os três
+  projetos. Espelhos: LexCorpus ADR-0008 e LexLearn ADR-0012.
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fronteira LexPubli × LexCorpus), ADR-0003
