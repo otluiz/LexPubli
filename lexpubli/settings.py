@@ -140,7 +140,9 @@ LEXPUBLI_WEBHOOK_INTERNO = os.environ.get("LEXPUBLI_WEBHOOK_INTERNO",
 
 # LexLearn, o produto principal do ecossistema: o portal sempre o anuncia.
 # Só um LINK (marketing); o LexPubli não fala com o LexLearn (ADR-0005).
-LEXPUBLI_LEXLEARN_URL = os.environ.get("LEXPUBLI_LEXLEARN_URL", "")
+# O LexLearn ainda não tem endereço público (13/10): o padrão é o local, até
+# o lançamento. Na produção, defina no .env.
+LEXPUBLI_LEXLEARN_URL = os.environ.get("LEXPUBLI_LEXLEARN_URL", "http://localhost:5175/")
 
 # --- Segurança ---------------------------------------------------------------
 # LEXPUBLI_HTTPS=1 quando o site é servido por HTTPS (proxy reverso na frente).

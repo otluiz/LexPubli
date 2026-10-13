@@ -198,7 +198,8 @@
          sem JS e robots.txt) + padrões de URL + correção à mão das escolhas
          erradas. 220 fontes, 160 ativas (76 de concursos, 84 de notícias),
          intervalo de 12 h. `carregar_fontes B`. NÃO sincronizada com o
-         changedetection: decidir onde roda (notebook ou gpu01/VM)
+         changedetection: tudo roda no gpu01, o notebook é só desenvolvimento
+         (dono do produto, 13/10). Sincronizar lá, na implantação do LexPubli
    - [ ] Onda B: as 60 inativas com motivo (403/firewall: TJGO, TJPB, MPSP;
          sem resposta: TRF3, TJRJ, MPES, MPSE; só JS; robots.txt: TRF1,
          TRT10, TRT20, TJAP, TJSE, MPGO, MPRR, MPTO). As sem link têm URL
@@ -208,10 +209,14 @@
 ** TODO [#A] ADR-0008: radar de sinais de concurso futuro (PROPOSTO)
    Pedido do dono do produto (13/10): previsão orçamentária e o "movimento"
    que os sites de concursos e cursinhos já vendem como concurso futuro.
-   Escada de sinais por tipo de documento (boato 0 ... banca contratada 6);
-   site de concursos é PISTA (força 0, não publica), a evidência é sempre
-   oficial; o sinal verificado vira chamada (concurso Previsto com a linha do
-   tempo dos sinais). Primeira coleta: PNCP (banca contratada).
+   Revisto no mesmo dia: só documento oficial é Sinal (força 1 pedido ...
+   6 licitação/aviso de contratação direta, 7 banca contratada); cada tipo
+   tem JANELA até o edital (autorização: 2-3 meses, 3-5 se sair de out a dez,
+   depois do Carnaval; contratação: 3-4 meses), num arquivo versionado.
+   Pontuação = sinal mais forte; prazo vencido = "atrasado". Site de
+   concursos não pontua: só dispara a busca oficial. Primeira coleta: PNCP.
+   A decidir no aceite: o curador publica a chamada, ou o radar publica
+   sozinho da força 4 em diante.
    - [ ] Aceite do ADR-0008
    - [ ] Modelo Sinal + painel + linha do tempo na página do concurso
    - [ ] Coletor do PNCP
@@ -221,8 +226,8 @@
    (13/10) A página inicial explica o portal e agrupa os concursos pela fase
    (no radar, inscrições abertas, em andamento); número de fontes = ativas
    COM watch. Chamada ao LexLearn em todas as páginas (contextual na página
-   do concurso). LEXPUBLI_LEXLEARN_URL: falta o endereço público do LexLearn
-   (vazio = chamada sem botão)
+   do concurso). LEXPUBLI_LEXLEARN_URL: padrão http://localhost:5175/ até o
+   LexLearn ter endereço público (dono do produto, 13/10); trocar no lançamento
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,

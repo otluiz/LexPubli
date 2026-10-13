@@ -1,13 +1,14 @@
 <!-- Arquivo:  docs/architecture/decisions/ADR-0008-radar-de-sinais.md
-     Função:   registra o radar de sinais de concurso futuro: o que conta
-               como sinal (orçamento, autorização, comissão, banca
-               contratada), como os boatos dos sites de concursos são
-               usados só como pista, e como um sinal verificado vira uma
-               chamada no portal. -->
+     Função:   registra o radar de sinais de concurso futuro: os sinais
+               oficiais (orçamento, autorização, comissão, licitação e
+               contratação da banca), a pontuação e a janela de tempo até o
+               edital, o papel dos sites de concursos (só gatilho de busca) e
+               a chamada no portal. -->
 
 # ADR-0008: Radar de sinais de concurso futuro
 
-- Status: **Proposto**
+- Status: **Proposto** (revisto em 2026-10-13 com as regras de tempo do dono
+  do produto)
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fonte oficial obrigatória; agregador só como
@@ -20,137 +21,163 @@ O dono do produto observou (13/10):
 
 - **A previsão orçamentária** de um órgão pode antecipar um concurso.
 - **Os sites de concursos e os cursinhos** começam a "vender" um concurso
-  muito antes do edital: anunciam o certame e vendem assinaturas antecipadas,
-  apoiados em algum movimento do órgão, real ou não.
-- O LexPubli deve **varrer também esses sites**, **conferir a veracidade**
-  no que é oficial e, confirmada a informação, **fazer a chamada** no portal.
+  muito antes do edital, com assinaturas antecipadas, apoiados em algum
+  movimento do órgão. São um bom sinal, mas **especulam muito**.
+- O LexPubli deve buscar a **documentação oficial**, dar uma **pontuação** e
+  **decidir por conta própria**, sem herdar a especulação de ninguém.
+- **O tempo importa**, e a experiência do mercado dá as janelas:
+  - um concurso é lançado, em média, **2 meses** depois da autorização; uma
+    autorização que não vira edital em 2 a 3 meses já está atrasada;
+  - autorização dada **perto do fim do ano** costuma virar edital só
+    **depois do Carnaval**: 3 a 5 meses depois;
+  - a **contratação da banca** antecede o edital em **3 a 4 meses**, nunca
+    de imediato;
+  - antes da contratação houve a **licitação** (ou o aviso de contratação
+    direta), que já é um forte indício.
 
 Hoje o LexPubli só conhece **concursos** (ConcursoPage), alimentados por
 Descobertas de fontes oficiais (ADR-0007). Um concurso futuro não tem edital,
-banca nem vagas: o que existe são **sinais**, de força muito diferente. Uma
-comissão designada em portaria é quase certeza; uma postagem de cursinho
-sobre "concurso previsto", não.
+banca nem vagas: o que existe são **sinais**, de força e prazo diferentes.
 
 ## Decisão
 
-### 1. O sinal vira cadastro, e tem força
+### 1. O sinal oficial vira cadastro, com força e janela
 
-O LexPubli ganha o cadastro **Sinal**: órgão, tipo, data, o que diz, a URL
-de onde veio e a **evidência oficial** (a URL do documento oficial que o
-comprova). Os tipos formam uma escada, do mais fraco ao mais forte:
+O LexPubli ganha o cadastro **Sinal**: órgão, tipo, data do documento, o que
+diz e a **URL do documento oficial** (domínio oficial obrigatório, a mesma
+regra do ADR-0002). Sem documento oficial, não há Sinal.
 
-| Força | Tipo de sinal | Onde a evidência oficial costuma estar |
+Cada tipo tem uma **força** e uma **janela típica até o edital**, contada da
+data do documento:
+
+| Força | Tipo de sinal (documento oficial) | Janela típica até o edital |
 |---|---|---|
-| 0 | **Boato**: site de concursos ou cursinho anuncia | nenhuma, até ser verificado |
-| 1 | **Pedido de autorização** feito pelo órgão | notícia do órgão; ofício citado em ato oficial |
-| 2 | **Previsão orçamentária**: provimento de cargos no projeto de lei do orçamento (PLOA, Anexo V na União) ou na LDO/LOA estadual | site do orçamento federal ou estadual |
-| 3 | **Orçamento aprovado** com provimento (LOA) | Diário Oficial |
-| 4 | **Autorização** do concurso (na União, portaria do MGI) | DOU (ADR-0007 §2) |
-| 5 | **Comissão do concurso** designada | portaria no diário ou boletim do órgão; notícia (ADR-0007 §3a) |
-| 6 | **Banca contratada**: dispensa ou contrato com a banca | PNCP (Portal Nacional de Contratações Públicas, API pública); diário |
-| 7 | **Edital publicado** | vira concurso com edital, o fluxo de hoje |
+| 1 | **Pedido de autorização** feito pelo órgão | sem janela: pode não sair |
+| 2 | **Previsão orçamentária**: provimento no PLOA (Anexo V, na União) ou na LDO/LOA estadual | no exercício seguinte |
+| 3 | **Orçamento aprovado** com provimento (LOA) | no exercício |
+| 4 | **Autorização** do concurso (na União, portaria do MGI no DOU) | **2 a 3 meses**; se a autorização sai de outubro a dezembro, **3 a 5 meses** (depois do Carnaval) |
+| 5 | **Comissão do concurso** designada | reforça a autorização; usa a janela dela |
+| 6 | **Licitação ou aviso de contratação direta** da banca (PNCP; diário) | contratação a seguir, e o edital **3 a 4 meses** depois dela |
+| 7 | **Banca contratada**: contrato ou extrato publicado (PNCP; diário) | **3 a 4 meses** |
+| 8 | **Edital publicado** | vira concurso com edital, o fluxo de hoje |
 
-A força é do **tipo** de sinal; o curador não a inventa. Um concurso futuro
-mostra o sinal mais forte já verificado.
+As janelas ficam num **arquivo versionado**, e não no código, porque vão ser
+calibradas com o que medirmos (item 6).
 
-### 2. Sites de concursos e cursinhos: pista, nunca fonte
+### 2. Pontuação e previsão, calculadas e explicáveis
 
-A regra do ADR-0002 não muda: **agregador é índice**. No radar ele tem um
-papel claro:
+Para cada órgão com sinais, o radar calcula:
 
-- os sites de concursos entram como **fontes de pista**: pelo feed RSS
-  quando houver, ou pela listagem de notícias; sempre com respeito ao
-  `robots.txt`, sem contornar Turnstile ou captcha;
-- cada pista vira um **Sinal de força 0 (boato)**, que **não é publicado**;
-- o curador (ou a busca automática, item 3) procura a **evidência
-  oficial**. Achou: o sinal sobe para a força do documento achado, com a URL
-  oficial. Não achou em um prazo (ex.: 30 dias): o sinal é **descartado**,
-  com o motivo registrado;
-- do site de concursos guardam-se só o título, o link e a data, para
-  auditoria. O texto deles não é copiado nem republicado.
+- **a pontuação:** a força do sinal oficial mais forte;
+- **a previsão do edital:** a janela desse sinal, com a regra do fim do ano;
+- **o prazo:** "no prazo" enquanto a janela não venceu; **"atrasado"** quando
+  venceu sem edital. Atrasado **rebaixa** a chamada no portal (a página diz
+  que o prazo usual passou), mas não apaga o sinal: concurso atrasado ainda
+  acontece.
 
-### 3. Sinais com fonte estruturada, coletados direto
+Nada aqui é modelo opaco: o assinante vê qual documento sustenta a nota e
+qual janela vale.
 
-Alguns sinais têm fonte oficial **estruturada**, e não precisam de pista:
+### 3. Sites de concursos: só disparam a busca
 
-- **Banca contratada (força 6):** o PNCP tem API pública de contratações. A
-  busca é pelo objeto ("concurso público", "processo seletivo") e pelos CNPJs
-  das bancas validadas. É o sinal mais forte antes do edital e o mais fácil
-  de automatizar. **É a primeira coleta a fazer.**
+Eles especulam muito. Por isso:
+
+- uma menção num site de concursos ou cursinho **não é sinal e não pontua**;
+- ela só **dispara a busca** pela documentação oficial daquele órgão
+  (notícias do órgão, PNCP, DOU e diários). Achou documento: nasce um Sinal
+  oficial, com a força do documento. Não achou: a pista morre sozinha, sem ir
+  para a fila de ninguém;
+- os sites entram pelo feed RSS quando houver, ou pela listagem de notícias,
+  com respeito ao `robots.txt` e sem contornar Turnstile ou captcha;
+- deles guardam-se só o título, o link e a data, para auditoria. O texto
+  não é copiado nem republicado.
+
+### 4. Sinais com fonte estruturada, coletados direto
+
+- **Licitação e contratação da banca (forças 6 e 7):** o PNCP tem API pública
+  de contratações. A busca é pelo objeto ("concurso público", "processo
+  seletivo") e pelos CNPJs das bancas validadas. Muitas bancas são
+  contratadas por dispensa (instituição de ensino e pesquisa), e o aviso de
+  contratação direta também sai no PNCP antes do contrato. **É a primeira
+  coleta a fazer.**
 - **Autorização (força 4):** as portarias do MGI no DOU (o `coletar_dou` do
   ADR-0007, que espera a conta no INLABS).
-- **Previsão orçamentária (força 2):** o Anexo V do PLOA e da LOA da União
-  lista o provimento autorizado por órgão. É uma vez por ano (PLOA em
-  agosto, LOA na aprovação): uma planilha, lida e comparada com a do ano
-  anterior.
+- **Previsão orçamentária (força 2):** o Anexo V do PLOA e da LOA da União,
+  uma vez por ano, comparado com o ano anterior.
+- **Comissão designada (força 5):** as notícias oficiais (ADR-0007 §3a) e os
+  diários.
 
-Indicadores para avaliar depois, por serem mais fracos ou mais trabalhosos:
-projetos de lei que **criam cargos** (dados abertos da Câmara e do Senado);
-**vacância** e aposentadorias (Painel Estatístico de Pessoal da União);
-acórdãos do TCU que mandam **substituir terceirizados** por concursados;
-LDO e LOA **estaduais** (onda C do ADR-0007).
+Para avaliar depois: projetos de lei que **criam cargos** (dados abertos da
+Câmara e do Senado), **vacância** (Painel Estatístico de Pessoal), acórdãos
+do TCU sobre **terceirizados**, LDO e LOA **estaduais** (onda C).
 
-### 4. A chamada no portal
+### 5. A chamada no portal
 
-- Um sinal **verificado** (força 1 ou mais, com evidência oficial) pode virar
-  uma **chamada**: a página do concurso com status **Previsto** (ou
-  **Autorizado**, na força 4), com a **linha do tempo dos sinais** e o link
-  de cada evidência oficial.
-- A página separa o que é **oficial** do que é **boato** sem citar o
-  cursinho: "o órgão designou a comissão em 02/10 (portaria nº …)", e não
-  "fulano disse que vai ter concurso". Esse é o argumento de venda: **o
-  LexPubli confere**.
-- Cada chamada leva a **chamada ao LexLearn** ("comece a estudar antes do
-  edital"), que já existe em todas as páginas.
-- A curadoria continua sendo a porta: **nenhum sinal se publica sozinho**,
-  nem os coletados direto (item 3).
+- Um órgão com sinal oficial vira uma **chamada**: a página do concurso com
+  status **Previsto** (ou **Autorizado**, da força 4 em diante), com a
+  pontuação, a **previsão do edital**, a **linha do tempo dos sinais** e o
+  link de cada documento oficial.
+- A página diz o que é oficial ("comissão designada em 02/10, portaria nº
+  …") e nunca atribui um boato a um site concorrente. O argumento de venda é
+  **o LexPubli confere**.
+- Toda chamada leva a chamada ao LexLearn ("comece antes do edital").
+- **Quem decide publicar** (a calibrar no aceite): o radar calcula a
+  pontuação e a previsão sozinho; a publicação da chamada fica com o curador,
+  como todo o resto do portal (ADR-0007 §4). Alternativa: publicar sozinho a
+  partir da força 4 (autorização), sempre com o documento oficial, e o
+  curador revisa depois.
 
-### 5. O que não muda
+### 6. Medir e calibrar
+
+O radar registra, para cada concurso que chega a edital, a data do primeiro
+sinal de cada tipo. Com isso as janelas do item 1 deixam de ser experiência
+de mercado e passam a ser medidas, por esfera e por Poder.
+
+### 7. O que não muda
 
 - O `contest.discovery.created` para o LexCorpus continua saindo só na
   aprovação de um **concurso** (ADR-0002, ADR-0004). O sinal não é evento
-  do contrato. Se um dia o LexCorpus quiser começar a varredura por carreira
-  ao ver um sinal forte, é decisão de outro ADR, com o consumidor primeiro.
+  do contrato. Começar a varredura do LexCorpus a partir de um sinal forte é
+  decisão de outro ADR, com o consumidor primeiro.
 - O LexPubli não fala com o LexLearn (ADR-0005); a chamada é só um link.
 
 ## Alternativas consideradas
 
-- **Publicar o que os sites de concursos publicam, com a fonte citada:**
-  rápido, mas é exatamente o que o mercado já faz, e repete o erro deles
-  quando o boato não se confirma. Rejeitada: o diferencial é conferir.
-- **Ignorar sites de concursos:** perde-se a pista mais rápida. Muitas vezes
-  eles leem uma notícia do órgão antes de nós. Rejeitada: pista sim, fonte não.
-- **Força calculada por modelo (texto livre):** opaca e difícil de auditar.
-  A escada por tipo de documento é simples e explicável ao assinante.
+- **Publicar o que os sites de concursos publicam, com a fonte citada:** é o
+  que o mercado já faz, e repete o erro dele quando a especulação não se
+  confirma. Rejeitada: o diferencial é conferir.
+- **Ignorar os sites de concursos:** perde-se a pista mais rápida. Rejeitada:
+  eles disparam a busca, sem pontuar.
+- **Pontuação por modelo (texto livre):** opaca e difícil de explicar ao
+  assinante. A escada por tipo de documento, com janela, é simples e
+  auditável.
 
 ## Consequências
 
 **Positivas.**
-- O portal passa a anunciar concursos semanas ou meses antes do edital, com
-  prova oficial: argumento de marketing e de venda do LexLearn.
-- Os boatos dos sites de concursos viram trabalho de verificação, não
-  conteúdo.
+- O portal anuncia concursos meses antes do edital, com prova oficial e
+  previsão de data: argumento de marketing e de venda do LexLearn.
+- A especulação dos sites de concursos vira busca, não conteúdo.
 
 **Negativas / a monitorar.**
-- Mais trabalho de curadoria: o volume de pistas precisa ser medido, e o
-  descarte por prazo evita fila infinita.
+- As janelas vêm da experiência; até a medição (item 6), a previsão pode
+  errar, sobretudo em órgãos estaduais e municipais.
+- O PNCP depende de os órgãos publicarem lá; estados e municípios atrasam.
 - Os sites de concursos mudam de estrutura e de regras de acesso; alguns
-  bloqueiam robôs. Respeitar o `robots.txt` pode deixar sites de fora.
+  bloqueiam robôs.
 - Revisão jurídica: citar o órgão e o documento oficial é seguro; a página
-  nunca atribui um boato a um site concorrente.
+  nunca atribui especulação a um concorrente.
 
 ## Implantação (depois do aceite)
 
-1. Modelo **Sinal** (tipo e força, órgão, URLs de origem e de evidência,
-   status a verificar/verificado/descartado, prazo) e o painel do curador;
-   a página do concurso Previsto ganha a linha do tempo dos sinais.
-2. **Coletor do PNCP** (banca contratada): API pública, CNPJs das bancas
-   validadas e termos do objeto; cada contratação vira Sinal de força 6, a
-   verificar.
-3. **Pistas dos sites de concursos:** cadastro como `Fonte` de um tipo
-   próprio (`pista`), sem domínio oficial exigido, só RSS ou listagem,
-   `robots.txt` conferido; cada aviso vira Sinal de força 0.
-4. **Anexo V do PLOA/LOA:** leitura anual da planilha, comparada com o ano
-   anterior.
-5. Medir depois de 30 dias: pistas recebidas, verificadas e descartadas;
-   antecedência média entre o primeiro sinal verificado e o edital.
+1. Modelo **Sinal** (tipo, força, órgão, data e URL do documento oficial),
+   as janelas num arquivo versionado, o cálculo de pontuação, previsão e
+   prazo; o painel do curador.
+2. **Coletor do PNCP** (licitação, aviso de contratação direta e contrato
+   com as bancas validadas).
+3. A página do concurso **Previsto**: pontuação, previsão do edital, linha
+   do tempo dos sinais.
+4. **Gatilho dos sites de concursos:** pistas por RSS ou listagem, que só
+   disparam a busca oficial.
+5. **Anexo V do PLOA/LOA** (anual) e o `coletar_dou` (com o INLABS).
+6. A medição do item 6.
