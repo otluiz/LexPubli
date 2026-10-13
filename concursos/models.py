@@ -219,6 +219,16 @@ class ConcursoPage(Page):
         super().clean()
         _exigir_oficial("fonte_url", self.fonte_url)
 
+    def radar(self):
+        """Nota, previsão e linha do tempo dos sinais (ADR-0008), ou None."""
+        from .radar import ROTULO_PRAZO, avaliar
+
+        sinais = list(self.sinais.all().order_by("data_documento"))
+        av = avaliar(sinais)
+        if av is None:
+            return None
+        return {"av": av, "sinais": sinais, "prazo": ROTULO_PRAZO[av.prazo]}
+
     @property
     def total_vagas(self) -> int | None:
         vagas = [c.vagas for c in self.cargos.all() if c.vagas is not None]
@@ -351,6 +361,67 @@ class Fonte(models.Model):
                                             "registre a data antes de ativá-la."})
         if not self.ativa and self.conferida_em and not self.motivo_inativa:
             raise ValidationError({"motivo_inativa": "Fonte conferida e inativa: diga por quê."})
+
+
+# --- Radar de sinais (ADR-0008) ----------------------------------------------
+class Sinal(models.Model):
+    """Documento OFICIAL que antecipa um concurso. A força e a janela até o
+    edital vêm do tipo (concursos/dados/janelas_sinais.json). Site de concursos
+    não é Sinal: só dispara a busca pelo documento oficial (ADR-0008 §3)."""
+
+    class Tipo(models.TextChoices):
+        PEDIDO_AUTORIZACAO = "pedido_autorizacao", "1 · Pedido de autorização"
+        PREVISAO_ORCAMENTARIA = "previsao_orcamentaria", "2 · Previsão orçamentária (PLOA/LDO)"
+        ORCAMENTO_APROVADO = "orcamento_aprovado", "3 · Orçamento aprovado (LOA)"
+        AUTORIZACAO = "autorizacao", "4 · Autorização do concurso"
+        COMISSAO = "comissao", "5 · Comissão do concurso designada"
+        LICITACAO_BANCA = "licitacao_banca", "6 · Licitação ou aviso de contratação da banca"
+        BANCA_CONTRATADA = "banca_contratada", "7 · Banca contratada"
+
+    class Origem(models.TextChoices):
+        MANUAL = "manual", "Curador"
+        PNCP = "pncp", "PNCP"
+        DOU = "dou", "DOU"
+        NOTICIA = "noticia", "Notícia oficial do órgão"
+
+    orgao = models.ForeignKey(Orgao, on_delete=models.PROTECT, related_name="sinais")
+    tipo = models.CharField(max_length=24, choices=Tipo.choices)
+    data_documento = models.DateField("data do documento")
+    resumo = models.CharField(max_length=300, help_text="O que o documento diz, em uma frase.")
+    documento_url = models.URLField("documento oficial", max_length=500)
+    origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.MANUAL)
+    banca = models.ForeignKey(Banca, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name="sinais", help_text="Quando o sinal já diz a banca.")
+    concurso = models.ForeignKey(ConcursoPage, on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name="sinais", help_text="A chamada no portal.")
+    revisado = models.BooleanField(default=False,
+                                   help_text="O curador conferiu (o radar publica sozinho a partir "
+                                             "da força 4; a revisão vem depois).")
+    registrado_em = models.DateTimeField(auto_now_add=True)
+
+    panels = [
+        FieldRowPanel([FieldPanel("orgao"), FieldPanel("tipo"), FieldPanel("data_documento")]),
+        FieldPanel("resumo"),
+        FieldRowPanel([FieldPanel("documento_url"), FieldPanel("origem")]),
+        FieldRowPanel([FieldPanel("banca"), FieldPanel("concurso"), FieldPanel("revisado")]),
+    ]
+
+    class Meta:
+        ordering = ["-data_documento"]
+        constraints = [models.UniqueConstraint(fields=["orgao", "tipo", "documento_url"],
+                                               name="sinal_unico_por_documento")]
+
+    def __str__(self):
+        return f"{self.orgao} · {self.get_tipo_display()} ({self.data_documento:%d/%m/%Y})"
+
+    @property
+    def forca(self) -> int:
+        from .radar import forca
+
+        return forca(self.tipo)
+
+    def clean(self):
+        _exigir_oficial("documento_url", self.documento_url)
 
 
 # --- Curadoria ---------------------------------------------------------------

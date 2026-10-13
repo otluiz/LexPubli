@@ -6,7 +6,7 @@ from wagtail import hooks
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet, SnippetViewSetGroup
 
-from .models import Banca, Descoberta, Fonte, Orgao, OutboxEvent
+from .models import Banca, Descoberta, Fonte, Orgao, OutboxEvent, Sinal
 
 
 class DescobertaViewSet(SnippetViewSet):
@@ -46,6 +46,17 @@ class FonteViewSet(SnippetViewSet):
     search_fields = ["nome", "url"]
 
 
+class SinalViewSet(SnippetViewSet):
+    """Radar de sinais (ADR-0008): só documento oficial."""
+
+    model = Sinal
+    icon = "warning"
+    menu_label = "Radar"
+    list_display = ["orgao", "tipo", "data_documento", "origem", "concurso", "revisado"]
+    list_filter = ["tipo", "origem", "revisado"]
+    search_fields = ["resumo", "documento_url"]
+
+
 class OutboxViewSet(SnippetViewSet):
     """Só leitura na prática: quem escreve aqui é o código, não o operador."""
 
@@ -60,7 +71,7 @@ class LexPubliGroup(SnippetViewSetGroup):
     menu_label = "LexPubli"
     menu_icon = "folder-open-inverse"
     menu_order = 200
-    items = (DescobertaViewSet, FonteViewSet, OrgaoViewSet, BancaViewSet, OutboxViewSet)
+    items = (DescobertaViewSet, SinalViewSet, FonteViewSet, OrgaoViewSet, BancaViewSet, OutboxViewSet)
 
 
 register_snippet(LexPubliGroup)
@@ -125,3 +136,16 @@ def fontes_apagadas(request, instances):
                          " O watch que sobrar aparece como órfão.")
         return
     messages.info(request, f"changedetection: {len(uuids)} watch(es) removido(s).")
+
+
+# --- Sinal gravado no painel -> chamada no portal (ADR-0008 §5, opção b) -----
+@hooks.register("after_create_snippet")
+@hooks.register("after_edit_snippet")
+def sinal_gravado(request, instance):
+    if not isinstance(instance, Sinal):
+        return
+    from .radar import aplicar
+
+    chamada = aplicar(instance.orgao)
+    if chamada is not None:
+        messages.info(request, f"Radar: chamada no portal em {chamada.url}.")

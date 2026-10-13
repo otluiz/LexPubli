@@ -20,6 +20,28 @@
 
     {% if page.resumo %}<div class="resumo">{{ page.resumo|richtext }}</div>{% endif %}
 
+    {% with r=page.radar %}{% if r %}
+      <section class="radar" aria-label="Radar do concurso">
+        <h2>Radar: o que já é oficial</h2>
+        <p class="radar-nota"><strong>Nota {{ r.av.forca }} de 7</strong> · {{ r.av.sinal.get_tipo_display|slice:"4:" }}
+          <span class="selo selo-prazo-{{ r.av.prazo }}">{{ r.prazo }}</span></p>
+        {% if r.av.inicio %}
+          <p>Edital esperado entre <strong>{{ r.av.inicio|date:"F \d\e Y"|lower }}</strong> e
+            <strong>{{ r.av.fim|date:"F \d\e Y"|lower }}</strong>{% if r.av.prazo == "atrasado" %}: o prazo usual passou sem
+            edital, mas concurso atrasado ainda acontece{% endif %}.</p>
+        {% endif %}
+        <ol class="linha-do-tempo">
+          {% for s in r.sinais %}
+            <li><time datetime="{{ s.data_documento|date:"Y-m-d" }}">{{ s.data_documento|date:"d/m/Y" }}</time>
+              · {{ s.get_tipo_display|slice:"4:" }}: {{ s.resumo }}
+              <a href="{{ s.documento_url }}" rel="noopener nofollow">documento oficial</a></li>
+          {% endfor %}
+        </ol>
+        <p class="meta">A previsão usa o prazo típico entre cada tipo de documento e o edital. Só documentos
+          oficiais contam.</p>
+      </section>
+    {% endif %}{% endwith %}
+
     <h2>Cargos</h2>
     <table class="cargos">
       <thead><tr><th>Cargo</th><th>Vagas</th><th>Remuneração inicial</th></tr></thead>
