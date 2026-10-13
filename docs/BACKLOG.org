@@ -88,6 +88,17 @@
    Analisar: NVMe dedicado no gpu01 (isola dados e I/O, não o kernel),
    VM KVM com o NVMe em passthrough, ou máquina/VPS separada. Ponto
    delicado: /data/raw/editais é escrito pelo LexPubli e lido pelo LexLearn.
+   Levantado no gpu01 em 13/10: um único NVMe (Kingston NV3 1 TB) com SO,
+   Docker e dados do LexLearn; placa Machinist X99-MR9A-PRO; KVM disponível
+   (/dev/kvm) e IOMMU ativo (48 grupos); Docker sem userns-remap.
+   Leitura: NVMe só, na mesma instalação do Docker, isola disco e I/O mas
+   não o kernel nem o daemon (escape de container lê todos os discos).
+   Recomendado: NVMe novo em passthrough para uma VM KVM do LexPubli, rede
+   própria (VLAN no MikroTik), exposição por Cloudflare Tunnel de dentro da
+   VM, e editais por PULL do lado do LexLearn (a VM não monta /data).
+   - [ ] Conferir slot livre (M.2 ou PCIe com adaptador) e o grupo IOMMU
+         do NVMe novo
+   - [ ] Decidir: VM no gpu01 x máquina/VPS separada → ADR
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
