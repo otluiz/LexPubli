@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags lexpubli %}
 {% block head %}{% json_ld page %}{% endblock %}
+{% block chamada %}<div class="conteudo">{% include "concursos/_chamada_lexlearn.html" with concurso=page %}</div>{% endblock %}
 {% block content %}
   <article>
     <h1>{{ page.title }}</h1>

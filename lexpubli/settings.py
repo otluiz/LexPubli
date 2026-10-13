@@ -80,6 +80,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "concursos.contexto.ecossistema",
             ],
         },
     },
@@ -136,6 +137,10 @@ LEXPUBLI_CHANGEDETECTION_URL = os.environ.get("LEXPUBLI_CHANGEDETECTION_URL",
 LEXPUBLI_CHANGEDETECTION_API_KEY = os.environ.get("LEXPUBLI_CHANGEDETECTION_API_KEY", "")
 LEXPUBLI_WEBHOOK_INTERNO = os.environ.get("LEXPUBLI_WEBHOOK_INTERNO",
                                           "json://web:8000/webhooks/changedetection/")
+
+# LexLearn, o produto principal do ecossistema: o portal sempre o anuncia.
+# Só um LINK (marketing); o LexPubli não fala com o LexLearn (ADR-0005).
+LEXPUBLI_LEXLEARN_URL = os.environ.get("LEXPUBLI_LEXLEARN_URL", "")
 
 # --- Segurança ---------------------------------------------------------------
 # LEXPUBLI_HTTPS=1 quando o site é servido por HTTPS (proxy reverso na frente).

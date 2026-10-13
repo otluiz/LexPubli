@@ -12,9 +12,10 @@
 <body>
   <header class="topo">
     <a class="marca" href="/">LexPubli</a>
-    <span class="lema">Radar de concursos públicos</span>
+    <span class="lema">Concursos públicos, antes do edital</span>
   </header>
   <main class="conteudo">{% block content %}{% endblock %}</main>
+  {% block chamada %}<div class="conteudo">{% include "concursos/_chamada_lexlearn.html" %}</div>{% endblock %}
   <footer class="rodape">
     <p>As informações vêm de fontes oficiais, indicadas em cada página. Confira sempre o edital.</p>
   </footer>

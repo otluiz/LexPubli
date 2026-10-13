@@ -1,0 +1,16 @@
+{# Chamada ao LexLearn, o produto principal. Só um link (ADR-0005). #}
+<aside class="chamada" aria-label="LexLearn">
+  <div>
+    <p class="chamada-rotulo">LexLearn</p>
+    {% if concurso %}
+      <h2>Vai prestar {{ concurso.title }}? Comece a estudar agora.</h2>
+      <p>No LexLearn você resolve as questões das provas anteriores{% if concurso.banca %} da {{ concurso.banca.nome }}{% endif %}
+        e questões novas, geradas no estilo da banca.</p>
+    {% else %}
+      <h2>Do aviso à aprovação: estude com o LexLearn.</h2>
+      <p>Questões originais das bancas, com o gabarito oficial, e questões novas geradas no estilo de cada
+        banca, para treinar antes de o edital sair.</p>
+    {% endif %}
+  </div>
+  {% if LEXLEARN_URL %}<a class="botao" href="{{ LEXLEARN_URL }}">Conhecer o LexLearn</a>{% endif %}
+</aside>

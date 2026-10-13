@@ -18,3 +18,23 @@ a { color: var(--acento); }
 .cargos { width: 100%; border-collapse: collapse; }
 .cargos th, .cargos td { text-align: left; padding: 8px; border-bottom: 1px solid var(--borda); }
 .rodape { border-top: 1px solid var(--borda); font-size: .9rem; }
+/* página inicial */
+.abertura h1 { font-size: 2rem; line-height: 1.2; margin: 24px 0 8px; }
+.subtitulo { font-size: 1.1rem; color: var(--suave); max-width: 60ch; }
+.numeros-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 24px 0 8px; }
+.numeros-grade div { border: 1px solid var(--borda); border-radius: 8px; padding: 12px 16px; }
+.numeros-grade strong { display: block; font-size: 1.8rem; color: var(--acento); }
+.numeros-grade span, .poderes { color: var(--suave); font-size: .9rem; }
+.grupo h2, .como h2 { margin-top: 32px; }
+.grupo-radar .cartao { border-left: 4px solid var(--acento); }
+.passos li { margin: 8px 0; }
+.selo-previsto, .selo-autorizado { border-color: var(--acento); color: var(--acento); }
+/* chamada ao LexLearn, em todas as páginas */
+.chamada { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+  margin: 32px 0 16px; padding: 20px; border-radius: 12px; background: var(--acento); color: #fff; }
+.chamada h2 { margin: 4px 0; font-size: 1.3rem; }
+.chamada p { margin: 4px 0; max-width: 60ch; }
+.chamada-rotulo { text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; opacity: .85; }
+.botao { display: inline-block; padding: 10px 18px; border-radius: 8px; background: #fff; color: #1f5fbf;
+  font-weight: 600; text-decoration: none; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { .chamada { color: #0d1117; } .botao { background: #0d1117; color: #7fb0ff; } }
