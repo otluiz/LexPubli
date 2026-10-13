@@ -144,11 +144,26 @@ de produção, registrada no backlog.
 
 ### Ligando o changedetection.io
 
-1. Na UI (<http://127.0.0.1:5000>), adicione a página a monitorar, por
-   exemplo `https://www.cebraspe.org.br/concursos/SEFAZ_AL_26`.
-2. Em *Notifications*, use a URL Apprise:
-   `json://web:8000/webhooks/changedetection/?+X-Lexpubli-Token=<LEXPUBLI_WEBHOOK_TOKEN>`
-3. Cada mudança detectada vira uma **Descoberta pendente** em *LexPubli → Curadoria*.
+As páginas vigiadas vêm do cadastro **Fontes** (ADR-0007), não da UI do
+changedetection:
+
+1. Carregue as fontes de uma onda: `python manage.py carregar_fontes A`.
+2. Na UI (<http://127.0.0.1:5000>), em *Settings > API*, copie a chave para
+   `LEXPUBLI_CHANGEDETECTION_API_KEY` no `.env`. Defina também
+   `LEXPUBLI_WEBHOOK_TOKEN`.
+3. `python manage.py sincronizar_changedetection --simular`, para ver o que
+   muda, e depois sem `--simular`. A sincronização:
+   - cria um watch para cada fonte ativa do tipo `pagina`, com a etiqueta
+     `lexpubli`, o intervalo da fonte, notificação em texto e o webhook
+     `json://web:8000/webhooks/changedetection/?+X-Lexpubli-Token=…`;
+   - atualiza o que mudou no cadastro e **pausa** (não apaga) o watch de uma
+     fonte desativada;
+   - relata como **órfão** um watch com a etiqueta que nenhuma Fonte
+     reconhece; ele só é apagado com `--remover-orfaos`. Watches criados à
+     mão na UI, sem a etiqueta, nunca são tocados.
+
+   Rodar de novo sem mudança no cadastro não altera nada.
+4. Cada mudança detectada vira uma **Descoberta pendente** em *LexPubli → Curadoria*.
 
 ### Testes
 
@@ -172,6 +187,8 @@ As principais variáveis:
 | `BROKER_LEXPUBLI_PASSWORD` | Usuário `lexpubli` do worker; o compose monta a `LEXPUBLI_RABBITMQ_URL` |
 | `BROKER_LEXCORPUS_PASSWORD` | Usuário `lexcorpus`, passado ao LexCorpus |
 | `LEXPUBLI_WEBHOOK_TOKEN` | Token do webhook. Vazio = webhook desligado |
+| `LEXPUBLI_CHANGEDETECTION_API_KEY` | Chave da API do changedetection.io (*Settings > API*) |
+| `LEXPUBLI_CHANGEDETECTION_URL` | Padrão `http://changedetection:5000` (dentro do compose) |
 
 ## Contratos e convenções
 

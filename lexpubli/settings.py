@@ -128,6 +128,14 @@ LEXPUBLI_RABBITMQ_URL = os.environ.get("LEXPUBLI_RABBITMQ_URL", "")
 LEXPUBLI_EXCHANGE = os.environ.get("LEXPUBLI_EXCHANGE", "lexpubli.events")
 # Token compartilhado do webhook do changedetection.io. Vazio = webhook desligado.
 LEXPUBLI_WEBHOOK_TOKEN = os.environ.get("LEXPUBLI_WEBHOOK_TOKEN", "")
+# changedetection.io (ADR-0007 §1): o cadastro Fonte é a fonte da verdade e
+# `sincronizar_changedetection` o aplica pela API. A chave fica em Settings > API
+# da UI dele. O webhook é chamado DE DENTRO da rede do compose (host `web`).
+LEXPUBLI_CHANGEDETECTION_URL = os.environ.get("LEXPUBLI_CHANGEDETECTION_URL",
+                                              "http://changedetection:5000")
+LEXPUBLI_CHANGEDETECTION_API_KEY = os.environ.get("LEXPUBLI_CHANGEDETECTION_API_KEY", "")
+LEXPUBLI_WEBHOOK_INTERNO = os.environ.get("LEXPUBLI_WEBHOOK_INTERNO",
+                                          "json://web:8000/webhooks/changedetection/")
 
 # --- Segurança ---------------------------------------------------------------
 # LEXPUBLI_HTTPS=1 quando o site é servido por HTTPS (proxy reverso na frente).

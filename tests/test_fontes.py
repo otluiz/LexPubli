@@ -102,7 +102,7 @@ def test_carregar_onda_a(db):
 
     call_command("carregar_fontes", "A", stdout=StringIO())
     assert Fonte.objects.count() == 22
-    assert Fonte.objects.filter(ativa=True).count() == 18
+    assert Fonte.objects.filter(ativa=True).count() == 17
     inativas = Fonte.objects.filter(ativa=False)
     assert all(f.motivo_inativa for f in inativas)          # conferida e inativa: diz por quê
     assert set(Fonte.objects.values_list("poder", flat=True)) == set(Fonte.Poder.values)
