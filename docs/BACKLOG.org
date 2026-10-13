@@ -225,7 +225,21 @@
          Gravar um Sinal de força >= 4 publica sozinho a chamada (concurso
          Autorizado) ou sobe a Prevista do curador; sinais soltos do órgão
          são ligados a ela. Documento só oficial; sem evento ao LexCorpus
-   - [ ] Coletor do PNCP
+   - [X] Coletor do PNCP (13/10): `manage.py coletar_pncp [--dias N]`, só a
+         API de consultas DOCUMENTADA (/v1/contratos, todas as modalidades ->
+         Sinal 7; /v1/contratacoes/publicacao, dispensa e concorrência
+         eletrônica -> Sinal 6). Filtro do objeto (concurso público para
+         provimento; fora arquitetura, prêmio, fotografia...); federal,
+         estadual e distrital (municipal só contado). Órgão pelo CNPJ (novo
+         campo Orgao.cnpj); órgão desconhecido é criado com o nome do PNCP
+         para o curador revisar. Para na primeira recusa; não duplica
+   - [ ] PNCP AO VIVO: validar no gpu01. Em 13/10, ~20 consultas de teste em
+         poucos minutos BLOQUEARAM o endereço do notebook (a busca do portal,
+         não documentada, e depois a API documentada). Medir o volume diário
+         (contratos: ~6 mil/dia em páginas de 500; dispensa: ~2 mil/dia em
+         páginas de 50) e o limite real antes de agendar
+   - [ ] Agendar coletar_pncp 1x/dia no gpu01 (cron do host ou serviço do
+         compose), de madrugada
    - [ ] Pistas dos sites de concursos (Fonte tipo pista; RSS/listagem)
    - [ ] Anexo V do PLOA/LOA (anual)
 ** FEITO [#A] Página inicial e chamada ao LexLearn
