@@ -151,10 +151,20 @@
          inativa. Snippet "Fontes" no painel. Domínio oficial obrigatório:
          .gov.br, .leg.br, .jus.br, .mp.br, .def.br (Defensorias, §3) ou o
          site de uma banca cadastrada (e subdomínios)
-   - [ ] Cadastrar a onda A (~25 fontes), cada uma conferida: texto sem
-         JS (ou API/feed) e robots.txt; a que não passa fica inativa com motivo
+   - [X] Onda A cadastrada (13/10): `manage.py carregar_fontes A`, dados
+         versionados em concursos/dados/fontes_onda_a.json (idempotente pela
+         URL; não desfaz ajuste do curador, salvo --atualizar). 22 fontes
+         conferidas (texto sem JS, robots.txt), 18 ativas. Inativas, com
+         motivo: DOU (aguarda conta INLABS; www.in.gov.br proíbe robôs), CJF
+         (sem concurso próprio; TRFs na onda B), MPT (só JS), DPU (robots.txt
+         proíbe tudo)
+   - [ ] DPU: pedir autorização ou achar fonte oficial alternativa
+   - [ ] MPT: procurar API/feed (as PRTs regionais publicam as notícias)
+   - [ ] Senado: a fonte é o hotsite do concurso de 2022; conferir se o
+         próximo concurso usa outro endereço
    - [ ] Sincronização Fonte -> changedetection.io (API)
-   - [ ] INLABS: confirmar acesso; coletar_dou (Seções 1 e 3)
+   - [ ] INLABS: criar a conta (dono do produto, inlabs.in.gov.br) e
+         confirmar acesso; depois coletar_dou (Seções 1 e 3)
    - [ ] Onda A (federal, ~25 fontes + DOU); medir antes da onda B
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não

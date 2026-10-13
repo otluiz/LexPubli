@@ -93,3 +93,35 @@ def test_descoberta_de_agregador_anuncia_a_fonte_oficial_do_concurso(exemplo):
     data = OutboxEvent.objects.get().envelope["data"]
     assert data["source_url"] == exemplo["concurso"].fonte_url
     assert "pciconcursos" not in data["source_url"]
+
+
+def test_carregar_onda_a(db):
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    call_command("carregar_fontes", "A", stdout=StringIO())
+    assert Fonte.objects.count() == 22
+    assert Fonte.objects.filter(ativa=True).count() == 18
+    inativas = Fonte.objects.filter(ativa=False)
+    assert all(f.motivo_inativa for f in inativas)          # conferida e inativa: diz por quê
+    assert set(Fonte.objects.values_list("poder", flat=True)) == set(Fonte.Poder.values)
+    dou = Fonte.objects.get(tipo=Fonte.Tipo.DOU)
+    assert dou.intervalo_horas == 24 and not dou.ativa
+
+
+def test_carregar_de_novo_nao_desfaz_o_curador(db):
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    call_command("carregar_fontes", "A", stdout=StringIO())
+    stj = Fonte.objects.get(nome__startswith="STJ")
+    stj.prioridade = 1
+    stj.save()
+    saida = StringIO()
+    call_command("carregar_fontes", "A", stdout=saida)
+    assert "22 mantida(s)" in saida.getvalue()
+    assert Fonte.objects.get(pk=stj.pk).prioridade == 1
+    call_command("carregar_fontes", "A", "--atualizar", stdout=StringIO())
+    assert Fonte.objects.get(pk=stj.pk).prioridade == 2
