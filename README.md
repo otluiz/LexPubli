@@ -10,9 +10,8 @@ caminho para estudar no LexLearn.
 
 > **LexPubli descobre concursos e publica. LexCorpus adquire os documentos. LexLearn transforma documentos em conhecimento.**
 
-> 🚧 **Status:** spike de validação da plataforma (ADR-0001, *Proposto*). O
-> código atual prova a arquitetura com um concurso real (Sefaz-AL 2026) e
-> ainda não é o MVP.
+> 🚧 **Status:** plataforma decidida (ADR-0001 *Aceito*: Wagtail) e spike
+> concluído com um concurso real (Sefaz-AL 2026). Próxima etapa: o MVP.
 
 ## O ecossistema Lex
 
@@ -186,8 +185,8 @@ As principais variáveis:
 
 ## Roteiro
 
-- **Spike (agora):** validar o Wagtail e a arquitetura. Checklist no ADR-0001.
-- **MVP:** modelos completos, primeiras fontes, deduplicação, Heat Score por
+- **Spike (concluído em 12/10/2026):** Wagtail e arquitetura validados. Resultados no ADR-0001.
+- **MVP (próximo):** modelos completos, primeiras fontes, deduplicação, Heat Score por
   regras com decisão humana preservada, API pública e feeds, consumo pelo
   LexCorpus.
 - **Depois:** mais fontes, alertas e newsletter, aprendizado a partir das

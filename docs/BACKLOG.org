@@ -34,21 +34,21 @@
       inclusive de certames anteriores) → LexLearn
     A integração é por eventos: o LexPubli AVISA e o LexCorpus DECIDE o
     que coletar. Nada de código ou banco compartilhado.
-  - PLATAFORMA (12/10): em avaliação. Ver
+  - PLATAFORMA (12/10): DECIDIDA — ADR-0001 ACEITO. Ver
     docs/architecture/decisions/ADR-0001-plataforma-e-arquitetura.md.
-    Proposta: WAGTAIL (Python + Django, BSD-3, PostgreSQL), um projeto só
+    WAGTAIL (Python + Django, BSD-3, PostgreSQL), um projeto só
     com domínio + portal (SSR/SEO) + curadoria (admin) + workers RabbitMQ.
     WordPress não recomendado por superfície de ataque (11.334 vulnerabilidades
     em 2025 segundo a Patchstack, 91% em plugins) e por estar fora da stack.
     Outras opções avaliadas: Ghost, Payload, Directus (licença não-OSS),
-    FastAPI+SQLAdmin (fallback preferido). Decisão final depois do spike.
+    FastAPI+SQLAdmin (era o fallback). Spike aprovado em 12/10.
     Apoio: changedetection.io (Apache-2.0) como gatilho do Discovery.
 
 * Fundação
-** EM-ANDAMENTO [#A] ADR-0001: plataforma e arquitetura (aguarda revisão)
-   Escrito (status: Proposto). Proposta: Wagtail.
+** FEITO [#A] ADR-0001: plataforma e arquitetura — ACEITO (Wagtail)
+   CLOSED: 2026-10-12
    - [X] Pesquisar alternativas (WP, Ghost, Payload, Directus, FastAPI, Wagtail)
-   - [ ] Revisão do dono do produto
+   - [X] Revisão do dono do produto (aceito em 12/10)
    - [X] Spike de validação (item abaixo) → todos os itens atendidos
 ** FEITO [#A] Spike Wagtail — checklist no ADR-0001
    CLOSED: 2026-10-12
@@ -62,10 +62,8 @@
    - [X] docker compose up (web, worker, db, rabbitmq, changedetection)
    - [X] Hardening: check --deploy, /admin/ 404, CSP, uid sem root
    - [X] 27 testes (pytest)
-** TODO [#A] Revisar o ADR-0001 e passar a Aceito
-   Decisão do dono do produto, com base no resultado do spike.
 ** TODO [#A] Subir a etapa no lexlearn-gpu01 (overlay docker-compose.lexlearn.yml)
-   Só depois do ADR aceito. Credenciais do broker do LexLearn no .env do
+   Desbloqueado: ADR-0001 aceito em 12/10. Credenciais do broker do LexLearn no .env do
    servidor (não versionado). Validar o evento no broker de lá.
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não

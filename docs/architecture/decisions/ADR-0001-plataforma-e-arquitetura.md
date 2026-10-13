@@ -5,8 +5,8 @@
 
 # ADR-0001: Plataforma e arquitetura do LexPubli
 
-- Status: **Proposto**. Spike concluído em 12/10/2026, com todos os itens da
-  validação atendidos; aguarda a revisão do dono do produto para virar *Aceito*.
+- Status: **Aceito** em 2026-10-12 pelo dono do produto, depois do spike
+  (todos os itens da validação atendidos).
 - Data: 2026-10-12
 - Autores: Prof. Othon Luiz, Claude (Anthropic)
 
@@ -151,7 +151,7 @@ continuam no LexCorpus.
   LexCorpus, então o conhecimento é reaproveitado (o código não é
   compartilhado, conforme o ADR-0002).
 
-## Decisão (proposta)
+## Decisão
 
 Adotar o **Wagtail** como plataforma do LexPubli, num único projeto
 Django/Wagtail com PostgreSQL, que abriga:
