@@ -111,13 +111,14 @@
    produtor travado por evento; sem caminho de storage. Envelope v1
    aceita os produtores lexpubli|lexcorpus|lexlearn (mudança compatível).
    Guia para o LexCorpus: contracts/README.md. Testes: tests/test_contratos.py.
-** EM-ANDAMENTO [#A] ADR-0003: editais em /data/raw/editais/ :ALINHAR_LexLearn:
-   Escrito em 12/10 (status: Proposto):
+** FEITO [#A] ADR-0003: editais em /data/raw/editais/ :ALINHAR_LexLearn:
+   CLOSED: 2026-10-13 — ACEITO (inclusive {concurso} = contest_slug + contest_id)
+   Escrito em 12/10:
    docs/architecture/decisions/ADR-0003-editais-no-storage-compartilhado.md
    Apurado no LexLearn: a pasta {banca}/{concurso}/ e o formato do sidecar
    JÁ EXISTEM (4 editais da Transpetro, baixados à mão do PCI); a ingestão
    é manual (POST /exams/ingerir-lote, subdir=editais); não há evento.
-   Decidido no ADR (a confirmar com o LexLearn):
+   Decidido no ADR:
    - LexPubli é o único escritor automatizado; SÓ com autorização humana
      no painel; fonte oficial obrigatória; nunca apaga nem sobrescreve
    - {concurso} = contest_slug do LexPubli + contest_id no sidecar; o
@@ -127,7 +128,7 @@
    - Fase 1 sem evento (ingerir-lote); fase 2 edital.available
    - Worker monta só /data/raw/editais
    - [X] Escrever o ADR
-   - [ ] Aceite do dono do produto
+   - [X] Aceite do dono do produto (13/10)
    - [ ] Nota no ADR-0007 do LexLearn (fronteira de ingestão)
 ** TODO [#B] Consumir as respostas do LexCorpus
    Estado da aquisição por concurso; a página mostra "provas anteriores
