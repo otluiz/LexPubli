@@ -138,6 +138,18 @@
          (disco: NVMe por adaptador x M.2 SATA; rede: 2ª Ethernet de
          fábrica x placa PCIe x1 x VLAN pela placa única)
    - [ ] 2ª placa de rede: SÓ comprar se não houver Ethernet de fábrica
+** TODO [#A] ADR-0007: fontes de descoberta por Poder
+   PROPOSTO em 13/10, a pedido do dono do produto: Executivo (ministérios),
+   Legislativo, Judiciário e Ministério Público. Verificado: só o Executivo
+   federal tem fonte estruturada (DOU em XML pelo INLABS; autorizações são
+   portarias do MGI). Câmara/Senado têm dados abertos, mas sem concursos;
+   o DJEN do CNJ é processual. O resto são páginas oficiais, em ondas.
+   - [ ] Aceite do ADR
+   - [ ] Modelo Fonte (poder, esfera, tipo, carreira_sugerida) + domínio
+         oficial obrigatório
+   - [ ] Sincronização Fonte -> changedetection.io (API)
+   - [ ] INLABS: confirmar acesso; coletar_dou (Seções 1 e 3)
+   - [ ] Onda A (federal, ~25 fontes + DOU); medir antes da onda B
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
