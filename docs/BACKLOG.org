@@ -26,6 +26,14 @@
     Busca concursos (abertos, previstos, editais, retificações,
     cronogramas) e os PUBLICIZA em páginas próprias, para o público.
     É o funil que leva o visitante ao LexLearn.
+  - FRONTEIRA COM O LEXLEARN (13/10): ADR-0005 ACEITO. A automação é SÓ
+    LexPubli ↔ LexCorpus. O LexPubli toca o LexLearn apenas pela pasta
+    /data/raw/editais/ (autorização humana). Não publica para ele, não
+    assina nada dele, não chama a API dele, não usa o broker dele. O v2.1
+    (LexCorpus → LexLearn) continua automático e alimenta o DNA das bancas;
+    a GERAÇÃO de questões é por demanda, decidida pelo Administrador do
+    LexLearn. Os serviços pagos usam o LexLearn sem acesso ao LexCorpus nem
+    ao LexPubli. Ver contracts/README.md, seção "Fronteira".
   - O LEXCORPUS NÃO É ESVAZIADO (12/10): buscador, catálogo, orquestrador,
     watchlist, scheduler e spiders continuam no LexCorpus. A diferença de
     foco:
@@ -62,9 +70,24 @@
    - [X] docker compose up (web, worker, db, rabbitmq, changedetection)
    - [X] Hardening: check --deploy, /admin/ 404, CSP, uid sem root
    - [X] 27 testes (pytest)
-** TODO [#A] Subir a etapa no lexlearn-gpu01 (overlay docker-compose.lexlearn.yml)
-   Desbloqueado: ADR-0001 aceito em 12/10. Credenciais do broker do LexLearn no .env do
-   servidor (não versionado). Validar o evento no broker de lá.
+** BLOQUEADO [#A] Subir a etapa no lexlearn-gpu01
+   Bloqueado pelo ADR-0005 §2a: o overlay docker-compose.lexlearn.yml (broker
+   do LexLearn) não vale mais. Depende do broker próprio e da análise de
+   isolamento físico (itens abaixo).
+** TODO [#A] Broker próprio do LexPubli (ADR-0005 §2a) :ALINHAR_LexCorpus:
+   - [ ] LexPubli: rabbitmq próprio fora do profile opcional; remover o
+         overlay docker-compose.lexlearn.yml; README e settings sem
+         "o broker é do LexLearn"
+   - [ ] LexCorpus: URL separada para o lado LexPubli (consumidor e
+         respostas document.*); o v2.1 continua na RABBIT_URL do LexLearn
+   - [ ] E2E de novo: approval → LexCorpus → completed no broker do
+         LexPubli; concurso.disponivel no broker do LexLearn
+** TODO [#A] Isolamento físico do LexPubli: NVMe dedicado, VM ou máquina
+   Pedido do dono do produto em 13/10. O LexPubli é o projeto exposto à
+   internet; o LexLearn guarda o banco e, no futuro, os clientes pagantes.
+   Analisar: NVMe dedicado no gpu01 (isola dados e I/O, não o kernel),
+   VM KVM com o NVMe em passthrough, ou máquina/VPS separada. Ponto
+   delicado: /data/raw/editais é escrito pelo LexPubli e lido pelo LexLearn.
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
@@ -83,7 +106,7 @@
    ~1-1,5 GiB) cabe com folga.
    - [ ] Diretório próprio (~/LexPubli), projeto compose próprio
    - [ ] PostgreSQL PRÓPRIO, sem porta publicada (não usar o lexlearn-db)
-   - [ ] RabbitMQ: rede externa do LexLearn, como o LexCorpus
+   - [ ] RabbitMQ: PRÓPRIO (ADR-0005 §2a; não usar o do LexLearn)
    - [ ] Portas livres em 127.0.0.1 (em uso: 5174, 8183, 5672, 15672;
          Ollama nativo em 172.16.10.40:11434)
    - [ ] Limites de CPU/memória nos containers do LexPubli, para não
@@ -103,20 +126,34 @@
    Agregadores (PCI) só como índice; fonte oficial obrigatória para aprovar.
    - [X] Escrever o ADR e o espelho no LexCorpus
    - [X] Aceite do dono do produto (12/10)
-** EM-ANDAMENTO [#A] ADR-0004: concurso-alvo como eixo do ecossistema :ALINHAR_LexCorpus:ALINHAR_LexLearn:
+** FEITO [#A] ADR-0005: fronteira com o LexLearn
+   CLOSED: 2026-10-13 — ACEITO
+   docs/architecture/decisions/ADR-0005-fronteira-com-o-lexlearn.md
+   Revisa o ADR-0004 (§4 e §5 revogados; §1, §2, §6, contratos e fases
+   revistos) e o ADR-0003 (§4: fase 1 pelo Administrador do LexLearn;
+   edital.available revogado). Registrado também nos contratos
+   (contracts/README.md; LexCorpus schema/lexpubli/README.md e
+   docs/CONTRATO.md). Espelho no LexLearn: ADR-0012 (isolamento).
+** EM-ANDAMENTO [#A] ADR-0004: concurso-alvo como eixo do ecossistema :ALINHAR_LexCorpus:
    ACEITO em 13/10. Em andamento = a implantação (fases abaixo).
    docs/architecture/decisions/ADR-0004-concurso-alvo.md
    O contest_id do LexPubli é a chave comum. LexPubli diz QUAL é o alvo
    (carreira, data da prova, prioridade); LexCorpus diz QUAIS documentos
    servem (current, previous e o novo related: mesma banca + mesma
-   carreira); LexLearn decide COMO preparar e avisa study.target.ready.
+   carreira). REVISADO pelo ADR-0005: o LexLearn não participa por
+   eventos; nada de study.target.ready.
    Lição: com additionalProperties:false, até campo opcional novo exige
    consumidor primeiro.
    - [X] Escrever o ADR
    - [X] Aceite do dono do produto (13/10)
-   - [X] Espelhos: LexCorpus ADR-0008, LexLearn ADR-0012
+   - [X] Espelhos: LexCorpus ADR-0008, LexLearn ADR-0012 (este último
+         substituído pelo ADR-0012 de isolamento, ver ADR-0005)
    - [ ] Fase 1: carreira + exam_date no LexPubli; contratos v1.1;
          related a partir do acervo no LexCorpus
+   - [ ] Fase 2 (ADR-0005 §6): o portal mostra as provas disponíveis
+         (consome document.acquisition.*)
+   - [ ] Fase 3 (ADR-0005 §6): prioridade ordena a coleta do LexCorpus;
+         métrica "tempo até provas disponíveis"
 ** FEITO [#A] Contratos document.acquisition.* (v1)          :ALINHAR_LexCorpus:
    CLOSED: 2026-10-12
    completed, awaiting_operator e failed em contracts/events/v1/, mais

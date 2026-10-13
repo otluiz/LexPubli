@@ -8,6 +8,10 @@
 - Status: **Aceito** em 2026-10-13 pelo dono do produto, inclusive a chave
   `{concurso}` = `contest_slug` + `contest_id` (§2). A nota no ADR-0007 do
   LexLearn (fronteira de ingestão) foi registrada em 13/10/2026.
+- **REVISÃO (2026-10-13, ADR-0005):** no §4, a fase 1 é acionada pelo
+  Administrador do LexLearn, nunca pelo LexPubli; a fase 2
+  (`edital.available`) foi revogada. A pasta é o único ponto de contato do
+  LexPubli com o LexLearn.
 - Data: 2026-10-12
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fonte oficial; agregador só como índice);
@@ -162,6 +166,9 @@ produz. O LexLearn carrega uma cópia, seguindo a regra "consumidor primeiro".
   extrato do DOU fica `false`. A convenção é a que o LexLearn já usa.
 
 ### 4. O aviso ao LexLearn, em duas fases
+
+> **REVISADO pelo ADR-0005:** o LexPubli não avisa o LexLearn. Quem aciona a
+> ingestão é o Administrador do LexLearn; a fase 2 abaixo está revogada.
 
 - **Fase 1 (sem evento):** o LexLearn ingere pela rota que já existe
   (`POST /exams/ingerir-lote`, `subdir: "editais"`). Nada muda no LexLearn
