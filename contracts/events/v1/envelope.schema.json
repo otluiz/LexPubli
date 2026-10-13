@@ -1,10 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://lex/lexpubli/events/v1/envelope.schema.json",
-  "title": "Envelope de evento do LexPubli - v1",
-  "description": "Envelope comum a todo evento publicado no exchange lexpubli.events. O conteúdo específico de cada evento vai em 'data', validado pelo schema do event_type.",
+  "title": "Envelope de evento do ecossistema Lex - v1",
+  "description": "Envelope comum aos eventos dos contratos novos do ecossistema Lex (lexpubli.events e as respostas document.acquisition.* em lexcorpus.events). O conteúdo de cada evento vai em 'data', validado pelo schema do event_type. Dono: LexPubli. O contrato v2.1 LexCorpus -> LexLearn (concurso.*) NÃO usa este envelope.",
   "type": "object",
-  "required": ["event_id", "event_type", "event_version", "occurred_at", "producer", "correlation_id", "data"],
+  "required": [
+    "event_id",
+    "event_type",
+    "event_version",
+    "occurred_at",
+    "producer",
+    "correlation_id",
+    "data"
+  ],
   "additionalProperties": false,
   "properties": {
     "event_id": {
@@ -29,14 +37,19 @@
     },
     "producer": {
       "type": "string",
-      "pattern": "^lexpubli(/[a-z0-9_.-]+)?$",
-      "description": "Quem emitiu: 'lexpubli' ou 'lexpubli/<componente>'."
+      "pattern": "^(lexpubli|lexcorpus|lexlearn)(/[a-z0-9_.-]+)?$",
+      "description": "Quem emitiu: o projeto, opcionalmente com o componente ('lexcorpus/consumidor'). Cada schema de evento restringe o produtor."
     },
     "correlation_id": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "uuid",
       "description": "Liga eventos de uma mesma operação (ex.: a requisição de aquisição e sua resposta). null quando o evento inicia a cadeia."
     },
-    "data": { "type": "object" }
+    "data": {
+      "type": "object"
+    }
   }
 }
