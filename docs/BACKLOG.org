@@ -93,15 +93,16 @@
    - [ ] PRODUÇÃO: expor um site público na máquina que guarda o banco do
          LexLearn muda o risco. Decidir: proxy reverso + Cloudflare Tunnel
          no gpu01, ou VPS separada para o portal
-** EM-ANDAMENTO [#A] ADR-0002: fronteira LexPubli × LexCorpus :ALINHAR_LexCorpus:
-   Escrito em 12/10 (status: Proposto):
+** FEITO [#A] ADR-0002: fronteira LexPubli × LexCorpus :ALINHAR_LexCorpus:
+   CLOSED: 2026-10-12 — ACEITO
+   Escrito e aceito em 12/10:
    docs/architecture/decisions/ADR-0002-fronteira-lexpubli-lexcorpus.md
    Espelho no LexCorpus: ADR-0007 (revisa a regra do ADR-0006 de lá).
    Resumo: o LexPubli avisa (contest.discovery.created) e o LexCorpus decide.
    Duas portas: curadoria humana (LexPubli) + política versionada (LexCorpus).
    Agregadores (PCI) só como índice; fonte oficial obrigatória para aprovar.
    - [X] Escrever o ADR e o espelho no LexCorpus
-   - [ ] Aceite do dono do produto
+   - [X] Aceite do dono do produto (12/10)
 ** TODO [#A] Contratos document.acquisition.* (v1)          :ALINHAR_LexCorpus:
    completed, awaiting_operator e failed em contracts/events/v1/.
    correlation_id = event_id do contest.discovery.created. Sem caminho de storage.
