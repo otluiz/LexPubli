@@ -35,3 +35,32 @@ def uuid7() -> uuid.UUID:
     rand_b = aleatorio & ((1 << 62) - 1)
     valor = (ms & ((1 << 48) - 1)) << 80 | 0x7 << 76 | rand_a << 64 | 0b10 << 62 | rand_b
     return uuid.UUID(int=valor)
+
+
+# Domínios de fonte oficial (ADR-0002, ADR-0007 §1). `.def.br` entra junto:
+# as Defensorias vêm com o MP (ADR-0007 §3) e o domínio delas é esse.
+SUFIXOS_OFICIAIS = (".gov.br", ".leg.br", ".jus.br", ".mp.br", ".def.br")
+
+
+def _host(url: str) -> str:
+    from urllib.parse import urlsplit
+
+    host = (urlsplit(url or "").hostname or "").lower().rstrip(".")
+    return host[4:] if host.startswith("www.") else host
+
+
+def dominio_oficial(url: str, sites_de_banca=()) -> bool:
+    """A URL é de fonte oficial? Domínio de governo (.gov.br, .leg.br,
+    .jus.br, .mp.br, .def.br) ou o site de uma banca cadastrada (e os
+    subdomínios dele: cdn.cebraspe.org.br vale por www.cebraspe.org.br).
+    Agregador (PCI etc.) nunca: ele é só índice."""
+    host = _host(url)
+    if not host:
+        return False
+    if any(host.endswith(s) or host == s[1:] for s in SUFIXOS_OFICIAIS):
+        return True
+    for site in sites_de_banca:
+        base = _host(site)
+        if base and (host == base or host.endswith("." + base)):
+            return True
+    return False

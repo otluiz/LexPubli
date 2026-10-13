@@ -15,7 +15,22 @@ from wagtail.fields import RichTextField
 from wagtail.models import Orderable, Page
 from wagtail.search import index
 
-from .util import slug_lex, uuid7
+from .util import dominio_oficial, slug_lex, uuid7
+
+
+def _sites_de_banca() -> list[str]:
+    return [s for s in Banca.objects.exclude(site="").values_list("site", flat=True)]
+
+
+def _exigir_oficial(campo: str, url: str) -> None:
+    """ADR-0002: o que sai do LexPubli como fonte é página oficial. Agregador
+    (PCI etc.) só serve de índice, como origem de uma Descoberta."""
+    from django.core.exceptions import ValidationError
+
+    if url and not dominio_oficial(url, _sites_de_banca()):
+        raise ValidationError({campo: "Use a página oficial: domínio .gov.br, .leg.br, .jus.br, "
+                                      ".mp.br, .def.br ou o site de uma banca cadastrada. "
+                                      "Agregador é só índice (ADR-0002)."})
 
 
 # --- Cadastros ---------------------------------------------------------------
@@ -166,6 +181,10 @@ class ConcursoPage(Page):
             self.contest_slug = f"{self.orgao.slug}_{self.ano}"
         super().save(*args, **kwargs)
 
+    def clean(self):
+        super().clean()
+        _exigir_oficial("fonte_url", self.fonte_url)
+
     @property
     def total_vagas(self) -> int | None:
         vagas = [c.vagas for c in self.cargos.all() if c.vagas is not None]
@@ -198,6 +217,82 @@ class Cargo(Orderable):
 
     def __str__(self):
         return self.nome
+
+
+# --- Fontes de descoberta (ADR-0007) -----------------------------------------
+class Fonte(models.Model):
+    """Página oficial (ou o DOU) que o LexPubli vigia. O cadastro é a fonte
+    da verdade; o changedetection.io só executa (ADR-0007 §1). Tudo o que
+    uma fonte aponta vira Descoberta pendente: a curadoria continua sendo a
+    porta."""
+
+    class Poder(models.TextChoices):
+        EXECUTIVO = "executivo", "Executivo"
+        LEGISLATIVO = "legislativo", "Legislativo"
+        JUDICIARIO = "judiciario", "Judiciário"
+        MINISTERIO_PUBLICO = "ministerio_publico", "Ministério Público"
+
+    class Tipo(models.TextChoices):
+        DOU = "dou", "DOU (coletor próprio)"
+        PAGINA = "pagina", "Página (changedetection)"
+
+    class Onda(models.TextChoices):
+        A = "A", "A — federal"
+        B = "B", "B — regional"
+        C = "C", "C — estadual"
+
+    nome = models.CharField(max_length=200)
+    poder = models.CharField(max_length=20, choices=Poder.choices)
+    esfera = models.CharField(max_length=10, choices=Orgao.Esfera.choices)
+    orgao = models.ForeignKey(Orgao, on_delete=models.PROTECT, null=True, blank=True,
+                              related_name="fontes",
+                              help_text="Quando a fonte é de um órgão só.")
+    tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.PAGINA)
+    url = models.URLField(max_length=500, unique=True, help_text="A página oficial.")
+    carreira_sugerida = models.CharField(
+        max_length=20, choices=Carreira.choices, blank=True,
+        help_text="Só SUGESTÃO para o curador; quem grava a carreira do concurso é ele (ADR-0004).")
+    onda = models.CharField(max_length=1, choices=Onda.choices, default=Onda.A)
+    prioridade = models.PositiveSmallIntegerField(default=3, help_text="1 = vigiar primeiro.")
+    intervalo_horas = models.PositiveSmallIntegerField(
+        default=6, help_text="Mínimo de 1 h por página (ADR-0007 §4); o DOU é diário.")
+    ativa = models.BooleanField(
+        default=False, help_text="Só depois de conferida: texto sem JS (ou API/feed) e robots.txt.")
+    motivo_inativa = models.CharField(max_length=300, blank=True,
+                                      help_text="Ex.: página só com JS; robots.txt proíbe.")
+    conferida_em = models.DateField(null=True, blank=True)
+    changedetection_uuid = models.CharField(max_length=40, blank=True, editable=False,
+                                            help_text="Preenchido pela sincronização.")
+
+    panels = [
+        FieldPanel("nome"),
+        FieldRowPanel([FieldPanel("poder"), FieldPanel("esfera"), FieldPanel("onda")]),
+        FieldRowPanel([FieldPanel("orgao"), FieldPanel("carreira_sugerida")]),
+        FieldRowPanel([FieldPanel("tipo"), FieldPanel("url")]),
+        FieldRowPanel([FieldPanel("prioridade"), FieldPanel("intervalo_horas")]),
+        FieldRowPanel([FieldPanel("ativa"), FieldPanel("conferida_em"),
+                       FieldPanel("motivo_inativa")]),
+    ]
+
+    class Meta:
+        ordering = ["onda", "prioridade", "nome"]
+
+    def __str__(self):
+        return self.nome
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        _exigir_oficial("url", self.url)
+        if self.intervalo_horas < 1:
+            raise ValidationError({"intervalo_horas": "No mínimo 1 hora (ADR-0007 §4)."})
+        if self.tipo == self.Tipo.DOU and self.intervalo_horas < 24:
+            raise ValidationError({"intervalo_horas": "O DOU é coletado 1 vez por dia."})
+        if self.ativa and not self.conferida_em:
+            raise ValidationError({"ativa": "Confira a fonte (texto sem JS, robots.txt) e "
+                                            "registre a data antes de ativá-la."})
+        if not self.ativa and self.conferida_em and not self.motivo_inativa:
+            raise ValidationError({"motivo_inativa": "Fonte conferida e inativa: diga por quê."})
 
 
 # --- Curadoria ---------------------------------------------------------------
@@ -250,6 +345,12 @@ class Descoberta(models.Model):
 
         if self.status == self.Status.APROVADA and not self.concurso_id:
             raise ValidationError({"concurso": "Ligue a descoberta a um concurso para aprová-la."})
+        if self.status == self.Status.APROVADA and not dominio_oficial(
+                self.concurso.fonte_url, _sites_de_banca()):
+            # o anúncio leva a fonte do CONCURSO (o LexCorpus resolve o alvo
+            # por ela); a fonte_url da descoberta pode ser um agregador
+            raise ValidationError({"concurso": "A URL da fonte do concurso não é oficial: "
+                                               "corrija-a na página do concurso antes de aprovar."})
         if self.status == self.Status.DUPLICADA and not self.duplicada_de_id:
             raise ValidationError({"duplicada_de": "Indique de qual descoberta esta é duplicata."})
         if self.duplicada_de_id and self.duplicada_de_id == self.id:
