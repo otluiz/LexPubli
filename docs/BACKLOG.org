@@ -240,7 +240,17 @@
          páginas de 50) e o limite real antes de agendar
    - [ ] Agendar coletar_pncp 1x/dia no gpu01 (cron do host ou serviço do
          compose), de madrugada
-   - [ ] Pistas dos sites de concursos (Fonte tipo pista; RSS/listagem)
+   - [X] Pistas dos sites de concursos (13/10): Fonte tipo "pista" (onda P:
+         Gran e Estratégia por RSS, PCI pela listagem de notícias; JC
+         Concursos inativa, 403). O aviso NÃO vira Descoberta: cada linha que
+         cita concurso vira uma Pista por órgão citado (resolvedor
+         concursos/orgaos.py: TRT-8, "TRT da 8ª Região" e a razão social do
+         PNCP viram TRT8). `processar_pistas`: checagem imediata das Fontes
+         oficiais do órgão + PNCP do órgão (se o CNPJ é conhecido; 1x/semana
+         por órgão); confirma com documento oficial do último ano; expira em
+         30 dias. Pista é auditoria, não fila; não conta como fonte oficial.
+         O coletor do PNCP agora acha o órgão da pista pela sigla e grava o
+         CNPJ nele (sem duplicar órgão)
    - [ ] Anexo V do PLOA/LOA (anual)
 ** FEITO [#A] Página inicial e chamada ao LexLearn
    (13/10) A página inicial explica o portal e agrupa os concursos pela fase

@@ -1,0 +1,67 @@
+{
+  "onda": "P",
+  "conferida_em": "2026-10-13",
+  "como": "Sites de concursos são PISTA, nunca fonte (ADR-0008 §3): só disparam a busca oficial. Feed RSS ou listagem, robots.txt conferido em 2026-10-13. Guarda-se só título, link e data.",
+  "fontes": [
+    {
+      "nome": "Gran Cursos — blog (RSS)",
+      "poder": "",
+      "esfera": "federal",
+      "onda": "P",
+      "tipo": "pista",
+      "conteudo": "noticias",
+      "url": "https://blog.grancursosonline.com.br/feed/",
+      "carreira_sugerida": "",
+      "prioridade": 3,
+      "intervalo_horas": 6,
+      "ativa": true,
+      "conferida_em": "2026-10-13",
+      "motivo_inativa": ""
+    },
+    {
+      "nome": "Estratégia Concursos — blog (RSS)",
+      "poder": "",
+      "esfera": "federal",
+      "onda": "P",
+      "tipo": "pista",
+      "conteudo": "noticias",
+      "url": "https://www.estrategiaconcursos.com.br/blog/feed/",
+      "carreira_sugerida": "",
+      "prioridade": 3,
+      "intervalo_horas": 6,
+      "ativa": true,
+      "conferida_em": "2026-10-13",
+      "motivo_inativa": ""
+    },
+    {
+      "nome": "PCI Concursos — notícias",
+      "poder": "",
+      "esfera": "federal",
+      "onda": "P",
+      "tipo": "pista",
+      "conteudo": "noticias",
+      "url": "https://www.pciconcursos.com.br/noticias/",
+      "carreira_sugerida": "",
+      "prioridade": 3,
+      "intervalo_horas": 6,
+      "ativa": true,
+      "conferida_em": "2026-10-13",
+      "motivo_inativa": ""
+    },
+    {
+      "nome": "JC Concursos — RSS",
+      "poder": "",
+      "esfera": "federal",
+      "onda": "P",
+      "tipo": "pista",
+      "conteudo": "noticias",
+      "url": "https://jcconcursos.com.br/rss",
+      "carreira_sugerida": "",
+      "prioridade": 3,
+      "intervalo_horas": 6,
+      "ativa": false,
+      "conferida_em": "2026-10-13",
+      "motivo_inativa": "O site respondeu 403 à conferência (13/10)."
+    }
+  ]
+}

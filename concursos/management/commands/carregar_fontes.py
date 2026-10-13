@@ -25,7 +25,8 @@ class Command(BaseCommand):
     help = "Carrega as fontes de uma onda (A, B, C) a partir de concursos/dados/."
 
     def add_arguments(self, parser):
-        parser.add_argument("onda", choices=["A", "B", "C", "a", "b", "c"])
+        parser.add_argument("onda", choices=["A", "B", "C", "P", "a", "b", "c", "p"],
+                            help="P = pistas (sites de concursos, ADR-0008 §3)")
         parser.add_argument("--atualizar", action="store_true",
                             help="sobrescreve as fontes que já existem (perde ajustes do curador)")
 

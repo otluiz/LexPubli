@@ -165,7 +165,8 @@ class ConcursosIndexPage(Page):
                          for chave, titulo, status in self.GRUPOS]
         # "acompanhada" = ativa e com watch no changedetection: o número da
         # página é o que está sendo vigiado de fato, não o que está cadastrado
-        ativas = Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")
+        ativas = (Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")
+                  .exclude(tipo=Fonte.Tipo.PISTA))     # site de concursos não é fonte oficial
         ctx["fontes_total"] = ativas.count()
         ctx["fontes_noticias"] = ativas.filter(conteudo=Fonte.Conteudo.NOTICIAS).count()
         rotulos = dict(Fonte.Poder.choices)
@@ -281,6 +282,7 @@ class Fonte(models.Model):
     class Tipo(models.TextChoices):
         DOU = "dou", "DOU (coletor próprio)"
         PAGINA = "pagina", "Página (changedetection)"
+        PISTA = "pista", "Pista: site de concursos (só dispara a busca oficial)"
 
     class Conteudo(models.TextChoices):
         CONCURSOS = "concursos", "Página de concursos"
@@ -290,9 +292,11 @@ class Fonte(models.Model):
         A = "A", "A — federal"
         B = "B", "B — regional"
         C = "C", "C — estadual"
+        P = "P", "Pistas — sites de concursos"
 
     nome = models.CharField(max_length=200)
-    poder = models.CharField(max_length=20, choices=Poder.choices)
+    poder = models.CharField(max_length=20, choices=Poder.choices, blank=True,
+                             help_text="Obrigatório nas fontes oficiais; vazio nas pistas.")
     esfera = models.CharField(max_length=10, choices=Orgao.Esfera.choices)
     orgao = models.ForeignKey(Orgao, on_delete=models.PROTECT, null=True, blank=True,
                               related_name="fontes",
@@ -353,7 +357,10 @@ class Fonte(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        _exigir_oficial("url", self.url)
+        if self.tipo != self.Tipo.PISTA:      # pista é site de concursos: não é fonte (ADR-0008 §3)
+            _exigir_oficial("url", self.url)
+            if not self.poder:
+                raise ValidationError({"poder": "Informe o Poder da fonte oficial."})
         if self.intervalo_horas < 1:
             raise ValidationError({"intervalo_horas": "No mínimo 1 hora (ADR-0007 §4)."})
         if self.tipo == self.Tipo.DOU and self.intervalo_horas < 24:
@@ -424,6 +431,40 @@ class Sinal(models.Model):
 
     def clean(self):
         _exigir_oficial("documento_url", self.documento_url)
+
+
+class Pista(models.Model):
+    """Menção a um concurso num site de concursos (ADR-0008 §3). NÃO é sinal,
+    não pontua e não é publicada: só dispara a busca pela documentação
+    oficial do órgão citado. Guarda só título, link e data (auditoria); o
+    texto do site não é copiado. Sem documento oficial em 30 dias, morre
+    sozinha, sem ir para a fila de ninguém."""
+
+    class Status(models.TextChoices):
+        A_BUSCAR = "a_buscar", "A buscar"
+        AGUARDANDO = "aguardando", "Buscada, sem documento oficial ainda"
+        CONFIRMADA = "confirmada", "Confirmada por documento oficial"
+        SEM_ORGAO = "sem_orgao", "Órgão não identificado"
+        EXPIRADA = "expirada", "Expirada (30 dias sem documento oficial)"
+
+    fonte = models.ForeignKey(Fonte, on_delete=models.SET_NULL, null=True, related_name="pistas")
+    titulo = models.CharField(max_length=300)
+    link = models.URLField(max_length=500, blank=True)
+    chave_orgao = models.CharField(max_length=12, blank=True, help_text="Ex.: TRT8, TJSP, STJ.")
+    orgao = models.ForeignKey(Orgao, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name="pistas")
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.A_BUSCAR)
+    sinal = models.ForeignKey("Sinal", on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name="pistas", help_text="O documento oficial que confirmou.")
+    detectada_em = models.DateTimeField(default=timezone.now)
+    buscada_em = models.DateTimeField(null=True, blank=True)
+    chave_dedup = models.CharField(max_length=64, unique=True, editable=False)
+
+    class Meta:
+        ordering = ["-detectada_em"]
+
+    def __str__(self):
+        return self.titulo
 
 
 # --- Curadoria ---------------------------------------------------------------
