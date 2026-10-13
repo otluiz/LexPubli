@@ -1,0 +1,175 @@
+#+TITLE: LexPubli — Backlog
+#+AUTHOR: Othon Luiz
+#+STARTUP: overview
+#+TODO: TODO EM-ANDAMENTO BLOQUEADO | FEITO CANCELADO
+
+* Sobre o arquivo
+  Backlog do LexPubli em org-mode (mesmas convenções dos BACKLOGs do
+  LexCorpus e do LexLearn).
+
+  Estados (na linha do item, após os **):
+  - TODO         → livre para pegar
+  - EM-ANDAMENTO → alguém já está fazendo (confirme antes de pegar)
+  - BLOQUEADO    → depende de algo (ver descrição); não começar ainda
+  - FEITO        → concluído
+  - CANCELADO    → descartado
+
+  Prioridade: [#A] alta, [#B] média, [#C] baixa (após o estado).
+
+  Itens marcados "ALINHAR com o LexCorpus/LexLearn" tocam contratos entre
+  projetos — não se mudam unilateralmente.
+
+  Atalhos Emacs: C-c C-t alterna estado · C-c , prioridade · C-c C-c checkbox
+
+* Decisões recentes (contexto para quem chega)
+  - PAPEL DO LEXPUBLI (12/10): é a PORTA DE ENTRADA do ecossistema Lex.
+    Busca concursos (abertos, previstos, editais, retificações,
+    cronogramas) e os PUBLICIZA em páginas próprias, para o público.
+    É o funil que leva o visitante ao LexLearn.
+  - O LEXCORPUS NÃO É ESVAZIADO (12/10): buscador, catálogo, orquestrador,
+    watchlist, scheduler e spiders continuam no LexCorpus. A diferença de
+    foco:
+    - LexPubli descobre CONCURSOS (notícia, edital, cronograma) → público
+    - LexCorpus descobre e adquire DOCUMENTOS (provas e gabaritos,
+      inclusive de certames anteriores) → LexLearn
+    A integração é por eventos: o LexPubli AVISA e o LexCorpus DECIDE o
+    que coletar. Nada de código ou banco compartilhado.
+  - PLATAFORMA (12/10): em avaliação. Ver
+    docs/architecture/decisions/ADR-0001-plataforma-e-arquitetura.md.
+    Proposta: WAGTAIL (Python + Django, BSD-3, PostgreSQL), um projeto só
+    com domínio + portal (SSR/SEO) + curadoria (admin) + workers RabbitMQ.
+    WordPress não recomendado por superfície de ataque (11.334 vulnerabilidades
+    em 2025 segundo a Patchstack, 91% em plugins) e por estar fora da stack.
+    Outras opções avaliadas: Ghost, Payload, Directus (licença não-OSS),
+    FastAPI+SQLAdmin (fallback preferido). Decisão final depois do spike.
+    Apoio: changedetection.io (Apache-2.0) como gatilho do Discovery.
+
+* Fundação
+** EM-ANDAMENTO [#A] ADR-0001: plataforma e arquitetura
+   Escrito (status: Proposto). Proposta: Wagtail.
+   - [X] Pesquisar alternativas (WP, Ghost, Payload, Directus, FastAPI, Wagtail)
+   - [ ] Revisão do dono do produto
+   - [ ] Spike de validação (item abaixo) → Aceito ou fallback
+** EM-ANDAMENTO [#A] Spike Wagtail — checklist no ADR-0001
+   Desenvolvido no notebook; sobe para o gpu01 só quando a etapa fechar.
+   Versionado no GitHub (repositório a criar).
+   - [X] Modelos + página real de concurso (Sefaz-AL 2026, dados da API
+         da Cebraspe em 12/10) com JSON-LD JobPosting + sitemap + robots
+   - [X] Curadoria no painel (snippet Descoberta: aprovar/rejeitar/duplicada)
+         — falta: ação em lote e fusão de duplicatas com um clique
+   - [X] Outbox + worker publicar_eventos + contrato contest.discovery.created
+         v1.0 validado por JSON Schema (testes com publicador falso)
+   - [ ] Worker publicando num RabbitMQ REAL (precisa do Docker local)
+   - [X] Webhook do changedetection.io (formato Apprise json://, token,
+         deduplicação de reentrega) — testado com payload simulado
+   - [ ] changedetection.io real → webhook → descoberta (precisa do Docker)
+   - [ ] docker compose up (web, worker, db) — arquivos prontos, não
+         executados (daemon Docker parado no notebook em 12/10)
+   - [X] Hardening: check --deploy limpo com LEXPUBLI_HTTPS=1 (só W021,
+         preload do HSTS, opcional por LEXPUBLI_HSTS_PRELOAD), painel em
+         /painel/ (/admin/ = 404), CSP script-src 'none' no site público,
+         robots bloqueando painel e webhooks
+   - [X] 26 testes (pytest) passando
+** TODO [#A] Hospedagem: spike no lexlearn-gpu01; produção a decidir
+   Verificado em 12/10: Xeon E5-2695 v4 (18c/36t), 62 GiB de RAM (2,3 em
+   uso), 804 GB livres, RTX 5060 Ti ociosa, load ~0,6. A stack do LexLearn
+   (5 containers) usa ~0,8 GiB. O Wagtail (portal + worker + postgres,
+   ~1-1,5 GiB) cabe com folga.
+   - [ ] Diretório próprio (~/LexPubli), projeto compose próprio
+   - [ ] PostgreSQL PRÓPRIO, sem porta publicada (não usar o lexlearn-db)
+   - [ ] RabbitMQ: rede externa do LexLearn, como o LexCorpus
+   - [ ] Portas livres em 127.0.0.1 (em uso: 5174, 8183, 5672, 15672;
+         Ollama nativo em 172.16.10.40:11434)
+   - [ ] Limites de CPU/memória nos containers do LexPubli, para não
+         competir com o Ollama nos picos
+   - [ ] Spike acessado só pelo tailnet. Lembrar do ufw: tráfego da
+         tailscale0 exige "ufw allow in on tailscale0" (CHANGELOG LexLearn)
+   - [ ] PRODUÇÃO: expor um site público na máquina que guarda o banco do
+         LexLearn muda o risco. Decidir: proxy reverso + Cloudflare Tunnel
+         no gpu01, ou VPS separada para o portal
+** TODO [#A] ADR-0002: fronteira LexPubli × LexCorpus     :ALINHAR_LexCorpus:
+   Concurso (LexPubli) × documento (LexCorpus). O LexPubli não seleciona
+   spider, não baixa PDF e não reimplementa o buscador de bancas
+   anteriores (ADR-0006 do LexCorpus). O LexCorpus não publica nada para
+   o público. Registrar o mesmo ADR (ou uma referência) no LexCorpus.
+** TODO [#A] Esqueleto do repositório e da stack de dev
+   BLOQUEADO até a aceitação do ADR-0001 (depende da plataforma).
+   - [ ] projeto da plataforma escolhida + pytest
+   - [ ] docker-compose: portal, worker, postgres
+   - [ ] RabbitMQ: usar o broker existente do LexLearn (rede externa,
+         como o LexCorpus faz em docker-compose.lexlearn.yml)
+   - [ ] .env.example; README de dev
+   - [ ] CI: pytest + lint
+** FEITO [#B] Corrigir o README.md
+   - [X] Erro de digitação "aíprocessamento" (seção MVP)
+   - [X] Refletir a plataforma do ADR-0001 e o papel de porta de entrada
+   - [X] Fluxo LexCorpus → LexLearn: o contrato real é o v2.1
+         (concurso.disponivel/atualizado), não "document.available".
+         Ajustar o diagrama.
+
+* Domínio
+** TODO [#A] Modelos: Concurso, Órgão, Banca, Cargo, Cronograma, Fonte
+   - IDs UUIDv7 + slug canônico (mesmo slugify do LexCorpus, para que
+     banca/órgão casem sem tradução)
+   - Concurso com status de ciclo: previsto → autorizado → edital_aberto
+     → inscricoes_encerradas → prova_realizada → resultado → encerrado
+   - Cronograma: datas de inscrição, prova, gabaritos, resultado
+   - Rastreabilidade: toda informação guarda fonte_url + coletado_em
+** TODO [#A] Discovery: primeiras fontes
+   Começar pequeno, com fontes primárias e índices:
+   - [ ] Portais das bancas com eventos abertos (Cebraspe, FGV, FCC,
+         Cesgranrio) — páginas de "concursos abertos", não PDFs
+   - [ ] DOU / diários oficiais (autorizações e editais)
+   - [ ] Agregadores como ÍNDICE (PCI etc.), respeitando robots.txt —
+         mesma postura do ADR-0001 do LexCorpus
+   - [ ] Histórico bruto de cada coleta (reprocessável)
+** TODO [#A] Normalização e deduplicação
+   O mesmo concurso aparece em N fontes. Chave candidata:
+   (órgão, ano, banca?) + similaridade de título. Conflito entre fontes
+   → fila de curadoria, nunca sobrescrita silenciosa.
+** TODO [#A] Heat Engine v1 (regras)
+   Score por regras: vagas, salário, abrangência (nacional/estadual),
+   fase do ciclo, recência, volume de menções. Decisões humanas (fixar,
+   ocultar, reordenar) persistidas e preservadas nos recálculos.
+** TODO [#B] Painel de curadoria
+   Aprovar/rejeitar descobertas, fundir duplicatas, ajustar prioridade.
+   No admin da plataforma (Wagtail: ViewSets + ações em lote).
+
+* Publicação
+** TODO [#A] Página pública do concurso
+   - [ ] Template SSR com órgão, banca, cargos, vagas, salário,
+         cronograma, links oficiais
+   - [ ] schema.org (Event/JobPosting) + sitemap + SEO
+   - [ ] Listagens: abertos, previstos, por banca, por órgão, por UF
+** TODO [#B] Editorial: notícias e guias
+   Páginas editoriais ligadas aos concursos (rascunho, revisão, agendamento).
+** TODO [#B] API pública + feeds RSS/Atom
+   Servidos pelo próprio LexPubli (fonte da verdade).
+** TODO [#C] Newsletter / alertas por e-mail
+   Fora do MVP. Serviço dedicado (ex.: listmonk, self-hosted, PostgreSQL).
+
+* Integração com o ecossistema
+** TODO [#A] Contrato de eventos LexPubli (envelope v1) :ALINHAR_LexCorpus:
+   Envelope: event_id, event_type, event_version, occurred_at, producer,
+   correlation_id, data. Exchange lexpubli.events (topic).
+   Eventos iniciais:
+   - contest.discovery.created / contest.discovery.updated
+   - contest.priority.changed
+   JSON Schemas em contracts/ (versionados). Este envelope vale para os
+   contratos NOVOS; o contrato LexCorpus → LexLearn (v2.1) não muda.
+** TODO [#B] LexCorpus consome contest.discovery.*      :ALINHAR_LexCorpus:
+   Substitui o `catalogo add` manual: concurso descoberto e priorizado no
+   LexPubli entra como vigente (aguardando_banca) no catalogo.yaml do
+   LexCorpus. A partir daí o fluxo do ADR-0006 (buscador → orquestrador →
+   watchlist) segue intacto, sob decisão do operador do LexCorpus.
+** TODO [#B] Página do concurso mostra o acervo do LexCorpus/LexLearn
+   "Provas anteriores disponíveis" + CTA "estude para este concurso" no
+   LexLearn. Fonte: consulta/evento a definir (não ler o storage
+   diretamente). ALINHAR com o LexLearn.
+** TODO [#C] Identidade compartilhada (SSO) LexPubli ↔ LexLearn
+   Depois do MVP.
+
+* Fora do MVP (registrado para não perder)
+  - Priorização por aprendizado de máquina (V3)
+  - Cobertura extensa de fontes
+  - Notificações multicanal (push, WhatsApp, Telegram)

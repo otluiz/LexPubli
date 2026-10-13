@@ -1,0 +1,20 @@
+:root { --fundo: #fbfaf7; --texto: #1d1f23; --suave: #5b6170; --borda: #e2e0da; --acento: #1f5fbf; }
+@media (prefers-color-scheme: dark) {
+  :root { --fundo: #15171b; --texto: #e8e6e1; --suave: #a3a8b3; --borda: #2c3038; --acento: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.6 system-ui, sans-serif; }
+a { color: var(--acento); }
+.topo, .conteudo, .rodape { max-width: 860px; margin: 0 auto; padding: 16px; }
+.topo { display: flex; gap: 12px; align-items: baseline; border-bottom: 1px solid var(--borda); }
+.marca { font-weight: 700; font-size: 1.25rem; text-decoration: none; }
+.lema, .meta, .numeros, .rodape { color: var(--suave); }
+.lista { list-style: none; padding: 0; }
+.cartao { border: 1px solid var(--borda); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.cartao p { margin: 4px 0; }
+.selo { display: inline-block; font-size: .8rem; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--borda); }
+.selo-edital_aberto { border-color: #2e8b57; color: #2e8b57; }
+.destaque { font-weight: 600; }
+.cargos { width: 100%; border-collapse: collapse; }
+.cargos th, .cargos td { text-align: left; padding: 8px; border-bottom: 1px solid var(--borda); }
+.rodape { border-top: 1px solid var(--borda); font-size: .9rem; }

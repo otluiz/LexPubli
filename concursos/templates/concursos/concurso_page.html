@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags lexpubli %}
+{% block head %}{% json_ld page %}{% endblock %}
+{% block content %}
+  <article>
+    <h1>{{ page.title }}</h1>
+    <p class="meta">
+      <span class="selo selo-{{ page.status }}">{{ page.get_status_display }}</span>
+      {{ page.orgao.nome }}{% if page.orgao.uf %} ({{ page.orgao.uf }}){% endif %}
+      · Banca: {% if page.banca %}{{ page.banca.nome }}{% else %}a definir{% endif %}
+    </p>
+
+    {% if page.inscricoes_inicio or page.inscricoes_fim %}
+      <p class="destaque">Inscrições:
+        {% if page.inscricoes_inicio %}de {{ page.inscricoes_inicio|date:"d/m/Y" }}{% endif %}
+        {% if page.inscricoes_fim %}até {{ page.inscricoes_fim|date:"d/m/Y" }}{% endif %}
+      </p>
+    {% endif %}
+
+    {% if page.resumo %}<div class="resumo">{{ page.resumo|richtext }}</div>{% endif %}
+
+    <h2>Cargos</h2>
+    <table class="cargos">
+      <thead><tr><th>Cargo</th><th>Vagas</th><th>Remuneração inicial</th></tr></thead>
+      <tbody>
+        {% for cargo in page.cargos.all %}
+          <tr>
+            <td>{{ cargo.nome }}{% if cargo.escolaridade %} <small>({{ cargo.escolaridade }})</small>{% endif %}</td>
+            <td>{{ cargo.vagas|default:"—" }}</td>
+            <td>{{ cargo.salario|brl|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Fontes oficiais</h2>
+    <ul>
+      {% if page.edital_url %}<li><a href="{{ page.edital_url }}" rel="noopener nofollow">Edital</a></li>{% endif %}
+      <li><a href="{{ page.fonte_url }}" rel="noopener nofollow">Página do concurso na fonte</a></li>
+    </ul>
+  </article>
+{% endblock %}
