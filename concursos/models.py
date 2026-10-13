@@ -22,6 +22,18 @@ def _sites_de_banca() -> list[str]:
     return [s for s in Banca.objects.exclude(site="").values_list("site", flat=True)]
 
 
+def _url_comparavel(url: str) -> str:
+    """https://www.stj.jus.br/x/ e http://stj.jus.br/x -> stj.jus.br/x"""
+    from urllib.parse import urlsplit
+
+    p = urlsplit((url or "").strip())
+    host = (p.hostname or "").lower()
+    host = host[4:] if host.startswith("www.") else host
+    if not host:
+        return ""
+    return host + p.path.rstrip("/") + (f"?{p.query}" if p.query else "")
+
+
 def _exigir_oficial(campo: str, url: str) -> None:
     """ADR-0002: o que sai do LexPubli como fonte é página oficial. Agregador
     (PCI etc.) só serve de índice, como origem de uma Descoberta."""
@@ -280,6 +292,20 @@ class Fonte(models.Model):
     def __str__(self):
         return self.nome
 
+    @classmethod
+    def do_aviso(cls, url: str, watch_uuid: str = "") -> "Fonte | None":
+        """A Fonte de um aviso do changedetection: pelo uuid do watch (o corpo
+        da notificação o traz) ou pela URL vigiada, sem www e sem barra final."""
+        if watch_uuid:
+            fonte = cls.objects.filter(changedetection_uuid=watch_uuid).first()
+            if fonte:
+                return fonte
+        alvo = _url_comparavel(url)
+        if not alvo:
+            return None
+        return next((f for f in cls.objects.filter(url__icontains=alvo.split("/", 1)[0])
+                     if _url_comparavel(f.url) == alvo), None)
+
     def clean(self):
         from django.core.exceptions import ValidationError
 
@@ -314,6 +340,10 @@ class Descoberta(models.Model):
     fonte = models.CharField(max_length=40, default="manual",
                              help_text="Quem apontou: changedetection, manual, ...")
     fonte_url = models.URLField(max_length=500)
+    fonte_vigiada = models.ForeignKey(
+        "Fonte", on_delete=models.SET_NULL, null=True, blank=True, related_name="descobertas",
+        help_text="A Fonte do cadastro que apontou a mudança (ADR-0007): dá o poder e a "
+                  "carreira sugerida. Preenchida pelo webhook.")
     resumo = models.TextField(blank=True, help_text="Trecho/diff recebido da fonte.")
     payload = models.JSONField(default=dict, blank=True, help_text="Corpo bruto recebido (auditoria).")
     chave_dedup = models.CharField(max_length=64, unique=True, editable=False,
@@ -330,6 +360,7 @@ class Descoberta(models.Model):
     panels = [
         FieldPanel("titulo"),
         FieldRowPanel([FieldPanel("fonte"), FieldPanel("fonte_url")]),
+        FieldRowPanel([FieldPanel("fonte_vigiada", read_only=True)]),
         FieldPanel("resumo"),
         FieldRowPanel([FieldPanel("status"), FieldPanel("concurso"), FieldPanel("duplicada_de")]),
     ]
@@ -339,6 +370,16 @@ class Descoberta(models.Model):
 
     def __str__(self):
         return self.titulo
+
+    @property
+    def poder(self) -> str:
+        return self.fonte_vigiada.get_poder_display() if self.fonte_vigiada else ""
+
+    @property
+    def carreira_sugerida(self) -> str:
+        """Só sugestão: quem grava a carreira do concurso é o curador (ADR-0004)."""
+        f = self.fonte_vigiada
+        return f.get_carreira_sugerida_display() if f and f.carreira_sugerida else ""
 
     def clean(self):
         from django.core.exceptions import ValidationError
