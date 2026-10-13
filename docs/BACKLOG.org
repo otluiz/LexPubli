@@ -70,9 +70,20 @@
    - [X] docker compose up (web, worker, db, rabbitmq, changedetection)
    - [X] Hardening: check --deploy, /admin/ 404, CSP, uid sem root
    - [X] 27 testes (pytest)
-** BLOQUEADO [#A] Subir a etapa no lexlearn-gpu01
+** EM-ANDAMENTO [#A] Subir a etapa no lexlearn-gpu01
    Broker próprio: feito. Falta o isolamento físico (NVMe + VM + VLAN,
    decidido em 13/10 para até o lançamento; item abaixo).
+   MODO DE TESTE (dono do produto, 13/10): até o NVMe chegar, o LexPubli roda
+   no HOST do gpu01, porque ainda não sai na Internet. Projeto compose
+   próprio em ~/LexPubli (git archive), redes, banco e broker próprios,
+   portas só em 127.0.0.1 (8190, 5000, 15673), acesso por túnel SSH; nada do
+   LexLearn montado ou ligado; o consumidor do LexCorpus NÃO é ligado.
+   - [ ] Deploy (script do dono do produto) + createsuperuser
+   - [ ] Teste do radar lá: coletar_pncp (1 rodada) e processar_pistas
+   - [ ] Agendar coletar_pncp, processar_pistas e sincronizar_changedetection
+         1x/dia (depois do teste do PNCP)
+   - [ ] Quando o NVMe chegar: levar banco e volumes para a VM (pg_dump +
+         volume do changedetection) e desligar o modo de teste no host
 ** FEITO [#A] Broker próprio do LexPubli (ADR-0005 §2a) :ALINHAR_LexCorpus:
    CLOSED: 2026-10-13
    - [X] rabbitmq 3.13.7 sempre no ar, vhost lexpubli, sem guest, volume e
