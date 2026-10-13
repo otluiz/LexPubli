@@ -248,6 +248,10 @@ class Fonte(models.Model):
         DOU = "dou", "DOU (coletor próprio)"
         PAGINA = "pagina", "Página (changedetection)"
 
+    class Conteudo(models.TextChoices):
+        CONCURSOS = "concursos", "Página de concursos"
+        NOTICIAS = "noticias", "Notícias (iminência de concurso)"
+
     class Onda(models.TextChoices):
         A = "A", "A — federal"
         B = "B", "B — regional"
@@ -260,6 +264,9 @@ class Fonte(models.Model):
                               related_name="fontes",
                               help_text="Quando a fonte é de um órgão só.")
     tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.PAGINA)
+    conteudo = models.CharField(
+        max_length=10, choices=Conteudo.choices, default=Conteudo.CONCURSOS,
+        help_text="Notícias: só vira descoberta o aviso que cita concurso (ADR-0007 §3a).")
     url = models.URLField(max_length=500, unique=True, help_text="A página oficial.")
     carreira_sugerida = models.CharField(
         max_length=20, choices=Carreira.choices, blank=True,
@@ -275,12 +282,15 @@ class Fonte(models.Model):
     conferida_em = models.DateField(null=True, blank=True)
     changedetection_uuid = models.CharField(max_length=40, blank=True, editable=False,
                                             help_text="Preenchido pela sincronização.")
+    avisos_recebidos = models.PositiveIntegerField(default=0, editable=False)
+    avisos_ignorados = models.PositiveIntegerField(
+        default=0, editable=False, help_text="Fontes de notícias: avisos sem menção a concurso.")
 
     panels = [
         FieldPanel("nome"),
         FieldRowPanel([FieldPanel("poder"), FieldPanel("esfera"), FieldPanel("onda")]),
         FieldRowPanel([FieldPanel("orgao"), FieldPanel("carreira_sugerida")]),
-        FieldRowPanel([FieldPanel("tipo"), FieldPanel("url")]),
+        FieldRowPanel([FieldPanel("tipo"), FieldPanel("conteudo"), FieldPanel("url")]),
         FieldRowPanel([FieldPanel("prioridade"), FieldPanel("intervalo_horas")]),
         FieldRowPanel([FieldPanel("ativa"), FieldPanel("conferida_em"),
                        FieldPanel("motivo_inativa")]),

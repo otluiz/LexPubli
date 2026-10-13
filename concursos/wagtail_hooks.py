@@ -15,7 +15,7 @@ class DescobertaViewSet(SnippetViewSet):
     menu_label = "Curadoria"
     list_display = ["titulo", "fonte_vigiada", "poder", "carreira_sugerida", "status", "concurso",
                     "detectada_em"]
-    list_filter = ["status", "fonte", "fonte_vigiada"]
+    list_filter = ["status", "fonte", "fonte_vigiada__conteudo", "fonte_vigiada"]
     search_fields = ["titulo", "fonte_url", "resumo"]
     ordering = ["status", "-detectada_em"]
 
@@ -40,8 +40,9 @@ class FonteViewSet(SnippetViewSet):
     model = Fonte
     icon = "site"
     menu_label = "Fontes"
-    list_display = ["nome", "poder", "esfera", "onda", "tipo", "ativa", "conferida_em"]
-    list_filter = ["poder", "esfera", "onda", "tipo", "ativa"]
+    list_display = ["nome", "poder", "esfera", "onda", "conteudo", "ativa", "avisos_recebidos",
+                    "avisos_ignorados"]
+    list_filter = ["poder", "esfera", "onda", "conteudo", "tipo", "ativa"]
     search_fields = ["nome", "url"]
 
 

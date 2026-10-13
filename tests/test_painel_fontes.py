@@ -7,7 +7,8 @@ from concursos.models import Fonte
 from tests.test_changedetection import NOTIF, ChangedetectionFalso
 
 FORM = {"nome": "STJ — Concursos", "poder": "judiciario", "esfera": "federal", "onda": "A",
-        "tipo": "pagina", "url": "https://www.stj.jus.br/sites/portalp/Institucional/Concursos",
+        "tipo": "pagina", "conteudo": "concursos",
+        "url": "https://www.stj.jus.br/sites/portalp/Institucional/Concursos",
         "carreira_sugerida": "tribunais", "prioridade": "2", "intervalo_horas": "6",
         "ativa": "on", "conferida_em": "2026-10-13", "motivo_inativa": ""}
 

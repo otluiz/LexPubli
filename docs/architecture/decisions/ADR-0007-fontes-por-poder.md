@@ -6,6 +6,9 @@
 # ADR-0007: Fontes de descoberta por Poder
 
 - Status: **Aceito** em 2026-10-13 pelo dono do produto.
+- **REVISÃO (2026-10-13, dono do produto):** notícias oficiais sobre a
+  iminência de um concurso também são fonte (§3a). O LexPubli fala de
+  concursos, e avisar antes do edital é argumento de marketing e de venda.
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0001 (changedetection.io como gatilho), ADR-0002 (fonte
@@ -105,6 +108,24 @@ ondas, porque são centenas de páginas e cada uma precisa ser conferida
 - As **Defensorias** (DPU e DPEs) e a **Advocacia Pública** (AGU,
   procuradorias) entram junto com o MP na onda em que couberem: são
   carreiras jurídicas, e o curador já as classifica como `juridica`.
+
+### 3a. Notícias oficiais: o concurso antes do edital
+
+A comissão formada, a banca contratada, a autorização publicada: tudo isso
+sai nas **notícias** do órgão antes do edital. Avisar primeiro é o que
+diferencia o portal, e é material de marketing.
+
+- A `Fonte` ganha o campo `conteudo`: `concursos` (a página oficial de
+  concursos) ou `noticias` (a listagem de notícias do órgão, de preferência
+  a busca ou a etiqueta "concurso" do próprio site).
+- A página de notícias publica de tudo. Por isso, **só nas fontes de
+  notícias**, o webhook só cria Descoberta quando a mudança cita concurso,
+  edital, banca organizadora, comissão do concurso, provimento ou nomeação.
+  O resto é ignorado e **contado** na Fonte (avisos recebidos e ignorados),
+  para medir o ruído de cada uma.
+- Até duas fontes por órgão: a de concursos e a de notícias.
+- O que vira Descoberta continua passando pelo curador (§4). Uma notícia de
+  iminência vira, se ele aprovar, um concurso com status **Previsto**.
 
 ### 4. O que não muda
 

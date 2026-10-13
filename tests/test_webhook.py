@@ -118,3 +118,52 @@ def test_aviso_de_pagina_fora_do_cadastro_fica_sem_fonte(client):
     post(client, APPRISE, HTTP_X_LEXPUBLI_TOKEN="segredo")       # a página da Cebraspe
     d = Descoberta.objects.get()
     assert d.fonte_vigiada is None and d.poder == "" and d.carreira_sugerida == ""
+
+
+# --- fontes de notícias (ADR-0007 §3a) ------------------------------------------
+
+def _noticias():
+    from concursos.models import Fonte
+
+    return Fonte.objects.create(nome="TRT8 — Notícias sobre concurso", poder="judiciario",
+                                esfera="federal", conteudo="noticias",
+                                url="https://www.trt8.jus.br/noticias?tag=concurso",
+                                changedetection_uuid="11111111-2222-4333-8444-555555555555")
+
+
+def _aviso(texto):
+    return dict(APPRISE, title="[LexPubli] TRT8 — Notícias sobre concurso",
+                message="https://www.trt8.jus.br/noticias?tag=concurso\n"
+                        "watch_uuid: 11111111-2222-4333-8444-555555555555\n---\n" + texto)
+
+
+@pytest.mark.django_db
+def test_noticia_de_iminencia_vira_descoberta(client):
+    fonte = _noticias()
+    r = post(client, _aviso("(added) TRT-8 forma comissão do concurso para servidores"),
+             HTTP_X_LEXPUBLI_TOKEN="segredo")
+    assert r.status_code == 201 and Descoberta.objects.get().fonte_vigiada == fonte
+    fonte.refresh_from_db()
+    assert (fonte.avisos_recebidos, fonte.avisos_ignorados) == (1, 0)
+
+
+@pytest.mark.django_db
+def test_noticia_sem_concurso_e_ignorada_e_contada(client):
+    fonte = _noticias()
+    r = post(client, _aviso("(added) Tribunal realiza sessão solene em homenagem ao Dia do Servidor"),
+             HTTP_X_LEXPUBLI_TOKEN="segredo")
+    assert r.status_code == 200 and r.json()["ignorada"] is True
+    assert not Descoberta.objects.exists()
+    fonte.refresh_from_db()
+    assert (fonte.avisos_recebidos, fonte.avisos_ignorados) == (1, 1)
+
+
+@pytest.mark.django_db
+def test_pagina_de_concursos_nao_tem_filtro(client):
+    fonte = _stj(changedetection_uuid="0b8f3f1e-6c1a-4f3e-9d65-2b1c0a9e7f10")
+    corpo = dict(APPRISE, message="https://www.stj.jus.br/x\n"
+                                  "watch_uuid: 0b8f3f1e-6c1a-4f3e-9d65-2b1c0a9e7f10\n---\n"
+                                  "(added) Resultado final homologado")
+    assert post(client, corpo, HTTP_X_LEXPUBLI_TOKEN="segredo").status_code == 201
+    fonte.refresh_from_db()
+    assert fonte.avisos_recebidos == 1 and fonte.avisos_ignorados == 0
