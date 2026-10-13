@@ -121,8 +121,12 @@ def dados_concurso(c) -> dict:
 
 
 def dados_descoberta_criada(descoberta) -> dict:
-    return {**dados_concurso(descoberta.concurso.specific),
-            "discovery_id": str(descoberta.id), "source_url": descoberta.fonte_url}
+    """source_url é a fonte OFICIAL do concurso, não a da descoberta: esta
+    pode ser um agregador (só índice, ADR-0002), e o LexCorpus resolve o
+    alvo pelas URLs do evento."""
+    concurso = descoberta.concurso.specific
+    return {**dados_concurso(concurso),
+            "discovery_id": str(descoberta.id), "source_url": concurso.fonte_url}
 
 
 def enfileirar(envelope: dict):

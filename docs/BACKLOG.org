@@ -145,8 +145,14 @@
    portarias do MGI). Câmara/Senado têm dados abertos, mas sem concursos;
    o DJEN do CNJ é processual. O resto são páginas oficiais, em ondas.
    - [X] Aceite do ADR (13/10)
-   - [ ] Modelo Fonte (poder, esfera, tipo, carreira_sugerida) + domínio
-         oficial obrigatório
+   - [X] Modelo Fonte (13/10): poder, esfera, órgão, tipo (dou|pagina),
+         url única, carreira_sugerida, onda, prioridade, intervalo (>= 1 h;
+         DOU diário), ativa só depois de conferida (data), motivo quando
+         inativa. Snippet "Fontes" no painel. Domínio oficial obrigatório:
+         .gov.br, .leg.br, .jus.br, .mp.br, .def.br (Defensorias, §3) ou o
+         site de uma banca cadastrada (e subdomínios)
+   - [ ] Cadastrar a onda A (~25 fontes), cada uma conferida: texto sem
+         JS (ou API/feed) e robots.txt; a que não passa fica inativa com motivo
    - [ ] Sincronização Fonte -> changedetection.io (API)
    - [ ] INLABS: confirmar acesso; coletar_dou (Seções 1 e 3)
    - [ ] Onda A (federal, ~25 fontes + DOU); medir antes da onda B
@@ -250,9 +256,15 @@
 ** TODO [#B] Consumir as respostas do LexCorpus
    Estado da aquisição por concurso; a página mostra "provas anteriores
    disponíveis" e o link para o LexLearn.
-** TODO [#A] Regra de aprovação: fonte_url oficial obrigatória
+** FEITO [#A] Regra de aprovação: fonte_url oficial obrigatória
    Recusar como fonte os domínios de agregadores (PCI etc.); o agregador
    fica só como origem da descoberta (auditoria).
+   - [X] (13/10) ConcursoPage.fonte_url só oficial (mesma regra da Fonte);
+         aprovar uma descoberta exige a fonte oficial no concurso
+   - [X] contest.discovery.created: source_url passa a ser a fonte_url do
+         CONCURSO (antes: a da descoberta, que pode ser agregador). O
+         LexCorpus resolve o alvo por essa URL (alvos.py). Só a descrição
+         do campo mudou no contrato (common.schema.json, nas duas cópias)
 ** TODO [#B] Discovery: sitemap de notícias do PCI como índice
    smap_noticias.xml (~1.000 URLs com lastmod; robots.txt permite). Vira
    descoberta pendente; a curadoria confere na fonte oficial. Não copiar texto.

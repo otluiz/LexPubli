@@ -2,7 +2,7 @@
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet, SnippetViewSetGroup
 
-from .models import Banca, Descoberta, Orgao, OutboxEvent
+from .models import Banca, Descoberta, Fonte, Orgao, OutboxEvent
 
 
 class DescobertaViewSet(SnippetViewSet):
@@ -29,6 +29,17 @@ class BancaViewSet(SnippetViewSet):
     list_display = ["nome", "slug", "site"]
 
 
+class FonteViewSet(SnippetViewSet):
+    """Fontes de descoberta por Poder (ADR-0007)."""
+
+    model = Fonte
+    icon = "site"
+    menu_label = "Fontes"
+    list_display = ["nome", "poder", "esfera", "onda", "tipo", "ativa", "conferida_em"]
+    list_filter = ["poder", "esfera", "onda", "tipo", "ativa"]
+    search_fields = ["nome", "url"]
+
+
 class OutboxViewSet(SnippetViewSet):
     """Só leitura na prática: quem escreve aqui é o código, não o operador."""
 
@@ -43,7 +54,7 @@ class LexPubliGroup(SnippetViewSetGroup):
     menu_label = "LexPubli"
     menu_icon = "folder-open-inverse"
     menu_order = 200
-    items = (DescobertaViewSet, OrgaoViewSet, BancaViewSet, OutboxViewSet)
+    items = (DescobertaViewSet, FonteViewSet, OrgaoViewSet, BancaViewSet, OutboxViewSet)
 
 
 register_snippet(LexPubliGroup)
