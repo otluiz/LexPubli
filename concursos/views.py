@@ -69,6 +69,13 @@ def webhook_changedetection(request):
     watch_uuid = achado.group(1) if achado else str(corpo.get("watch_uuid") or "")
     mensagem = _RE_WATCH_UUID.sub("", mensagem).strip()
     fonte_vigiada = Fonte.do_aviso(url, watch_uuid)
+    if fonte_vigiada and fonte_vigiada.tipo == Fonte.Tipo.PISTA:
+        # site de concursos: não vira Descoberta, só dispara a busca oficial
+        from .pistas import registrar
+
+        criadas = registrar(fonte_vigiada, mensagem)
+        Fonte.objects.filter(pk=fonte_vigiada.pk).update(avisos_recebidos=F("avisos_recebidos") + 1)
+        return JsonResponse({"pistas": criadas}, status=200)
     if fonte_vigiada:
         ignorar = (fonte_vigiada.conteudo == Fonte.Conteudo.NOTICIAS
                    and not RE_CONCURSO.search(  # o nome e a URL da própria fonte não contam

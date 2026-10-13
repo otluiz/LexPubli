@@ -145,12 +145,63 @@ class Relatorio:
                 + (f"; PAROU: {self.erro}" if self.erro else ""))
 
 
+def orgao_do_achado(a: Achado, rel: Relatorio | None = None):
+    """O Orgao da publicação: pelo CNPJ; senão pela sigla (o resolvedor lê a
+    razão social: 'TRIBUNAL REGIONAL DO TRABALHO DA 8A REGIAO' -> TRT8), e aí
+    o CNPJ é gravado nele; senão é criado com o nome do PNCP."""
+    from .models import Orgao
+    from .orgaos import chaves, orgao_da_chave
+    from .util import slug_lex
+
+    orgao = Orgao.objects.filter(cnpj=a.cnpj).first() if a.cnpj else None
+    if orgao:
+        return orgao
+    achadas = chaves(a.razao)
+    orgao = orgao_da_chave(achadas[0]) if achadas else None
+    if orgao:
+        orgao.cnpj = a.cnpj
+        orgao.save(update_fields=["cnpj"])
+        return orgao
+    nome = _nome_orgao(a.razao or a.cnpj)
+    slug = slug_lex(achadas[0] if achadas else nome)[:70]
+    if Orgao.objects.filter(slug=slug).exists():
+        slug = f"{slug[:60]}_{a.cnpj[-6:]}"
+    orgao = Orgao.objects.create(nome=nome, sigla=achadas[0] if achadas else "", slug=slug,
+                                 cnpj=a.cnpj, esfera=ESFERAS[a.esfera], uf=a.uf[:2])
+    if rel is not None:
+        rel.orgaos_novos.append(nome)
+    return orgao
+
+
+def gravar(a: Achado, rel: Relatorio):
+    """Filtra e grava UMA publicação como Sinal. Devolve o Orgao tocado (sinal
+    novo) ou None."""
+    from .models import Sinal
+
+    if not e_concurso_publico(a.objeto):
+        return None
+    if a.esfera not in ESFERAS:
+        rel.municipais += 1
+        return None
+    orgao = orgao_do_achado(a, rel)
+    resumo = re.sub(r"\s+", " ", a.objeto).strip()
+    if a.fornecedor:
+        resumo = f"{resumo} Contratada: {a.fornecedor}."
+    sinal, novo = Sinal.objects.get_or_create(
+        orgao=orgao, tipo=a.tipo_sinal, documento_url=a.url,
+        defaults={"data_documento": a.data, "origem": Sinal.Origem.PNCP, "resumo": resumo[:300]})
+    if not novo:
+        rel.ja_vistos += 1
+        return None
+    rel.sinais.append(f"{orgao} · {sinal.get_tipo_display()} · {a.url}")
+    return orgao
+
+
 def coletar(*, dias: int = 1, hoje: date | None = None, get=http_get, pausa: float = 3.0) -> Relatorio:
     """Lê os últimos `dias` (ontem e para trás; o dia de hoje ainda está
     sendo publicado) e grava os Sinais de concurso público."""
-    from .models import Orgao, Sinal
+    from .models import Orgao
     from .radar import aplicar
-    from .util import slug_lex
 
     rel, tocados = Relatorio(), set()
     hoje = hoje or date.today()
@@ -158,32 +209,47 @@ def coletar(*, dias: int = 1, hoje: date | None = None, get=http_get, pausa: flo
         for n in range(dias, 0, -1):
             for a in publicacoes(hoje - timedelta(days=n), get=get, pausa=pausa):
                 rel.lidos += 1
-                if not e_concurso_publico(a.objeto):
-                    continue
-                if a.esfera not in ESFERAS:
-                    rel.municipais += 1
-                    continue
-                orgao = Orgao.objects.filter(cnpj=a.cnpj).first() if a.cnpj else None
-                if orgao is None:
-                    nome = _nome_orgao(a.razao or a.cnpj)
-                    slug = slug_lex(nome)[:70]
-                    if Orgao.objects.filter(slug=slug).exists():
-                        slug = f"{slug[:60]}_{a.cnpj[-6:]}"
-                    orgao = Orgao.objects.create(nome=nome, slug=slug, cnpj=a.cnpj,
-                                                 esfera=ESFERAS[a.esfera], uf=a.uf[:2])
-                    rel.orgaos_novos.append(nome)
-                resumo = re.sub(r"\s+", " ", a.objeto).strip()
-                if a.fornecedor:
-                    resumo = f"{resumo} Contratada: {a.fornecedor}."
-                sinal, novo = Sinal.objects.get_or_create(
-                    orgao=orgao, tipo=a.tipo_sinal, documento_url=a.url,
-                    defaults={"data_documento": a.data, "origem": Sinal.Origem.PNCP,
-                              "resumo": resumo[:300]})
-                if not novo:
-                    rel.ja_vistos += 1
-                    continue
-                rel.sinais.append(f"{orgao} · {sinal.get_tipo_display()} · {a.url}")
-                tocados.add(orgao.pk)
+                orgao = gravar(a, rel)
+                if orgao:
+                    tocados.add(orgao.pk)
+    except ErroPncp as exc:
+        rel.erro = str(exc)
+    for orgao in Orgao.objects.filter(pk__in=tocados):
+        chamada = aplicar(orgao)
+        if chamada is not None:
+            rel.chamadas.append(chamada.title)
+    return rel
+
+
+def por_orgao(cnpj: str, *, hoje: date | None = None, get=http_get, pausa: float = 3.0) -> Relatorio:
+    """A busca oficial disparada por uma pista: as contratações e os contratos
+    de UM órgão no último ano (o PNCP aceita no máximo 365 dias por consulta)."""
+    from .models import Orgao
+    from .radar import aplicar
+
+    hoje = hoje or date.today()
+    ini, fim = (hoje - timedelta(days=364)).strftime("%Y%m%d"), hoje.strftime("%Y%m%d")
+    consultas = [("/contratos", {"cnpjOrgao": cnpj, "tamanhoPagina": 500}, _contrato)] + [
+        ("/contratacoes/publicacao", {"cnpj": cnpj, "codigoModalidadeContratacao": m,
+                                      "tamanhoPagina": 50}, _contratacao) for m in MODALIDADES]
+    rel, tocados = Relatorio(), set()
+    try:
+        for caminho, extra, normalizar in consultas:
+            pagina = 1
+            while True:
+                corpo = get(caminho, {"dataInicial": ini, "dataFinal": fim, "pagina": pagina, **extra})
+                for x in corpo.get("data") or []:
+                    rel.lidos += 1
+                    orgao = gravar(normalizar(x), rel)
+                    if orgao:
+                        tocados.add(orgao.pk)
+                if pagina >= (corpo.get("totalPaginas") or 0):
+                    break
+                pagina += 1
+                if pausa:
+                    time.sleep(pausa)
+            if pausa:
+                time.sleep(pausa)
     except ErroPncp as exc:
         rel.erro = str(exc)
     for orgao in Orgao.objects.filter(pk__in=tocados):

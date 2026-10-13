@@ -6,7 +6,7 @@ from wagtail import hooks
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet, SnippetViewSetGroup
 
-from .models import Banca, Descoberta, Fonte, Orgao, OutboxEvent, Sinal
+from .models import Banca, Descoberta, Fonte, Orgao, OutboxEvent, Pista, Sinal
 
 
 class DescobertaViewSet(SnippetViewSet):
@@ -57,6 +57,17 @@ class SinalViewSet(SnippetViewSet):
     search_fields = ["resumo", "documento_url"]
 
 
+class PistaViewSet(SnippetViewSet):
+    """Pistas dos sites de concursos: auditoria, não fila (ADR-0008 §3)."""
+
+    model = Pista
+    icon = "link"
+    menu_label = "Pistas"
+    list_display = ["titulo", "chave_orgao", "status", "sinal", "detectada_em"]
+    list_filter = ["status", "fonte"]
+    search_fields = ["titulo", "chave_orgao"]
+
+
 class OutboxViewSet(SnippetViewSet):
     """Só leitura na prática: quem escreve aqui é o código, não o operador."""
 
@@ -71,7 +82,7 @@ class LexPubliGroup(SnippetViewSetGroup):
     menu_label = "LexPubli"
     menu_icon = "folder-open-inverse"
     menu_order = 200
-    items = (DescobertaViewSet, SinalViewSet, FonteViewSet, OrgaoViewSet, BancaViewSet, OutboxViewSet)
+    items = (DescobertaViewSet, SinalViewSet, PistaViewSet, FonteViewSet, OrgaoViewSet, BancaViewSet, OutboxViewSet)
 
 
 register_snippet(LexPubliGroup)

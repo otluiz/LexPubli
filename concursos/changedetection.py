@@ -82,6 +82,10 @@ class Cliente:
     def atualizar(self, uuid: str, campos: dict) -> None:
         self._pedir("PUT", f"/watch/{quote(uuid)}", campos)
 
+    def checar_agora(self, uuid: str) -> None:
+        """Pede uma checagem imediata do watch (a busca oficial de uma pista)."""
+        self._pedir("GET", f"/watch/{quote(uuid)}", consulta={"recheck": "1"})
+
     def apagar(self, uuid: str) -> None:
         self._pedir("DELETE", f"/watch/{quote(uuid)}")
 
