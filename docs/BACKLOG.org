@@ -191,6 +191,20 @@
    - [ ] INLABS: criar a conta (dono do produto, inlabs.in.gov.br) e
          confirmar acesso; depois coletar_dou (Seções 1 e 3)
    - [ ] Onda A (federal, ~25 fontes + DOU); medir antes da onda B
+   - [X] Onda B cadastrada (13/10, a pedido do dono do produto, sem a medição
+         da onda A, que entrou no mesmo dia): 6 TRFs, 24 TRTs, 27 TREs, 27 TJs
+         e 26 MPs estaduais, cada um com a página de CONCURSOS e a de NOTÍCIAS
+         (§3a). Descoberta automática (página inicial -> link -> conferência
+         sem JS e robots.txt) + padrões de URL + correção à mão das escolhas
+         erradas. 220 fontes, 160 ativas (76 de concursos, 84 de notícias),
+         intervalo de 12 h. `carregar_fontes B`. NÃO sincronizada com o
+         changedetection: decidir onde roda (notebook ou gpu01/VM)
+   - [ ] Onda B: as 60 inativas com motivo (403/firewall: TJGO, TJPB, MPSP;
+         sem resposta: TRF3, TJRJ, MPES, MPSE; só JS; robots.txt: TRF1,
+         TRT10, TRT20, TJAP, TJSE, MPGO, MPRR, MPTO). As sem link têm URL
+         provisória com #concursos/#noticias: procurar a página à mão
+   - [ ] Medir: avisos recebidos x ignorados por fonte de notícias depois de
+         2 semanas; ajustar o filtro (RE_CONCURSO) ou desativar a fonte
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
