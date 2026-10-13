@@ -68,3 +68,13 @@ def test_corpo_invalido(client, corpo):
 @pytest.mark.django_db
 def test_get_nao_permitido(client):
     assert client.get(URL).status_code == 405
+
+
+@pytest.mark.django_db
+def test_html_do_changedetection_vira_texto(client):
+    corpo = dict(APPRISE, message='https://x.gov.br/c had a change.<br>---<br>'
+                                  '<span style="color: #b30000;">Edital nº 5</span>')
+    post(client, corpo, HTTP_X_LEXPUBLI_TOKEN="segredo")
+    d = Descoberta.objects.get()
+    assert "<" not in d.resumo and "Edital nº 5" in d.resumo
+    assert d.fonte_url == "https://x.gov.br/c"
