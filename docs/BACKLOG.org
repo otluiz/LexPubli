@@ -129,7 +129,7 @@
    - Worker monta só /data/raw/editais
    - [X] Escrever o ADR
    - [X] Aceite do dono do produto (13/10)
-   - [ ] Nota no ADR-0007 do LexLearn (fronteira de ingestão)
+   - [X] Nota no ADR-0007 do LexLearn (13/10, branch docs/fronteira-editais)
 ** TODO [#B] Consumir as respostas do LexCorpus
    Estado da aquisição por concurso; a página mostra "provas anteriores
    disponíveis" e o link para o LexLearn.

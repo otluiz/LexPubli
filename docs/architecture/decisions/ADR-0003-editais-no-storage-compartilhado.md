@@ -6,8 +6,8 @@
 # ADR-0003: Editais no storage compartilhado (`/data/raw/editais/`)
 
 - Status: **Aceito** em 2026-10-13 pelo dono do produto, inclusive a chave
-  `{concurso}` = `contest_slug` + `contest_id` (§2). Falta registrar a nota
-  no ADR-0007 do LexLearn, que define a fronteira de ingestão.
+  `{concurso}` = `contest_slug` + `contest_id` (§2). A nota no ADR-0007 do
+  LexLearn (fronteira de ingestão) foi registrada em 13/10/2026.
 - Data: 2026-10-12
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fonte oficial; agregador só como índice);
@@ -220,8 +220,8 @@ escrita), não `/data` inteiro. Ele não enxerga `exams/`, `laws/` nem
 ## Implantação (consumidor primeiro)
 
 **LexLearn**
-- [ ] Nota no ADR-0007 (§4): editais entram só pelo LexPubli, com
-      autorização humana
+- [x] Nota no ADR-0007 (§4): editais entram só pelo LexPubli, com
+      autorização humana (13/10/2026)
 - [ ] Aceitar o sidecar `edital-1.0` (cópia do schema; `papel` com os novos
       valores, todos começando com `edital`)
 - [ ] Conferir os 4 PDFs da Transpetro duplicados na raiz de `editais/`
