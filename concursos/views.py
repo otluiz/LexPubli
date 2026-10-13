@@ -13,9 +13,10 @@ from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import Descoberta
+from .models import Descoberta, Fonte
 
 _RE_URL = re.compile(r"https?://[^\s<>\"']+")
+_RE_WATCH_UUID = re.compile(r"^watch_uuid:\s*([0-9a-f-]{36})\s*$", re.M)
 LIMITE_CORPO = 256 * 1024  # um diff de página não passa disso; acima é abuso
 
 
@@ -57,6 +58,13 @@ def webhook_changedetection(request):
     if not url.startswith(("http://", "https://")):
         return JsonResponse({"erro": "nenhuma URL de origem no aviso"}, status=400)
 
+    # o corpo que a sincronização configura traz o uuid do watch (ADR-0007);
+    # aviso de watch criado à mão não traz, e aí vale a URL
+    achado = _RE_WATCH_UUID.search(mensagem)
+    watch_uuid = achado.group(1) if achado else str(corpo.get("watch_uuid") or "")
+    mensagem = _RE_WATCH_UUID.sub("", mensagem).strip()
+    fonte_vigiada = Fonte.do_aviso(url, watch_uuid)
+
     chave = hashlib.sha256(f"{url}\n{mensagem}".encode()).hexdigest()
     try:
         with transaction.atomic():
@@ -64,6 +72,7 @@ def webhook_changedetection(request):
                 titulo=(titulo or f"Mudança em {url}")[:300],
                 fonte="changedetection",
                 fonte_url=url[:500],
+                fonte_vigiada=fonte_vigiada,
                 resumo=mensagem[:20000],
                 payload=corpo,
                 chave_dedup=chave,

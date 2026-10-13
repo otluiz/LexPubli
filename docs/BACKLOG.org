@@ -180,8 +180,14 @@
          painel e o comando completo conserta depois. Sem chave/token no
          ambiente, o painel só grava. carregar_fontes NÃO passa pelo painel:
          depois dele, rodar o comando
-   - [ ] Descoberta ligada à Fonte (FK pela URL do watch): o curador vê o
-         poder e a carreira sugerida na fila
+   - [X] Descoberta ligada à Fonte (13/10): Descoberta.fonte_vigiada. A
+         sincronização põe no corpo da notificação o uuid do watch
+         ("watch_uuid: ..."); o webhook liga por ele e, sem ele (watch
+         manual), pela URL sem www e sem barra final. A fila da curadoria
+         mostra fonte, poder e carreira sugerida (só sugestão, ADR-0004) e
+         filtra pela fonte. Migração liga as descobertas antigas pela URL
+   - [ ] Conferir com o primeiro aviso REAL de mudança que o changedetection
+         renderiza {{watch_uuid}} no corpo (testado só com o webhook simulado)
    - [ ] INLABS: criar a conta (dono do produto, inlabs.in.gov.br) e
          confirmar acesso; depois coletar_dou (Seções 1 e 3)
    - [ ] Onda A (federal, ~25 fontes + DOU); medir antes da onda B

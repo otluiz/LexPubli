@@ -78,3 +78,43 @@ def test_html_do_changedetection_vira_texto(client):
     d = Descoberta.objects.get()
     assert "<" not in d.resumo and "Edital nº 5" in d.resumo
     assert d.fonte_url == "https://x.gov.br/c"
+
+
+# --- ligação com a Fonte do cadastro (ADR-0007) -------------------------------
+
+def _stj(**kw):
+    from concursos.models import Fonte
+
+    return Fonte.objects.create(nome="STJ — Concursos", poder="judiciario", esfera="federal",
+                                url="https://www.stj.jus.br/sites/portalp/Institucional/Concursos",
+                                carreira_sugerida="tribunais", **kw)
+
+
+@pytest.mark.django_db
+def test_aviso_liga_a_fonte_pelo_uuid_do_watch(client):
+    stj = _stj(changedetection_uuid="0b8f3f1e-6c1a-4f3e-9d65-2b1c0a9e7f10")
+    corpo = dict(APPRISE, message="https://www.stj.jus.br/outra/pagina\n"
+                                  "watch_uuid: 0b8f3f1e-6c1a-4f3e-9d65-2b1c0a9e7f10\n---\n"
+                                  "(added) Edital nº 1 — Analista Judiciário\n---\n")
+    post(client, corpo, HTTP_X_LEXPUBLI_TOKEN="segredo")
+    d = Descoberta.objects.get()
+    assert d.fonte_vigiada == stj
+    assert d.poder == "Judiciário" and d.carreira_sugerida.startswith("Tribunais")
+    assert "watch_uuid" not in d.resumo and "Edital nº 1" in d.resumo
+
+
+@pytest.mark.django_db
+def test_aviso_sem_uuid_liga_pela_url(client):
+    stj = _stj()
+    corpo = dict(APPRISE, message="http://stj.jus.br/sites/portalp/Institucional/Concursos/ "
+                                  "had a change.\n---\n(added) Edital")
+    post(client, corpo, HTTP_X_LEXPUBLI_TOKEN="segredo")
+    assert Descoberta.objects.get().fonte_vigiada == stj
+
+
+@pytest.mark.django_db
+def test_aviso_de_pagina_fora_do_cadastro_fica_sem_fonte(client):
+    _stj()
+    post(client, APPRISE, HTTP_X_LEXPUBLI_TOKEN="segredo")       # a página da Cebraspe
+    d = Descoberta.objects.get()
+    assert d.fonte_vigiada is None and d.poder == "" and d.carreira_sugerida == ""

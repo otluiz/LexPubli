@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from urllib.parse import quote, urlencode
 
 ETIQUETA = "lexpubli"
+CORPO_NOTIFICACAO = "{{watch_url}}\nwatch_uuid: {{watch_uuid}}\n---\n{{diff}}\n---\n"
 TIMEOUT_S = 20
 
 
@@ -102,6 +103,9 @@ def campos_do_watch(fonte, etiqueta_uuid: str, url_notificacao: str) -> dict:
         "time_between_check_use_default": False,
         "notification_urls": [url_notificacao],
         "notification_format": "text",       # a curadoria quer texto, não HTML colorido
+        # o webhook liga a Descoberta à Fonte pelo uuid (a URL fica de reserva)
+        "notification_title": f"[LexPubli] {fonte.nome}",
+        "notification_body": CORPO_NOTIFICACAO,
         "fetch_backend": "html_requests",    # conferida sem JS (ADR-0007 §3)
         "paused": not fonte.ativa,
     }

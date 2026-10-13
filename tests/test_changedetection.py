@@ -189,3 +189,10 @@ def test_comando_sem_chave_falha_com_mensagem(db, settings):
     settings.LEXPUBLI_CHANGEDETECTION_API_KEY = ""
     with pytest.raises(CommandError, match="Settings > API"):
         call_command("sincronizar_changedetection", stdout=StringIO())
+
+
+def test_corpo_da_notificacao_traz_o_uuid_do_watch(db, cd):
+    _fonte("STJ", "https://www.stj.jus.br/concursos")
+    _sinc(cd)
+    w = next(iter(cd.dados.values()))
+    assert "{{watch_uuid}}" in w["notification_body"] and w["notification_title"] == "[LexPubli] STJ"

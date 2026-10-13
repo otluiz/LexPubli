@@ -76,3 +76,14 @@ def test_fonte_de_agregador_nem_chega_ao_changedetection(db, painel, cd):
     resp = painel.post(reverse("wagtailsnippets_concursos_fonte:add"),
                        {**FORM, "url": "https://www.pciconcursos.com.br/x"})
     assert resp.status_code == 200 and not Fonte.objects.exists() and cd.dados == {}
+
+
+def test_fila_da_curadoria_mostra_fonte_poder_e_carreira(db, painel):
+    from concursos.models import Descoberta
+
+    fonte = Fonte.objects.create(nome="STJ — Concursos", poder="judiciario", esfera="federal",
+                                 url=FORM["url"], carreira_sugerida="tribunais")
+    Descoberta.objects.create(titulo="STJ: edital", fonte="changedetection", fonte_url=FORM["url"],
+                              fonte_vigiada=fonte, chave_dedup="x")
+    html = painel.get(reverse("wagtailsnippets_concursos_descoberta:list")).content.decode()
+    assert "STJ — Concursos" in html and "Judiciário" in html and "Tribunais" in html

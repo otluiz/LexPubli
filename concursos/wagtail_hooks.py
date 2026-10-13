@@ -13,8 +13,9 @@ class DescobertaViewSet(SnippetViewSet):
     model = Descoberta
     icon = "search"
     menu_label = "Curadoria"
-    list_display = ["titulo", "fonte", "status", "concurso", "detectada_em"]
-    list_filter = ["status", "fonte"]
+    list_display = ["titulo", "fonte_vigiada", "poder", "carreira_sugerida", "status", "concurso",
+                    "detectada_em"]
+    list_filter = ["status", "fonte", "fonte_vigiada"]
     search_fields = ["titulo", "fonte_url", "resumo"]
     ordering = ["status", "-detectada_em"]
 
