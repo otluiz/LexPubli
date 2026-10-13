@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>ADR-0001-plataforma-e-arquitetura.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<!-- Arquivo:  docs/architecture/decisions/ADR-0001-plataforma-e-arquitetura.md
+     Função:   registra a escolha da plataforma e da arquitetura do LexPubli
+               (portal público de concursos e porta de entrada do ecossistema
+               Lex). -->
+<h1 id="adr-0001-plataforma-e-arquitetura-do-lexpubli">ADR-0001:
+Plataforma e arquitetura do LexPubli</h1>
+<ul>
+<li>Status: <strong>Proposto</strong>. Aceitação condicionada ao spike
+descrito em “Validação”.</li>
+<li>Data: 2026-10-12</li>
+<li>Autores: Prof. Othon Luiz, Claude (Anthropic)</li>
+</ul>
+<h2 id="contexto">Contexto</h2>
+<p>O LexPubli é a <strong>porta de entrada</strong> do ecossistema Lex.
+Ele busca na Internet informações sobre concursos (previstos,
+autorizados, editais, retificações, cronogramas, resultados), prioriza
+essas descobertas (Heat Engine, com decisão humana preservada) e as
+<strong>publica em páginas próprias</strong> para o público, levando o
+visitante ao LexLearn.</p>
+<p>O ecossistema já tem uma stack consolidada, e o LexPubli precisa
+conviver com ela:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Projeto</th>
+<th>Stack</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LexLearn</td>
+<td>Python 3.11, FastAPI, PostgreSQL + pgvector, RabbitMQ (dono do
+broker), workers, React + Vite + Tailwind, Docker Compose</td>
+</tr>
+<tr class="even">
+<td>LexCorpus</td>
+<td>Python, Scrapy, PyYAML, SQLite (StateStore), pika → RabbitMQ, Docker
+Compose</td>
+</tr>
+<tr class="odd">
+<td>Convenções</td>
+<td>contratos versionados em JSON Schema, Claim Check, ADRs em
+<code>docs/architecture/decisions/</code>, BACKLOG em org-mode</td>
+</tr>
+</tbody>
+</table>
+<p>O que a plataforma do LexPubli precisa entregar:</p>
+<ol type="1">
+<li><strong>Páginas públicas com bom SEO</strong>: renderizadas no
+servidor, sitemap, schema.org e URLs estáveis. O tráfego orgânico é o
+funil do ecossistema.</li>
+<li><strong>Modelo de dados estruturado</strong>: Concurso, Órgão,
+Banca, Cargo, Cronograma e Fonte, com relações, e não apenas “posts com
+campos”.</li>
+<li><strong>Painel de curadoria</strong>: aprovar descobertas, fundir
+duplicatas e fixar ou ocultar prioridades.</li>
+<li><strong>Editorial humano</strong>: notícias, guias, revisão e
+agendamento de publicação.</li>
+<li><strong>Integração por eventos</strong>: publicar e consumir no
+RabbitMQ existente, usando os mesmos padrões de contrato do
+LexCorpus.</li>
+<li><strong>Superfície de ataque pequena</strong>: é um site público,
+exposto a tráfego anônimo.</li>
+<li><strong>Não partir do zero</strong>: usar um projeto open source
+maduro, mantido e compatível com a nossa arquitetura.</li>
+</ol>
+<p>Ficou fora deste ADR: a fronteira com o LexCorpus, que é o ADR-0002.
+Em resumo, o LexPubli descobre <strong>concursos</strong> e o LexCorpus
+descobre e adquire <strong>documentos</strong>. O buscador, o catálogo,
+o orquestrador e os spiders continuam no LexCorpus.</p>
+<h2 id="opções-consideradas">Opções consideradas</h2>
+<h3 id="a.-wordpress-puro-ou-como-vitrine-de-um-núcleo-python">A.
+WordPress (puro, ou como vitrine de um núcleo Python)</h3>
+<ul>
+<li>Prós: o CMS mais difundido; SEO maduro (Rank Math, Yoast); editorial
+e feeds prontos; muita gente sabe operar.</li>
+<li>Contras:
+<ul>
+<li><strong>Segurança.</strong> O relatório anual da Patchstack
+registrou 11.334 novas vulnerabilidades no ecossistema WordPress em
+2025, 42% a mais que em
+<ol start="2024" type="1">
+<li>Cerca de 91% estão em plugins, e uma parcela relevante não tinha
+correção na data da divulgação. O núcleo do WordPress é razoavelmente
+seguro; o risco está nos plugins, que são exatamente o que daria o
+“ganho rápido”. As atualizações constantes ajudam, mas viram uma
+obrigação operacional permanente.</li>
+</ol></li>
+<li>PHP e MySQL ficam fora da stack. O domínio (deduplicação, Heat
+Engine, eventos) teria de ficar em PHP, ou exigiria um núcleo Python
+mais uma camada de sincronização com o WP, ou seja, dois runtimes e duas
+fontes de verdade a manter coerentes.</li>
+<li>Custom post types com ACF não modelam bem relações (concurso ↔︎
+cargos ↔︎ cronograma).</li>
+</ul></li>
+</ul>
+<h3 id="b.-ghost-node.js-mit">B. Ghost (Node.js, MIT)</h3>
+<ul>
+<li>Prós: excelente para publicação e newsletter (envio de e-mail e
+assinantes nativos); Admin e Content API; histórico de segurança melhor
+que o do WordPress.</li>
+<li>Contras: o modelo de dados é fixo (posts, páginas, tags), e
+concursos estruturados não cabem; em produção exige MySQL 8, segundo
+SGBD no ecossistema; Node fora da stack. Funcionaria só como vitrine,
+com o mesmo problema de sincronização da opção A.</li>
+</ul>
+<h3 id="c.-payload-cms-typescript-next.js-mit-postgresql">C. Payload CMS
+(TypeScript + Next.js, MIT, PostgreSQL)</h3>
+<ul>
+<li>Prós: CMS headless moderno, modelagem por código, PostgreSQL,
+licença MIT e comunidade grande; a partir da v3 roda dentro do Next.js
+(front e admin num só app).</li>
+<li>Contras: TypeScript como segunda linguagem de back-end; o domínio
+(Heat Engine, consumidores RabbitMQ) ficaria em Node ou exigiria um
+núcleo Python à parte, de novo com dois runtimes.</li>
+</ul>
+<h3 id="d.-directus-front-estático-astro">D. Directus + front estático
+(Astro)</h3>
+<ul>
+<li>Prós: introspecta um PostgreSQL existente. O núcleo Python seria
+dono do schema (Alembic), e o Directus ofereceria painel e API
+REST/GraphQL sem código.</li>
+<li>Contras: <strong>a licença não é open source.</strong> É a Monospace
+Sustainable Core License (fonte disponível), gratuita abaixo de US$ 5
+milhões de receita e 50 funcionários. Isso é um risco para um produto
+que pretende crescer. Node fora da stack; mais uma peça para
+operar.</li>
+</ul>
+<h3 id="e.-fastapi-sqladmin-templates-jinja2htmx-ou-astro">E. FastAPI +
+SQLAdmin + templates (Jinja2/HTMX) ou Astro</h3>
+<ul>
+<li>Prós: alinhamento total com o LexLearn (FastAPI, SQLAlchemy,
+pydantic).</li>
+<li>Contras: o SQLAdmin cobre o CRUD, mas não o editorial (rascunho,
+revisão, agendamento, rich text, imagens, histórico), nem SEO, sitemap,
+redirecionamentos e busca. Seria quase partir do zero na metade “portal”
+do produto.</li>
+</ul>
+<h3 id="f.-wagtail-python-django-bsd-3-clause-postgresql">F. Wagtail
+(Python + Django, BSD-3-Clause, PostgreSQL)</h3>
+<ul>
+<li>Prós:
+<ul>
+<li><strong>Python e PostgreSQL</strong>, a mesma linguagem e o mesmo
+SGBD do ecossistema. Os modelos de domínio são modelos Django: Concurso,
+Órgão, Banca e Cargo como <em>snippets</em>/modelos, e a página do
+concurso como <em>Page</em>, com relações de verdade.</li>
+<li><strong>Não partimos do zero.</strong> É um CMS maduro (cerca de 20
+mil estrelas, lançamentos de funcionalidades a cada três meses, BSD-3),
+com editorial completo (rascunho, moderação, agendamento, revisões,
+StreamField), imagens, busca nativa no PostgreSQL, sitemap,
+redirecionamentos e multi-site.</li>
+<li><strong>SEO por renderização no servidor</strong>, sem front
+separado. Se um dia quisermos um front desacoplado (Astro/Next.js), o
+Wagtail tem uma Content API headless e a troca não toca o domínio.</li>
+<li><strong>Curadoria no próprio admin</strong> (ViewSets, filtros,
+ações em lote): painel do Heat Engine sem front-end próprio.</li>
+<li><strong>Superfície de ataque menor</strong>: poucos pacotes,
+auditáveis e na nossa linguagem. Os avisos de segurança do Django e do
+Wagtail são publicados e corrigidos com processo definido.</li>
+<li>Os workers (descoberta, Heat Engine, consumidor e publicador
+RabbitMQ) são comandos do próprio projeto, que importam os mesmos
+modelos. Usam pika, como o LexCorpus, e o mesmo padrão de contrato.</li>
+</ul></li>
+<li>Contras:
+<ul>
+<li>O framework é Django, não FastAPI como no LexLearn. É a mesma
+linguagem, pydantic continua disponível para os contratos e a integração
+entre projetos é por eventos, então a diferença fica contida no
+LexPubli. Mesmo assim é um segundo framework web no ecossistema.</li>
+<li>Newsletter não é nativa. Fica fora do MVP; quando entrar, usar um
+serviço dedicado (ex.: listmonk, self-hosted e com PostgreSQL) ou a
+integração com Mailchimp.</li>
+</ul></li>
+</ul>
+<h3 id="peças-de-apoio-para-qualquer-opção">Peças de apoio (para
+qualquer opção)</h3>
+<ul>
+<li><strong>changedetection.io</strong> (Python, Apache-2.0, cerca de 32
+mil estrelas): monitora páginas (portais de bancas, órgãos, diários) e
+avisa por webhook quando mudam. Candidato a gatilho do Discovery: avisa
+que a página do órgão X mudou, e o worker do LexPubli extrai e
+normaliza. Evita escrever o agendador e o diff de páginas. A avaliar no
+spike.</li>
+<li><strong>Scrapy</strong>, para fontes que exigem navegação. Já é a
+ferramenta do LexCorpus, então o conhecimento é reaproveitado (o código
+não é compartilhado, conforme o ADR-0002).</li>
+</ul>
+<h2 id="decisão-proposta">Decisão (proposta)</h2>
+<p>Adotar o <strong>Wagtail</strong> como plataforma do LexPubli, num
+único projeto Django/Wagtail com PostgreSQL, que abriga:</p>
+<pre class="text"><code>lexpubli/  (Wagtail + Django · PostgreSQL · Docker Compose)
+ ├─ domínio      Concurso, Órgão, Banca, Cargo, Cronograma, Fonte (modelos)
+ ├─ portal       páginas públicas (SSR), editorial, SEO, sitemap, feeds
+ ├─ curadoria    admin Wagtail: fila de descobertas, deduplicação, prioridades
+ ├─ workers      comandos: discovery, heat engine, consumer/publisher RabbitMQ
+ └─ api          API pública (JSON) para terceiros e para o ecossistema
+          │
+          ├── eventos (lexpubli.events, envelope v1) ──▶ LexCorpus
+          └── links/CTA (&quot;estude para este concurso&quot;) ──▶ LexLearn</code></pre>
+<p>Regras que acompanham a decisão:</p>
+<ol type="1">
+<li>O PostgreSQL do LexPubli é <strong>só do LexPubli</strong>. Nenhum
+outro projeto o lê; a integração é por eventos e pela API.</li>
+<li>O RabbitMQ é o broker existente do LexLearn (rede externa, como faz
+o LexCorpus). O LexPubli publica em <code>lexpubli.events</code>.</li>
+<li>Contratos em JSON Schema versionados em <code>contracts/</code>,
+envelope <code>event_id</code>, <code>event_type</code>,
+<code>event_version</code>, <code>occurred_at</code>,
+<code>producer</code>, <code>correlation_id</code>, <code>data</code>
+(ver README).</li>
+<li>Dependências de terceiros (pacotes Wagtail/Django) entram por
+decisão explícita. A lista é revisada a cada release, para não repetir o
+problema dos plugins do WordPress.</li>
+</ol>
+<h2 id="validação-spike-antes-de-aceitar">Validação (spike antes de
+aceitar)</h2>
+<p>Spike de até duas semanas. O ADR passa a <strong>Aceito</strong> se
+todos os itens abaixo funcionarem; se não, volta-se às opções (fallback
+preferido: E, FastAPI + SQLAdmin + Astro).</p>
+<ul class="task-list">
+<li><input type="checkbox" disabled="" />
+Modelar Concurso, Órgão, Banca e Cargo e publicar a página de um
+concurso real (ex.: Sefaz-AL 2026) com schema.org e sitemap.</li>
+<li><input type="checkbox" disabled="" />
+Curadoria no admin: listar descobertas pendentes, aprovar e fundir
+duplicatas.</li>
+<li><input type="checkbox" disabled="" />
+Worker publica <code>contest.discovery.created</code> no RabbitMQ do
+LexLearn, validado contra o JSON Schema.</li>
+<li><input type="checkbox" disabled="" />
+changedetection.io dispara o webhook para uma fonte real, e o worker
+registra a descoberta.</li>
+<li><input type="checkbox" disabled="" />
+<code>docker compose up</code> sobe tudo (portal, worker, postgres) e se
+liga à rede do LexLearn.</li>
+<li><input type="checkbox" disabled="" />
+Checklist de hardening: <code>manage.py check --deploy</code> limpo,
+admin fora da URL padrão, CSP e cabeçalhos de segurança.</li>
+</ul>
+<h2 id="consequências">Consequências</h2>
+<p><strong>Positivas.</strong> Uma linguagem e um SGBD em todo o
+ecossistema; o domínio fica junto do portal, sem camada de
+sincronização; o editorial, o SEO e a curadoria vêm prontos de um
+projeto maduro com licença permissiva; a superfície de ataque é menor e
+auditável; o front pode ser desacoplado no futuro sem tocar o
+domínio.</p>
+<p><strong>Negativas / riscos.</strong> (a) Django é um segundo
+framework web no ecossistema; mitigado por tudo ser Python e pela
+integração exclusiva por eventos. (b) Os temas e o front do portal são
+escritos por nós (templates Django), já que não há um mercado de temas
+como o do WordPress. (c) Newsletter e alertas precisam de um serviço
+externo quando saírem do MVP.</p>
+<h2 id="referências">Referências</h2>
+<ul>
+<li>Patchstack, <em>State of WordPress Security</em> 2025: <a
+href="https://patchstack.com/?p=25568"
+class="uri">https://patchstack.com/?p=25568</a></li>
+<li>Wagtail (BSD-3-Clause): <a href="https://github.com/wagtail/wagtail"
+class="uri">https://github.com/wagtail/wagtail</a></li>
+<li>Directus, licença MSCL: <a
+href="https://github.com/directus/directus"
+class="uri">https://github.com/directus/directus</a></li>
+<li>Payload CMS: <a href="https://docs.railway.com/guides/payload-cms"
+class="uri">https://docs.railway.com/guides/payload-cms</a></li>
+<li>Ghost 6: <a
+href="https://dasroot.net/posts/2026/02/building-newsletter-substack-alternatives-ghost-buttondown/"
+class="uri">https://dasroot.net/posts/2026/02/building-newsletter-substack-alternatives-ghost-buttondown/</a></li>
+<li>changedetection.io: <a
+href="https://pagecrawl.io/blog/open-source-website-change-detection-tools"
+class="uri">https://pagecrawl.io/blog/open-source-website-change-detection-tools</a></li>
+<li>SQLAdmin: <a href="https://pypi.org/project/sqladmin/0.16.0"
+class="uri">https://pypi.org/project/sqladmin/0.16.0</a></li>
+</ul>
+
+</body>
+</html>

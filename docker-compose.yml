@@ -1,0 +1,82 @@
+# LexPubli — stack de desenvolvimento e do spike.
+#
+#   cp .env.example .env    # e preencha
+#   docker compose up -d --build
+#   docker compose exec web python manage.py migrate
+#   docker compose exec web python manage.py carregar_exemplo
+#   docker compose exec web python manage.py createsuperuser
+#
+# Broker: em dev local, `--profile broker` sobe um RabbitMQ próprio.
+# Ao lado do LexLearn, use o overlay docker-compose.lexlearn.yml (o broker é DELE).
+name: lexpubli
+
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    DATABASE_URL: postgres://lexpubli:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/lexpubli
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:${LEXPUBLI_PORT:-8190}:8000"   # só localhost; exposição pública é decisão de produção
+    volumes:
+      - media:/data/media
+    deploy:
+      resources:
+        limits: {cpus: "2", memory: 768M}
+
+  worker:
+    <<: *app
+    command: ["python", "manage.py", "publicar_eventos", "--loop", "5"]
+    deploy:
+      resources:
+        limits: {cpus: "0.5", memory: 256M}
+
+  db:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: lexpubli
+      POSTGRES_USER: lexpubli
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lexpubli -d lexpubli"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "1", memory: 512M}
+
+  # Monitor de fontes (Discovery). UI em http://127.0.0.1:5000
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:0.60.9
+    profiles: ["discovery"]
+    ports:
+      - "127.0.0.1:${CHANGEDETECTION_PORT:-5000}:5000"
+    volumes:
+      - changedetection:/datastore
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "1", memory: 512M}
+
+  # RabbitMQ só para desenvolvimento isolado (sem a stack do LexLearn).
+  rabbitmq:
+    image: rabbitmq:3-management
+    profiles: ["broker"]
+    ports:
+      - "127.0.0.1:15673:15672"   # UI de gestão (guest/guest só funciona via localhost)
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  media:
+  changedetection:
