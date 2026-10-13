@@ -125,3 +125,16 @@ def test_carregar_de_novo_nao_desfaz_o_curador(db):
     assert Fonte.objects.get(pk=stj.pk).prioridade == 1
     call_command("carregar_fontes", "A", "--atualizar", stdout=StringIO())
     assert Fonte.objects.get(pk=stj.pk).prioridade == 2
+
+
+def test_carregar_onda_b_concursos_e_noticias(db):
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    call_command("carregar_fontes", "B", stdout=StringIO())
+    b = Fonte.objects.filter(onda="B")
+    assert b.count() == 220 and b.filter(ativa=True).count() == 160
+    assert b.filter(ativa=True, conteudo="noticias").count() == 84
+    assert all(f.motivo_inativa for f in b.filter(ativa=False))
+    assert {f.esfera for f in b} == {"federal", "estadual"}

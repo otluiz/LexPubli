@@ -17,7 +17,7 @@ from django.db import transaction
 from concursos.models import Fonte
 
 DADOS = Path(__file__).resolve().parents[2] / "dados"
-CAMPOS = ("nome", "poder", "esfera", "onda", "tipo", "carreira_sugerida", "prioridade",
+CAMPOS = ("nome", "poder", "esfera", "onda", "tipo", "conteudo", "carreira_sugerida", "prioridade",
           "intervalo_horas", "ativa", "motivo_inativa")
 
 
