@@ -5,9 +5,9 @@
 
 # ADR-0003: Editais no storage compartilhado (`/data/raw/editais/`)
 
-- Status: **Proposto**. Exige alinhamento com o LexLearn (dono da pasta e
-  consumidor) e uma nota no ADR-0007 de lá, que define a fronteira de
-  ingestão.
+- Status: **Aceito** em 2026-10-13 pelo dono do produto, inclusive a chave
+  `{concurso}` = `contest_slug` + `contest_id` (§2). Falta registrar a nota
+  no ADR-0007 do LexLearn, que define a fronteira de ingestão.
 - Data: 2026-10-12
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fonte oficial; agregador só como índice);
@@ -95,7 +95,7 @@ O que já existe, apurado em 12/10/2026 no repositório do LexLearn:
   classificador por texto.
 - **`{banca}`** usa o slug canônico, o mesmo do LexCorpus (ex.: `cebraspe`).
 - **`{concurso}`** usa o `contest_slug` do LexPubli (ex.: `sefaz_al_2026`), e
-  o sidecar leva o `contest_id`. Este é o **ponto principal a alinhar com o
+  o sidecar leva o `contest_id`. Esta escolha **muda o pareamento no
   LexLearn**:
   - O slug das *provas* é do LexCorpus e muitas vezes é outro (ex.:
     `sefaz_al_26`, o identificador da Cebraspe).
