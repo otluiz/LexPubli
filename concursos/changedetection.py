@@ -135,6 +135,40 @@ class Relatorio:
                 f"{len(self.orfaos)} órfão(s), {len(self.removidos)} removido(s)")
 
 
+def _aplicar(fonte, cliente: Cliente, desejado: dict, remotos: dict, rel: Relatorio,
+             simular: bool) -> str | None:
+    """Leva UMA fonte ao estado do cadastro. Devolve o uuid do watch dela
+    (None se não há watch)."""
+    remoto = cliente.watch(fonte.changedetection_uuid) if fonte.changedetection_uuid else None
+    if remoto is None:
+        # sem watch (ou apagado na UI): adota um com a mesma URL e a etiqueta,
+        # se houver (ex.: o uuid se perdeu numa restauração do banco)
+        achado = next((u for u, w in remotos.items() if w.get("url") == fonte.url), None)
+        if achado:
+            remoto = dict(cliente.watch(achado) or {}, uuid=achado)
+            if not simular:
+                fonte.changedetection_uuid = achado
+                fonte.save(update_fields=["changedetection_uuid"])
+    if remoto is None:
+        if not fonte.ativa:
+            return None                        # inativa e sem watch: nada a fazer
+        rel.criadas.append(fonte.nome)
+        if not simular:
+            fonte.changedetection_uuid = cliente.criar(desejado)
+            fonte.save(update_fields=["changedetection_uuid"])
+        return fonte.changedetection_uuid or None
+    uuid = fonte.changedetection_uuid or remoto.get("uuid")
+    mudou = _difere(remoto, desejado)
+    if not mudou:
+        rel.iguais.append(fonte.nome)
+        return uuid
+    (rel.pausadas if not fonte.ativa and not remoto.get("paused") else rel.atualizadas
+     ).append(f"{fonte.nome} ({', '.join(mudou)})")
+    if not simular:
+        cliente.atualizar(uuid, desejado)
+    return uuid
+
+
 def sincronizar(fontes, cliente: Cliente, url_notificacao: str, *,
                 simular: bool = False, remover_orfaos: bool = False) -> Relatorio:
     """Aplica o cadastro no changedetection. `fontes` = Fonte do tipo pagina.
@@ -144,35 +178,8 @@ def sincronizar(fontes, cliente: Cliente, url_notificacao: str, *,
     remotos = cliente.watches(ETIQUETA)
     conhecidos = set()
     for fonte in fontes:
-        desejado = campos_do_watch(fonte, etiqueta, url_notificacao)
-        remoto = cliente.watch(fonte.changedetection_uuid) if fonte.changedetection_uuid else None
-        if remoto is None:
-            # sem watch (ou apagado na UI): adota um com a mesma URL e a etiqueta,
-            # se houver (ex.: o uuid se perdeu numa restauração do banco)
-            achado = next((u for u, w in remotos.items() if w.get("url") == fonte.url), None)
-            if achado:
-                remoto = cliente.watch(achado)
-                if not simular:
-                    fonte.changedetection_uuid = achado
-                    fonte.save(update_fields=["changedetection_uuid"])
-        if remoto is None:
-            if not fonte.ativa:
-                continue                       # inativa e sem watch: nada a fazer
-            rel.criadas.append(fonte.nome)
-            if not simular:
-                fonte.changedetection_uuid = cliente.criar(desejado)
-                fonte.save(update_fields=["changedetection_uuid"])
-            conhecidos.add(fonte.changedetection_uuid)
-            continue
-        conhecidos.add(fonte.changedetection_uuid or remoto.get("uuid"))
-        mudou = _difere(remoto, desejado)
-        if not mudou:
-            rel.iguais.append(fonte.nome)
-            continue
-        (rel.pausadas if not fonte.ativa and not remoto.get("paused") else rel.atualizadas
-         ).append(f"{fonte.nome} ({', '.join(mudou)})")
-        if not simular:
-            cliente.atualizar(fonte.changedetection_uuid, desejado)
+        conhecidos.add(_aplicar(fonte, cliente, campos_do_watch(fonte, etiqueta, url_notificacao),
+                                remotos, rel, simular))
     for uuid, w in remotos.items():
         if uuid not in conhecidos:
             rel.orfaos.append(f"{w.get('title') or w.get('url')} [{uuid}]")
@@ -180,3 +187,26 @@ def sincronizar(fontes, cliente: Cliente, url_notificacao: str, *,
                 cliente.apagar(uuid)
                 rel.removidos.append(uuid)
     return rel
+
+
+def sincronizar_uma(fonte, cliente: Cliente, url_notificacao: str) -> Relatorio:
+    """A fonte que o curador acabou de gravar no painel. Não olha órfãos:
+    isso é da sincronização completa."""
+    rel = Relatorio()
+    if fonte.tipo != fonte.Tipo.PAGINA:
+        return rel
+    etiqueta = cliente.etiqueta(ETIQUETA)
+    _aplicar(fonte, cliente, campos_do_watch(fonte, etiqueta, url_notificacao),
+             cliente.watches(ETIQUETA), rel, simular=False)
+    return rel
+
+
+def configurado() -> tuple[Cliente, str] | None:
+    """Cliente e URL do webhook, ou None se a integração não está configurada
+    (sem chave da API ou sem token do webhook): aí o painel não sincroniza."""
+    from django.conf import settings
+
+    if not (settings.LEXPUBLI_CHANGEDETECTION_API_KEY and settings.LEXPUBLI_WEBHOOK_TOKEN):
+        return None
+    return (Cliente(settings.LEXPUBLI_CHANGEDETECTION_URL, settings.LEXPUBLI_CHANGEDETECTION_API_KEY),
+            notificacao(settings.LEXPUBLI_WEBHOOK_INTERNO, settings.LEXPUBLI_WEBHOOK_TOKEN))

@@ -163,6 +163,12 @@ changedetection:
      mão na UI, sem a etiqueta, nunca são tocados.
 
    Rodar de novo sem mudança no cadastro não altera nada.
+
+   Depois da primeira carga, o **painel** mantém o changedetection em dia:
+   criar ou editar uma Fonte sincroniza aquela fonte na hora, desativá-la
+   pausa o watch, e apagá-la apaga o watch. Se o changedetection estiver fora
+   do ar, a Fonte é salva mesmo assim, com um aviso; o comando acima conserta
+   depois.
 4. Cada mudança detectada vira uma **Descoberta pendente** em *LexPubli → Curadoria*.
 
 ### Testes

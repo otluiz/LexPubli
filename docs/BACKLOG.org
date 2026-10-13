@@ -173,8 +173,13 @@
          watch manual nunca é tocado. Validado no changedetection 0.60.9
          local: 18 criados, 2ª rodada 18 sem mudança; na 1ª checagem o TSE deu
          403 e foi desativado (a sincronização pausou o watch)
-   - [ ] Rodar a sincronização periodicamente (worker ou cron) ou a cada
-         gravação de Fonte no painel (signal) — decidir
+   - [X] Sincronização na gravação do painel (13/10, decisão do dono do
+         produto): hooks after_create/edit/delete_snippet. Criar/editar
+         sincroniza só aquela fonte; desativar pausa; apagar a Fonte apaga
+         o watch. Falha do changedetection não impede a gravação: aviso no
+         painel e o comando completo conserta depois. Sem chave/token no
+         ambiente, o painel só grava. carregar_fontes NÃO passa pelo painel:
+         depois dele, rodar o comando
    - [ ] Descoberta ligada à Fonte (FK pela URL do watch): o curador vê o
          poder e a carreira sugerida na fila
    - [ ] INLABS: criar a conta (dono do produto, inlabs.in.gov.br) e
