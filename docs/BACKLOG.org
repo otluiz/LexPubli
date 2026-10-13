@@ -78,7 +78,18 @@
    próprio em ~/LexPubli (git archive), redes, banco e broker próprios,
    portas só em 127.0.0.1 (8190, 5000, 15673), acesso por túnel SSH; nada do
    LexLearn montado ou ligado; o consumidor do LexCorpus NÃO é ligado.
-   - [ ] Deploy (script do dono do produto) + createsuperuser
+   - [X] Deploy no host (13/10, dono do produto) + superusuário lexpubli
+   - [ ] VM AGORA, no disco atual (dono do produto, 13/10): backup antes
+         (LexLearn e LexPubli: pg_dump; volume do changedetection; /etc e o
+         nft ruleset; cópia conferida no lexlearn-backup), depois
+         libvirt + rede NAT "lexpubli" 172.16.20.0/24 (a faixa da VLAN 20:
+         a VM fica com 172.16.20.10) + guarda nftables em tabela própria
+         (serviço lexpubli-guard; NÃO o nftables.service, cujo flush apagaria
+         o Docker) + VM Debian 12 cloud (4 vCPU, 8 GB, 80 GB qcow2,
+         Docker oficial) + teste de fronteira. Quando o NVMe chegar:
+         qemu-img convert do disco para ele e passthrough (§1 do ADR-0006)
+   - [ ] Levar o LexPubli do host para a VM (pg_dump + volumes) e desligar
+         o do host
    - [ ] Teste do radar lá: coletar_pncp (1 rodada) e processar_pistas
    - [ ] Agendar coletar_pncp, processar_pistas e sincronizar_changedetection
          1x/dia (depois do teste do PNCP)
