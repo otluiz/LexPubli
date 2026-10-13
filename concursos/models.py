@@ -59,11 +59,13 @@ class Orgao(index.Indexed, models.Model):
                             help_text="Gerado da sigla (ou do nome) se vazio. Ex.: sefaz_al")
     esfera = models.CharField(max_length=10, choices=Esfera.choices)
     uf = models.CharField("UF", max_length=2, blank=True)
+    cnpj = models.CharField("CNPJ", max_length=14, blank=True, db_index=True,
+                            help_text="Só dígitos. Liga o órgão às contratações do PNCP (ADR-0008).")
 
     panels = [
         FieldPanel("nome"),
         FieldRowPanel([FieldPanel("sigla"), FieldPanel("slug")]),
-        FieldRowPanel([FieldPanel("esfera"), FieldPanel("uf")]),
+        FieldRowPanel([FieldPanel("esfera"), FieldPanel("uf"), FieldPanel("cnpj")]),
     ]
     search_fields = [index.SearchField("nome"), index.AutocompleteField("sigla")]
 
