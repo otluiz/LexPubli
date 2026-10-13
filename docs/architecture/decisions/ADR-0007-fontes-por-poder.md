@@ -5,7 +5,7 @@
 
 # ADR-0007: Fontes de descoberta por Poder
 
-- Status: **Proposto**
+- Status: **Aceito** em 2026-10-13 pelo dono do produto.
 - Data: 2026-10-13
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0001 (changedetection.io como gatilho), ADR-0002 (fonte
