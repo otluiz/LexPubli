@@ -122,8 +122,22 @@
          rede em passthrough, VLAN 20 em porta dedicada do MikroTik,
          Cloudflare Tunnel de dentro da VM, editais e backups por PULL do
          lado do LexLearn, AMQPS
-   - [ ] Aceite do dono do produto
-   - [ ] Comprar também a 2ª placa de rede PCIe x1 (porta 00:1c.0)
+   - [ ] Aceite do dono do produto (aguarda a verificação física abaixo)
+   - [ ] VERIFICAÇÃO FÍSICA na Machinist (dono do produto, longe do gpu01
+         em 13/10; foto prevista para algumas horas depois). Antes de
+         qualquer compra:
+         - [ ] Foto de perto do slot de SSD visto na foto antiga, com a
+               serigrafia ("M.2 SATA", "NGFF", "NVMe"); o Kingston NV3
+               está nele ou em outro slot? (o lspci só mostra UM M.2 NVMe,
+               ocupado, e nenhum controlador SATA ativo)
+         - [ ] Quantos conectores RJ-45 na traseira; na BIOS, "Onboard
+               LAN"/"LAN2" desabilitado? (o lspci só mostra a Realtek
+               06:00.0; a porta 00:1c.0 do chipset está vazia)
+         - [ ] Se há SATA desligado na BIOS
+         Depois: reler lspci -tv e os grupos IOMMU e ajustar o ADR-0006
+         (disco: NVMe por adaptador x M.2 SATA; rede: 2ª Ethernet de
+         fábrica x placa PCIe x1 x VLAN pela placa única)
+   - [ ] 2ª placa de rede: SÓ comprar se não houver Ethernet de fábrica
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
