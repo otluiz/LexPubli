@@ -93,11 +93,28 @@
    - [ ] PRODUÇÃO: expor um site público na máquina que guarda o banco do
          LexLearn muda o risco. Decidir: proxy reverso + Cloudflare Tunnel
          no gpu01, ou VPS separada para o portal
-** TODO [#A] ADR-0002: fronteira LexPubli × LexCorpus     :ALINHAR_LexCorpus:
-   Concurso (LexPubli) × documento (LexCorpus). O LexPubli não seleciona
-   spider, não baixa PDF e não reimplementa o buscador de bancas
-   anteriores (ADR-0006 do LexCorpus). O LexCorpus não publica nada para
-   o público. Registrar o mesmo ADR (ou uma referência) no LexCorpus.
+** EM-ANDAMENTO [#A] ADR-0002: fronteira LexPubli × LexCorpus :ALINHAR_LexCorpus:
+   Escrito em 12/10 (status: Proposto):
+   docs/architecture/decisions/ADR-0002-fronteira-lexpubli-lexcorpus.md
+   Espelho no LexCorpus: ADR-0007 (revisa a regra do ADR-0006 de lá).
+   Resumo: o LexPubli avisa (contest.discovery.created) e o LexCorpus decide.
+   Duas portas: curadoria humana (LexPubli) + política versionada (LexCorpus).
+   Agregadores (PCI) só como índice; fonte oficial obrigatória para aprovar.
+   - [X] Escrever o ADR e o espelho no LexCorpus
+   - [ ] Aceite do dono do produto
+** TODO [#A] Contratos document.acquisition.* (v1)          :ALINHAR_LexCorpus:
+   completed, awaiting_operator e failed em contracts/events/v1/.
+   correlation_id = event_id do contest.discovery.created. Sem caminho de storage.
+** TODO [#B] Consumir as respostas do LexCorpus
+   Estado da aquisição por concurso; a página mostra "provas anteriores
+   disponíveis" e o link para o LexLearn.
+** TODO [#A] Regra de aprovação: fonte_url oficial obrigatória
+   Recusar como fonte os domínios de agregadores (PCI etc.); o agregador
+   fica só como origem da descoberta (auditoria).
+** TODO [#B] Discovery: sitemap de notícias do PCI como índice
+   smap_noticias.xml (~1.000 URLs com lastmod; robots.txt permite). Vira
+   descoberta pendente; a curadoria confere na fonte oficial. Não copiar texto.
+** TODO [#B] Parecer jurídico: republicação de questões (ecossistema/LexLearn)
 ** FEITO [#A] Esqueleto do repositório e da stack de dev
    CLOSED: 2026-10-12 (feito junto com o spike)
    - [ ] projeto da plataforma escolhida + pytest
