@@ -205,6 +205,24 @@
          provisória com #concursos/#noticias: procurar a página à mão
    - [ ] Medir: avisos recebidos x ignorados por fonte de notícias depois de
          2 semanas; ajustar o filtro (RE_CONCURSO) ou desativar a fonte
+** TODO [#A] ADR-0008: radar de sinais de concurso futuro (PROPOSTO)
+   Pedido do dono do produto (13/10): previsão orçamentária e o "movimento"
+   que os sites de concursos e cursinhos já vendem como concurso futuro.
+   Escada de sinais por tipo de documento (boato 0 ... banca contratada 6);
+   site de concursos é PISTA (força 0, não publica), a evidência é sempre
+   oficial; o sinal verificado vira chamada (concurso Previsto com a linha do
+   tempo dos sinais). Primeira coleta: PNCP (banca contratada).
+   - [ ] Aceite do ADR-0008
+   - [ ] Modelo Sinal + painel + linha do tempo na página do concurso
+   - [ ] Coletor do PNCP
+   - [ ] Pistas dos sites de concursos (Fonte tipo pista; RSS/listagem)
+   - [ ] Anexo V do PLOA/LOA (anual)
+** FEITO [#A] Página inicial e chamada ao LexLearn
+   (13/10) A página inicial explica o portal e agrupa os concursos pela fase
+   (no radar, inscrições abertas, em andamento); número de fontes = ativas
+   COM watch. Chamada ao LexLearn em todas as páginas (contextual na página
+   do concurso). LEXPUBLI_LEXLEARN_URL: falta o endereço público do LexLearn
+   (vazio = chamada sem botão)
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
