@@ -93,3 +93,72 @@ def test_envelope_adulterado_no_outbox_nao_e_publicado(exemplo, publicador):
     ev.refresh_from_db()
     assert ev.status == OutboxEvent.Status.INVALIDO
     assert publicador.enviados == []
+
+
+# --- v1.1: carreira, data da prova e contest.discovery.updated (ADR-0004) ----
+import datetime as dt
+import json
+
+from concursos.eventos import CONTRATOS_DIR
+from concursos.models import Carreira
+
+
+def anuncios():
+    return list(OutboxEvent.objects.order_by("criado_em"))
+
+
+def publicar_pagina(concurso):
+    concurso.save_revision().publish()
+
+
+def test_carreira_do_modelo_e_a_lista_do_contrato():
+    common = json.loads((CONTRATOS_DIR / "common.schema.json").read_text(encoding="utf-8"))
+    assert Carreira.values == common["$defs"]["career"]["enum"]
+
+
+def test_anuncio_v1_1_leva_carreira_e_data_da_prova(exemplo):
+    aprovar(exemplo["descoberta"], exemplo["concurso"])
+    env = OutboxEvent.objects.get().envelope
+    assert env["event_version"] == "1.1"
+    assert (env["data"]["career"], env["data"]["exam_date"]) == ("fiscal", None)
+
+
+def test_mudanca_publicada_gera_updated_com_o_que_mudou(exemplo):
+    c = exemplo["concurso"]
+    aprovar(exemplo["descoberta"], c)
+    c.data_prova = dt.date(2026, 12, 13)
+    c.status = "inscricoes_encerradas"
+    publicar_pagina(c)
+
+    criado, atualizado = anuncios()
+    assert atualizado.status == OutboxEvent.Status.PENDENTE, atualizado.ultimo_erro
+    env = atualizado.envelope
+    assert env["event_type"] == "contest.discovery.updated"
+    assert env["data"]["contest_id"] == criado.envelope["data"]["contest_id"]
+    assert set(env["data"]["changed"]) == {"exam_date", "status"}
+    assert env["data"]["exam_date"] == "2026-12-13"
+
+
+def test_compara_com_o_ultimo_anuncio_nao_com_o_primeiro(exemplo):
+    c = exemplo["concurso"]
+    aprovar(exemplo["descoberta"], c)
+    c.data_prova = dt.date(2026, 12, 13)
+    publicar_pagina(c)
+    c.status = "prova_realizada"
+    publicar_pagina(c)
+    assert anuncios()[-1].envelope["data"]["changed"] == ["status"]
+
+
+def test_publicar_sem_mudanca_do_contrato_nao_gera_evento(exemplo):
+    c = exemplo["concurso"]
+    aprovar(exemplo["descoberta"], c)
+    c.resumo = "<p>texto editorial novo</p>"       # não é campo do contrato
+    publicar_pagina(c)
+    assert len(anuncios()) == 1
+
+
+def test_concurso_nunca_anunciado_nao_gera_updated(exemplo):
+    c = exemplo["concurso"]
+    c.carreira = Carreira.CONTROLE
+    publicar_pagina(c)
+    assert anuncios() == []

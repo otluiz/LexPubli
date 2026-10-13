@@ -13,7 +13,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from wagtail.models import Page, Site
 
-from concursos.models import Banca, Cargo, ConcursoPage, ConcursosIndexPage, Descoberta, Orgao, StatusConcurso
+from concursos.models import (Banca, Cargo, Carreira, ConcursoPage, ConcursosIndexPage, Descoberta,
+                              Orgao, StatusConcurso)
 
 FONTE = "https://www.cebraspe.org.br/concursos/SEFAZ_AL_26"
 EDITAL = ("https://cdn.cebraspe.org.br/concursos/sefaz_al_26/arquivos/"
@@ -43,6 +44,7 @@ class Command(BaseCommand):
                 search_description="Concurso Sefaz-AL 2026: 40 vagas de Auditor Fiscal (AFTE), "
                                    "remuneração de R$ 25.270,68, banca Cebraspe.",
                 orgao=orgao, banca=banca, ano=2026, status=StatusConcurso.EDITAL_ABERTO,
+                carreira=Carreira.FISCAL,
                 inscricoes_inicio=dt.date(2026, 9, 17), inscricoes_fim=dt.date(2026, 10, 21),
                 edital_url=EDITAL, fonte_url=FONTE,
                 resumo="<p>Inscrições até 21/10/2026, às 18h (horário de Brasília), "

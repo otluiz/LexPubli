@@ -81,8 +81,14 @@ def _url_absoluta(pagina) -> str:
     return settings.WAGTAILADMIN_BASE_URL.rstrip("/") + caminho
 
 
-def dados_descoberta_criada(descoberta) -> dict:
-    c = descoberta.concurso.specific
+# Campos do concurso que, mudando, geram contest.discovery.updated.
+CAMPOS_ATUALIZAVEIS = ["title", "organ", "exam_board", "year", "status", "career", "exam_date",
+                       "positions", "registration", "edital_url", "contest_slug"]
+TIPOS_ANUNCIO = ("contest.discovery.created", "contest.discovery.updated")
+
+
+def dados_concurso(c) -> dict:
+    """O concurso como está agora ($defs/contest do contrato)."""
     registro = None
     if c.inscricoes_inicio or c.inscricoes_fim:
         registro = {
@@ -92,12 +98,13 @@ def dados_descoberta_criada(descoberta) -> dict:
     return {
         "contest_id": str(c.contest_id),
         "contest_slug": c.contest_slug,
-        "discovery_id": str(descoberta.id),
         "title": c.title,
         "organ": {"slug": c.orgao.slug, "name": c.orgao.nome},
         "exam_board": _ref(c.banca),
         "year": c.ano,
         "status": c.status,
+        "career": c.carreira or None,
+        "exam_date": c.data_prova.isoformat() if c.data_prova else None,
         "positions": [
             {
                 "slug": cargo.slug,
@@ -110,8 +117,12 @@ def dados_descoberta_criada(descoberta) -> dict:
         "registration": registro,
         "edital_url": c.edital_url or None,
         "page_url": _url_absoluta(c),
-        "source_url": descoberta.fonte_url,
     }
+
+
+def dados_descoberta_criada(descoberta) -> dict:
+    return {**dados_concurso(descoberta.concurso.specific),
+            "discovery_id": str(descoberta.id), "source_url": descoberta.fonte_url}
 
 
 def enfileirar(envelope: dict):
@@ -131,7 +142,28 @@ def enfileirar(envelope: dict):
 
 
 def registrar_descoberta_aprovada(descoberta):
-    return enfileirar(montar_envelope("contest.discovery.created", dados_descoberta_criada(descoberta)))
+    return enfileirar(montar_envelope("contest.discovery.created", dados_descoberta_criada(descoberta),
+                                      event_version="1.1"))
+
+
+def registrar_atualizacao(concurso):
+    """contest.discovery.updated, se o concurso já foi anunciado e algo do
+    contrato mudou desde o último anúncio. Chamar na publicação da página.
+    Devolve o OutboxEvent, ou None se não havia o que anunciar."""
+    from .models import OutboxEvent
+
+    ultimo = (OutboxEvent.objects
+              .filter(event_type__in=TIPOS_ANUNCIO,
+                      envelope__data__contest_id=str(concurso.contest_id))
+              .order_by("-criado_em").first())
+    if ultimo is None:
+        return None  # nunca anunciado: quem anuncia é a aprovação de uma descoberta
+    antes, agora = ultimo.envelope["data"], dados_concurso(concurso)
+    mudou = [campo for campo in CAMPOS_ATUALIZAVEIS if antes.get(campo) != agora.get(campo)]
+    if not mudou:
+        return None
+    dados = {**agora, "source_url": concurso.fonte_url, "changed": mudou}
+    return enfileirar(montar_envelope("contest.discovery.updated", dados))
 
 
 # --- Publicação --------------------------------------------------------------

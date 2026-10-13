@@ -42,7 +42,8 @@ fica reservado e não é usado por nenhum evento.
 
 | Evento | Produtor | Exchange | Quando |
 |---|---|---|---|
-| `contest.discovery.created` | `lexpubli` | `lexpubli.events` | A curadoria aprovou um concurso |
+| `contest.discovery.created` | `lexpubli` | `lexpubli.events` | A curadoria aprovou um concurso (v1.1: `career`, `exam_date`) |
+| `contest.discovery.updated` | `lexpubli` | `lexpubli.events` | A curadoria publicou uma mudança num concurso já anunciado. Leva o concurso inteiro e, em `changed`, o que mudou |
 | `document.acquisition.completed` | `lexcorpus` | `lexcorpus.events` | Um concurso (atual ou anterior) foi coletado e entregue ao LexLearn |
 | `document.acquisition.awaiting_operator` | `lexcorpus` | `lexcorpus.events` | A política de coleta não resolveu; o caso foi para o operador |
 | `document.acquisition.failed` | `lexcorpus` | `lexcorpus.events` | Uma coleta automática falhou |
@@ -50,7 +51,13 @@ fica reservado e não é usado por nenhum evento.
 - **Routing key = `event_type`.** O LexLearn se liga ao `lexcorpus.events`
   com `concurso.#`, então não recebe os `document.*`.
 - **As respostas exigem `correlation_id`**, igual ao `event_id` do
-  `contest.discovery.created` que as originou. O `contest_id` vai em `data`.
+  `contest.discovery.created` ou `.updated` que as originou. O `contest_id`
+  vai em `data`.
+- **`relation`** (v1.1): `current` (o concurso anunciado), `previous` (certame
+  anterior do mesmo órgão) e `related` (mesma banca e carreira, outro órgão;
+  LexCorpus ADR-0008).
+- **`career`** é a lista fixa da curadoria (`common.schema.json`,
+  `$defs/career`). Valor novo é MINOR, com o consumidor primeiro.
 - **As respostas não carregam caminho de storage.** O LexPubli só precisa
   saber *que* há provas (ADR-0002 §3).
 
@@ -65,7 +72,8 @@ events/v1/
 ```
 
 O exemplo do `contest.discovery.created` é a mensagem real que passou pelo
-RabbitMQ no spike. Os de `document.acquisition.*` são ilustrativos: as
+RabbitMQ no spike, acrescida dos campos da v1.1. O do `.updated` é
+ilustrativo: a data da prova da Sefaz-AL 2026 ainda não saiu. Os de `document.acquisition.*` são ilustrativos: as
 contagens de arquivos não vêm de uma coleta real.
 
 ## Versionamento

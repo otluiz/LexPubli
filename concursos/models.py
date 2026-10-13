@@ -85,6 +85,23 @@ class StatusConcurso(models.TextChoices):
     ENCERRADO = "encerrado", "Encerrado"
 
 
+class Carreira(models.TextChoices):
+    """Lista fixa da curadoria (ADR-0004 §2). É a mesma do contrato
+    (common.schema.json, $defs/career): um teste confere. Valor novo = MINOR
+    no contrato, com o consumidor (LexCorpus) atualizado primeiro."""
+    FISCAL = "fiscal", "Fiscal (Sefaz, Receita)"
+    CONTROLE = "controle", "Controle (TCU, TCEs, CGU)"
+    TRIBUNAIS = "tribunais", "Tribunais (TJ, TRF, TRT, TRE)"
+    JURIDICA = "juridica", "Jurídica (procuradorias, defensorias, MP, magistratura)"
+    POLICIAL = "policial", "Policial (PF, PRF, PC, PM)"
+    LEGISLATIVA = "legislativa", "Legislativa (câmaras, assembleias, Senado)"
+    BANCARIA = "bancaria", "Bancária (BB, Caixa, BNB, BNDES, Bacen)"
+    ADMINISTRATIVA = "administrativa", "Administrativa (executivo em geral)"
+    ESTATAIS = "estatais", "Estatais (Petrobras, Transpetro e similares)"
+    SAUDE = "saude", "Saúde"
+    EDUCACAO = "educacao", "Educação"
+
+
 class ConcursosIndexPage(Page):
     """Página inicial do portal: lista os concursos publicados."""
 
@@ -116,6 +133,9 @@ class ConcursoPage(Page):
     ano = models.PositiveSmallIntegerField()
     status = models.CharField(max_length=24, choices=StatusConcurso.choices,
                               default=StatusConcurso.PREVISTO)
+    carreira = models.CharField(max_length=20, choices=Carreira.choices, blank=True,
+                                help_text="Orienta a busca de provas relacionadas no LexCorpus.")
+    data_prova = models.DateField("data da prova", null=True, blank=True)
     inscricoes_inicio = models.DateField(null=True, blank=True)
     inscricoes_fim = models.DateField(null=True, blank=True)
     edital_url = models.URLField("URL do edital", blank=True)
@@ -125,6 +145,7 @@ class ConcursoPage(Page):
     content_panels = Page.content_panels + [
         FieldRowPanel([FieldPanel("orgao"), FieldPanel("banca")]),
         FieldRowPanel([FieldPanel("ano"), FieldPanel("status"), FieldPanel("contest_slug")]),
+        FieldRowPanel([FieldPanel("carreira"), FieldPanel("data_prova")]),
         MultiFieldPanel(
             [FieldRowPanel([FieldPanel("inscricoes_inicio"), FieldPanel("inscricoes_fim")])],
             heading="Inscrições",
