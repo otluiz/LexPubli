@@ -5,8 +5,8 @@
 
 # ADR-0002: Fronteira LexPubli × LexCorpus e automação pós-curadoria
 
-- Status: **Proposto**. Exige alinhamento com o LexCorpus (espelho: ADR-0007
-  no LexCorpus), porque revisa uma regra do ADR-0006 de lá.
+- Status: **Aceito** em 2026-10-12 pelo dono do produto, junto com o espelho
+  no LexCorpus (ADR-0007), que revisa uma regra do ADR-0006 de lá.
 - Data: 2026-10-12
 - Autores: Prof. Othon Luiz, Claude (Anthropic)
 - Relacionados: ADR-0001 (LexPubli, plataforma); ADR-0001 e ADR-0006 do
