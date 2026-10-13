@@ -25,7 +25,7 @@ def exemplo(tipo: str) -> dict:
 
 def test_tipos_registrados_sao_so_eventos():
     _, por_tipo = _registro()
-    assert set(por_tipo) == {"contest.discovery.created", *TIPOS_AQUISICAO}
+    assert set(por_tipo) == {"contest.discovery.created", "contest.discovery.updated", *TIPOS_AQUISICAO}
 
 
 def test_todo_tipo_tem_exemplo_valido():
@@ -111,3 +111,45 @@ def test_campos_invalidos_sao_recusados(tipo, caminho, valor):
 ])
 def test_opcionais_e_minor_compativel_sao_aceitos(tipo, caminho, valor):
     validar(mutar(tipo, caminho, valor))
+
+
+# --- v1.1 (ADR-0004 Fase 1) --------------------------------------------------
+def test_v1_0_sem_carreira_continua_valido():
+    """Compatível: um anúncio v1.0 (sem career/exam_date) ainda valida."""
+    env = exemplo("contest.discovery.created")
+    env["event_version"] = "1.0"
+    del env["data"]["career"], env["data"]["exam_date"]
+    validar(env)
+
+
+@pytest.mark.parametrize("tipo", ["contest.discovery.created", "contest.discovery.updated"])
+def test_carreira_e_data_da_prova_nulas_valem(tipo):
+    validar(mutar(tipo, ["data", "career"], None))
+    validar(mutar(tipo, ["data", "exam_date"], None))
+
+
+def test_related_e_uma_relacao_valida():
+    validar(mutar("document.acquisition.completed", ["data", "relation"], "related"))
+
+
+@pytest.mark.parametrize("tipo,caminho,valor", [
+    ("contest.discovery.created", ["data", "career"], "magistratura"),   # fora da lista fixa
+    ("contest.discovery.created", ["data", "exam_date"], "13/12/2026"),
+    ("contest.discovery.created", ["data", "campo_novo"], 1),            # o objeto continua fechado
+    ("contest.discovery.created", ["data", "discovery_id"], KeyError),
+    ("contest.discovery.created", ["data", "changed"], ["status"]),      # changed é só do updated
+    ("contest.discovery.updated", ["data", "changed"], KeyError),
+    ("contest.discovery.updated", ["data", "changed"], []),
+    ("contest.discovery.updated", ["data", "changed"], ["page_url"]),
+    ("contest.discovery.updated", ["data", "contest_id"], KeyError),
+    ("contest.discovery.updated", ["data", "campo_novo"], 1),
+    ("contest.discovery.updated", ["data", "registration", "end"], "21/10/2026"),
+])
+def test_v1_1_campos_invalidos_sao_recusados(tipo, caminho, valor):
+    with pytest.raises(ValidationError):
+        validar(mutar(tipo, caminho, valor))
+
+
+def test_atualizacao_so_pode_vir_do_lexpubli():
+    with pytest.raises(ValidationError):
+        validar(mutar("contest.discovery.updated", ["producer"], "lexcorpus"))

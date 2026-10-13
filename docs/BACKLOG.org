@@ -198,8 +198,12 @@
    - [X] Aceite do dono do produto (13/10)
    - [X] Espelhos: LexCorpus ADR-0008, LexLearn ADR-0012 (este último
          substituído pelo ADR-0012 de isolamento, ver ADR-0005)
-   - [ ] Fase 1: carreira + exam_date no LexPubli; contratos v1.1;
-         related a partir do acervo no LexCorpus
+   - [X] Fase 1 (13/10): carreira + data da prova no ConcursoPage;
+         contratos v1.1 (career, exam_date, related) e
+         contest.discovery.updated v1.0, emitido na publicação de um
+         concurso já anunciado, com `changed` contra o ÚLTIMO anúncio;
+         cópia do LexCorpus atualizada ANTES; LexCorpus: acervo ->
+         previous/related, consumo do .updated (LexCorpus ADR-0008)
    - [ ] Fase 2 (ADR-0005 §6): o portal mostra as provas disponíveis
          (consome document.acquisition.*)
    - [ ] Fase 3 (ADR-0005 §6): prioridade ordena a coleta do LexCorpus;

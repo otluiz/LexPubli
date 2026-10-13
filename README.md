@@ -190,11 +190,11 @@ As principais variáveis:
 
 | Evento | Status |
 | --- | --- |
-| `contest.discovery.created` | ✅ v1.0, emitido pelo LexPubli na aprovação da curadoria |
+| `contest.discovery.created` | ✅ v1.1, emitido pelo LexPubli na aprovação da curadoria (com carreira e data da prova) |
 | `document.acquisition.completed` | ✅ v1.0 (schema), emitido pelo LexCorpus (ADR-0002) |
 | `document.acquisition.awaiting_operator` | ✅ v1.0 (schema), emitido pelo LexCorpus |
 | `document.acquisition.failed` | ✅ v1.0 (schema), emitido pelo LexCorpus |
-| `contest.discovery.updated` | previsto |
+| `contest.discovery.updated` | ✅ v1.0, emitido quando a curadoria publica uma mudança num concurso já anunciado |
 | `contest.priority.changed` | previsto (Heat Engine) |
 
 Detalhes, versionamento e o guia para o LexCorpus: [`contracts/README.md`](contracts/README.md).
