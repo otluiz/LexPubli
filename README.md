@@ -22,15 +22,19 @@ caminho para estudar no LexLearn.
      ┌──────────────── LEXPUBLI ────────────────┐
      │ Discovery ─▶ Curadoria ─▶ Portal público │──▶ PÚBLICO
      │ (fontes)     (humano)      (SEO, páginas)│    (páginas, feeds)
-     └───────────────────┬──────────────────────┘
-                         │ contest.discovery.created
-                         ▼
-                    LEXCORPUS ── catálogo de vigentes, busca de bancas
-                         │       anteriores, spiders, storage de PDFs
-                         │ concurso.disponivel (contrato v2.1)
-                         ▼
-                     LEXLEARN ── processamento, DNA da banca,
-                                 questões, roteiro de estudo
+     └──────┬────────────▲────────────────┬─────┘
+            │ contest.   │ document.      │ editais em /data/raw/editais/
+            │ discovery.*│ acquisition.*  │ (só com autorização humana)
+            ▼            │                │
+       ┌─────────── LEXCORPUS ──────┐     │   broker próprio do LexPubli
+       │ catálogo, busca de bancas  │     │   (ÚNICA automação: LexPubli ↔ LexCorpus)
+       │ anteriores, spiders        │     │
+       └────────────┬───────────────┘     │
+                    │ concurso.disponivel │
+                    │ (contrato v2.1)     │
+                    ▼                     ▼
+                LEXLEARN ── DNA das bancas (automático); geração de
+                            questões por demanda, decidida pelo Administrador
 ```
 
 | Projeto | Responsabilidade |
@@ -39,9 +43,12 @@ caminho para estudar no LexLearn.
 | **LexCorpus** | Descobrir e adquirir **documentos** (provas, gabaritos, inclusive de certames anteriores) |
 | **LexLearn** | Processar documentos e oferecer aprendizagem personalizada |
 
-Os projetos se comunicam **só por eventos versionados** no RabbitMQ (o
-broker é do LexLearn). Nenhum projeto lê o banco ou importa o código de
-outro. O LexPubli **avisa**, e o LexCorpus **decide** o que coletar.
+A automação é **só entre LexPubli e LexCorpus**, por eventos versionados no
+**RabbitMQ próprio do LexPubli** ([ADR-0005](docs/architecture/decisions/ADR-0005-fronteira-com-o-lexlearn.md)).
+Nenhum projeto lê o banco ou importa o código de outro. O LexPubli **avisa**,
+e o LexCorpus **decide** o que coletar. O LexPubli toca o LexLearn em um
+único ponto, a pasta `/data/raw/editais/`, sob autorização humana; o que o
+LexLearn gera, e quando, é decisão do Administrador dele.
 
 ## Arquitetura
 
@@ -118,11 +125,9 @@ python3 -m venv .venv
 ```bash
 cp .env.example .env          # preencha LEXPUBLI_SECRET_KEY, POSTGRES_PASSWORD, ...
 
-# dev isolado, com RabbitMQ e changedetection.io próprios
-docker compose --profile broker --profile discovery up -d --build
-
-# ou ao lado do LexLearn (o broker é dele; a stack do LexLearn precisa estar de pé)
-docker compose -f docker-compose.yml -f docker-compose.lexlearn.yml up -d --build
+# portal, worker, banco e o broker próprio (o broker-init cria os usuários);
+# --profile discovery acrescenta o changedetection.io
+docker compose --profile discovery up -d --build
 
 docker compose exec web python manage.py migrate
 docker compose exec web python manage.py carregar_exemplo
@@ -130,7 +135,11 @@ docker compose exec web python manage.py createsuperuser
 ```
 
 Portas (só em `127.0.0.1`): portal `8190`, changedetection.io `5000`,
-gestão do RabbitMQ de dev `15673`. Expor o portal na Internet é uma decisão
+gestão do RabbitMQ `15673` (usuário administrador do `.env`).
+
+O LexCorpus entra na rede `lexpubli-broker` e usa o usuário `lexcorpus`
+(`amqp://lexcorpus:<BROKER_LEXCORPUS_PASSWORD>@lexpubli-rabbitmq:5672/lexpubli`).
+Permissões mínimas: ver `concursos/management/commands/configurar_broker.py`. Expor o portal na Internet é uma decisão
 de produção, registrada no backlog.
 
 ### Ligando o changedetection.io
@@ -159,7 +168,9 @@ As principais variáveis:
 | `LEXPUBLI_BASE_URL` | URL pública: links nos eventos e no sitemap |
 | `LEXPUBLI_ADMIN_PATH` | Caminho do painel (padrão `painel/`) |
 | `LEXPUBLI_HTTPS` | `1` atrás de HTTPS: HSTS, cookies seguros, redirect |
-| `LEXPUBLI_RABBITMQ_URL` | Broker. Vazio = o worker não publica |
+| `RABBITMQ_DEFAULT_USER` / `_PASS` | Administrador do broker próprio (gestão e broker-init) |
+| `BROKER_LEXPUBLI_PASSWORD` | Usuário `lexpubli` do worker; o compose monta a `LEXPUBLI_RABBITMQ_URL` |
+| `BROKER_LEXCORPUS_PASSWORD` | Usuário `lexcorpus`, passado ao LexCorpus |
 | `LEXPUBLI_WEBHOOK_TOKEN` | Token do webhook. Vazio = webhook desligado |
 
 ## Contratos e convenções

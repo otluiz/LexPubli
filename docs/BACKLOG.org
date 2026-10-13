@@ -71,17 +71,24 @@
    - [X] Hardening: check --deploy, /admin/ 404, CSP, uid sem root
    - [X] 27 testes (pytest)
 ** BLOQUEADO [#A] Subir a etapa no lexlearn-gpu01
-   Bloqueado pelo ADR-0005 §2a: o overlay docker-compose.lexlearn.yml (broker
-   do LexLearn) não vale mais. Depende do broker próprio e da análise de
-   isolamento físico (itens abaixo).
-** TODO [#A] Broker próprio do LexPubli (ADR-0005 §2a) :ALINHAR_LexCorpus:
-   - [ ] LexPubli: rabbitmq próprio fora do profile opcional; remover o
-         overlay docker-compose.lexlearn.yml; README e settings sem
-         "o broker é do LexLearn"
-   - [ ] LexCorpus: URL separada para o lado LexPubli (consumidor e
-         respostas document.*); o v2.1 continua na RABBIT_URL do LexLearn
-   - [ ] E2E de novo: approval → LexCorpus → completed no broker do
-         LexPubli; concurso.disponivel no broker do LexLearn
+   Broker próprio: feito. Falta o isolamento físico (NVMe + VM + VLAN,
+   decidido em 13/10 para até o lançamento; item abaixo).
+** FEITO [#A] Broker próprio do LexPubli (ADR-0005 §2a) :ALINHAR_LexCorpus:
+   CLOSED: 2026-10-13
+   - [X] rabbitmq 3.13.7 sempre no ar, vhost lexpubli, sem guest, volume e
+         healthcheck; rede de nome fixo lexpubli-broker, alias
+         lexpubli-rabbitmq (na rede do LexLearn "rabbitmq" é o de lá)
+   - [X] broker-init (configurar_broker): usuários de permissão mínima
+         lexpubli (só publica em lexpubli.events) e lexcorpus (sua fila,
+         seu DLX, respostas em lexcorpus.events); nenhum é admin
+   - [X] Overlay docker-compose.lexlearn.yml removido; README e settings
+   - [X] LexCorpus: LEXPUBLI_RABBIT_URL + overlay docker-compose.lexpubli.yml
+   - [X] E2E em 13/10: aprovação → worker (usuário lexpubli) → consumidor
+         do LexCorpus (só na rede lexpubli-broker) → awaiting_operator
+         válido, correlation_id certo. Permissões testadas: guest, escrita
+         cruzada, amq.default e leitura da fila alheia são recusados
+   - [ ] Na produção: TLS no AMQP quando o LexPubli for para a VM (o
+         LexCorpus atravessa a VLAN até ele)
 ** TODO [#A] Isolamento físico do LexPubli: NVMe dedicado, VM ou máquina
    Pedido do dono do produto em 13/10. O LexPubli é o projeto exposto à
    internet; o LexLearn guarda o banco e, no futuro, os clientes pagantes.

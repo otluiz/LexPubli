@@ -122,7 +122,8 @@ WAGTAILDOCS_EXTENSIONS = ["pdf"]
 LEXPUBLI_ADMIN_PATH = os.environ.get("LEXPUBLI_ADMIN_PATH", "painel/").strip("/") + "/"
 
 # --- Integração --------------------------------------------------------------
-# Broker: o RabbitMQ do LexLearn (ADR-0001). Vazio = o worker não publica.
+# Broker: o RabbitMQ PRÓPRIO do LexPubli (ADR-0005 §2a), nunca o do LexLearn.
+# Vazio = o worker não publica.
 LEXPUBLI_RABBITMQ_URL = os.environ.get("LEXPUBLI_RABBITMQ_URL", "")
 LEXPUBLI_EXCHANGE = os.environ.get("LEXPUBLI_EXCHANGE", "lexpubli.events")
 # Token compartilhado do webhook do changedetection.io. Vazio = webhook desligado.

@@ -1,13 +1,15 @@
 # LexPubli — stack de desenvolvimento e do spike.
 #
 #   cp .env.example .env    # e preencha
-#   docker compose up -d --build
+#   docker compose up -d --build       # o broker-init configura o RabbitMQ sozinho
 #   docker compose exec web python manage.py migrate
 #   docker compose exec web python manage.py carregar_exemplo
 #   docker compose exec web python manage.py createsuperuser
 #
-# Broker: em dev local, `--profile broker` sobe um RabbitMQ próprio.
-# Ao lado do LexLearn, use o overlay docker-compose.lexlearn.yml (o broker é DELE).
+# Broker: PRÓPRIO do LexPubli (ADR-0005 §2a). O LexPubli não usa o broker do
+# LexLearn nem tem credencial dele. O LexCorpus entra na rede `lexpubli-broker`
+# (overlay docker-compose.lexpubli.yml de lá) e usa o host `lexpubli-rabbitmq`,
+# nunca `rabbitmq`, que na rede do LexLearn é o broker de lá.
 name: lexpubli
 
 x-app: &app
@@ -34,6 +36,10 @@ services:
   worker:
     <<: *app
     command: ["python", "manage.py", "publicar_eventos", "--loop", "5"]
+    environment:
+      DATABASE_URL: postgres://lexpubli:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/lexpubli
+      LEXPUBLI_RABBITMQ_URL: amqp://lexpubli:${BROKER_LEXPUBLI_PASSWORD:?defina BROKER_LEXPUBLI_PASSWORD no .env}@lexpubli-rabbitmq:5672/lexpubli
+    networks: [default, broker]
     deploy:
       resources:
         limits: {cpus: "0.5", memory: 256M}
@@ -68,15 +74,52 @@ services:
       resources:
         limits: {cpus: "1", memory: 512M}
 
-  # RabbitMQ só para desenvolvimento isolado (sem a stack do LexLearn).
+  # Broker próprio (ADR-0005 §2a): vhost `lexpubli`, sem o usuário guest.
+  # O administrador só serve à gestão e ao broker-init; o worker e o LexCorpus
+  # usam usuários de permissão mínima (configurar_broker).
   rabbitmq:
-    image: rabbitmq:3-management
-    profiles: ["broker"]
+    image: rabbitmq:3.13.7-management
+    hostname: lexpubli-rabbitmq      # o nome do nó; os dados no volume dependem dele
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?defina RABBITMQ_DEFAULT_USER no .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?defina RABBITMQ_DEFAULT_PASS no .env}
+      RABBITMQ_DEFAULT_VHOST: lexpubli
     ports:
-      - "127.0.0.1:15673:15672"   # UI de gestão (guest/guest só funciona via localhost)
+      - "127.0.0.1:${BROKER_GESTAO_PORT:-15673}:15672"   # UI de gestão, só localhost
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    networks:
+      broker:
+        aliases: [lexpubli-rabbitmq]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      retries: 12
     restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "1", memory: 512M}
+
+  # Cria o vhost e os usuários lexpubli e lexcorpus (idempotente) e sai.
+  broker-init:
+    build: .
+    env_file: .env
+    command: ["python", "manage.py", "configurar_broker"]
+    environment:
+      LEXPUBLI_BROKER_API: http://lexpubli-rabbitmq:15672/api
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks: [broker]
+    restart: "no"
 
 volumes:
   pgdata:
   media:
   changedetection:
+  rabbitmq:
+
+networks:
+  # Nome fixo: o LexCorpus entra nela como rede externa.
+  broker:
+    name: lexpubli-broker
