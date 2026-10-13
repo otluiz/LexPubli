@@ -154,15 +154,29 @@
    - [X] Onda A cadastrada (13/10): `manage.py carregar_fontes A`, dados
          versionados em concursos/dados/fontes_onda_a.json (idempotente pela
          URL; não desfaz ajuste do curador, salvo --atualizar). 22 fontes
-         conferidas (texto sem JS, robots.txt), 18 ativas. Inativas, com
+         conferidas (texto sem JS, robots.txt), 17 ativas. Inativas, com
          motivo: DOU (aguarda conta INLABS; www.in.gov.br proíbe robôs), CJF
          (sem concurso próprio; TRFs na onda B), MPT (só JS), DPU (robots.txt
-         proíbe tudo)
+         proíbe tudo), TSE (403 do firewall para o changedetection na 1ª
+         checagem, 13/10, com qualquer User-Agent)
+   - [ ] TSE: reconferir em alguns dias; se o 403 continuar, pedir
+         liberação. Não contornar o firewall
    - [ ] DPU: pedir autorização ou achar fonte oficial alternativa
    - [ ] MPT: procurar API/feed (as PRTs regionais publicam as notícias)
    - [ ] Senado: a fonte é o hotsite do concurso de 2022; conferir se o
          próximo concurso usa outro endereço
-   - [ ] Sincronização Fonte -> changedetection.io (API)
+   - [X] Sincronização Fonte -> changedetection.io (13/10):
+         `manage.py sincronizar_changedetection [--simular]
+         [--remover-orfaos]`. Cria/atualiza/pausa pela API v1 (etiqueta
+         lexpubli, intervalo da fonte, notificação em texto, webhook interno);
+         adota watch da etiqueta com a mesma URL; órfão só sai com a opção;
+         watch manual nunca é tocado. Validado no changedetection 0.60.9
+         local: 18 criados, 2ª rodada 18 sem mudança; na 1ª checagem o TSE deu
+         403 e foi desativado (a sincronização pausou o watch)
+   - [ ] Rodar a sincronização periodicamente (worker ou cron) ou a cada
+         gravação de Fonte no painel (signal) — decidir
+   - [ ] Descoberta ligada à Fonte (FK pela URL do watch): o curador vê o
+         poder e a carreira sugerida na fila
    - [ ] INLABS: criar a conta (dono do produto, inlabs.in.gov.br) e
          confirmar acesso; depois coletar_dou (Seções 1 e 3)
    - [ ] Onda A (federal, ~25 fontes + DOU); medir antes da onda B
@@ -174,7 +188,8 @@
    O changedetection registra no log a URL da notificação COM o token.
    Proxy reverso nega /webhooks/ vindo de fora; token rotacionável.
 ** TODO [#B] Curadoria: ação em lote e fusão de duplicatas com um clique
-** TODO [#C] Formato das notificações do changedetection em texto
+** FEITO [#C] Formato das notificações do changedetection em texto
+   Resolvido na sincronização (13/10): notification_format "text" por watch.
    O webhook já converte o HTML colorido em texto; configurar o
    notification_format do changedetection evitaria a conversão.
 ** TODO [#A] Hospedagem: spike no lexlearn-gpu01; produção a decidir
