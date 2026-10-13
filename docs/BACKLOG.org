@@ -45,31 +45,39 @@
     Apoio: changedetection.io (Apache-2.0) como gatilho do Discovery.
 
 * Fundação
-** EM-ANDAMENTO [#A] ADR-0001: plataforma e arquitetura
+** EM-ANDAMENTO [#A] ADR-0001: plataforma e arquitetura (aguarda revisão)
    Escrito (status: Proposto). Proposta: Wagtail.
    - [X] Pesquisar alternativas (WP, Ghost, Payload, Directus, FastAPI, Wagtail)
    - [ ] Revisão do dono do produto
-   - [ ] Spike de validação (item abaixo) → Aceito ou fallback
-** EM-ANDAMENTO [#A] Spike Wagtail — checklist no ADR-0001
-   Desenvolvido no notebook; sobe para o gpu01 só quando a etapa fechar.
-   Versionado no GitHub (repositório a criar).
-   - [X] Modelos + página real de concurso (Sefaz-AL 2026, dados da API
-         da Cebraspe em 12/10) com JSON-LD JobPosting + sitemap + robots
-   - [X] Curadoria no painel (snippet Descoberta: aprovar/rejeitar/duplicada)
-         — falta: ação em lote e fusão de duplicatas com um clique
-   - [X] Outbox + worker publicar_eventos + contrato contest.discovery.created
-         v1.0 validado por JSON Schema (testes com publicador falso)
-   - [ ] Worker publicando num RabbitMQ REAL (precisa do Docker local)
-   - [X] Webhook do changedetection.io (formato Apprise json://, token,
-         deduplicação de reentrega) — testado com payload simulado
-   - [ ] changedetection.io real → webhook → descoberta (precisa do Docker)
-   - [ ] docker compose up (web, worker, db) — arquivos prontos, não
-         executados (daemon Docker parado no notebook em 12/10)
-   - [X] Hardening: check --deploy limpo com LEXPUBLI_HTTPS=1 (só W021,
-         preload do HSTS, opcional por LEXPUBLI_HSTS_PRELOAD), painel em
-         /painel/ (/admin/ = 404), CSP script-src 'none' no site público,
-         robots bloqueando painel e webhooks
-   - [X] 26 testes (pytest) passando
+   - [X] Spike de validação (item abaixo) → todos os itens atendidos
+** FEITO [#A] Spike Wagtail — checklist no ADR-0001
+   CLOSED: 2026-10-12
+   Desenvolvido no notebook, versionado em github.com/otluiz/LexPubli
+   (privado). Resultados detalhados no ADR-0001, seção "Resultado do spike".
+   - [X] Página real (Sefaz-AL 2026) + JSON-LD JobPosting + sitemap + robots
+   - [X] Curadoria no painel (aprovar, rejeitar, duplicada)
+   - [X] Outbox + worker + RabbitMQ real (evento revalidado na leitura)
+   - [X] Resiliência: broker fora → pendente → reconecta → publica
+   - [X] changedetection.io real (API da Cebraspe) → webhook → descoberta
+   - [X] docker compose up (web, worker, db, rabbitmq, changedetection)
+   - [X] Hardening: check --deploy, /admin/ 404, CSP, uid sem root
+   - [X] 27 testes (pytest)
+** TODO [#A] Revisar o ADR-0001 e passar a Aceito
+   Decisão do dono do produto, com base no resultado do spike.
+** TODO [#A] Subir a etapa no lexlearn-gpu01 (overlay docker-compose.lexlearn.yml)
+   Só depois do ADR aceito. Credenciais do broker do LexLearn no .env do
+   servidor (não versionado). Validar o evento no broker de lá.
+** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
+   A página pública da Cebraspe é renderizada por JS (o changedetection não
+   vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
+   Cesgranrio (os spiders do LexCorpus já conhecem essas APIs).
+** TODO [#A] Produção: /webhooks/ só na rede interna
+   O changedetection registra no log a URL da notificação COM o token.
+   Proxy reverso nega /webhooks/ vindo de fora; token rotacionável.
+** TODO [#B] Curadoria: ação em lote e fusão de duplicatas com um clique
+** TODO [#C] Formato das notificações do changedetection em texto
+   O webhook já converte o HTML colorido em texto; configurar o
+   notification_format do changedetection evitaria a conversão.
 ** TODO [#A] Hospedagem: spike no lexlearn-gpu01; produção a decidir
    Verificado em 12/10: Xeon E5-2695 v4 (18c/36t), 62 GiB de RAM (2,3 em
    uso), 804 GB livres, RTX 5060 Ti ociosa, load ~0,6. A stack do LexLearn
@@ -92,8 +100,8 @@
    spider, não baixa PDF e não reimplementa o buscador de bancas
    anteriores (ADR-0006 do LexCorpus). O LexCorpus não publica nada para
    o público. Registrar o mesmo ADR (ou uma referência) no LexCorpus.
-** TODO [#A] Esqueleto do repositório e da stack de dev
-   BLOQUEADO até a aceitação do ADR-0001 (depende da plataforma).
+** FEITO [#A] Esqueleto do repositório e da stack de dev
+   CLOSED: 2026-10-12 (feito junto com o spike)
    - [ ] projeto da plataforma escolhida + pytest
    - [ ] docker-compose: portal, worker, postgres
    - [ ] RabbitMQ: usar o broker existente do LexLearn (rede externa,

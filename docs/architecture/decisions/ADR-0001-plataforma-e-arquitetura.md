@@ -5,7 +5,8 @@
 
 # ADR-0001: Plataforma e arquitetura do LexPubli
 
-- Status: **Proposto**. Aceitação condicionada ao spike descrito em "Validação".
+- Status: **Proposto**. Spike concluído em 12/10/2026, com todos os itens da
+  validação atendidos; aguarda a revisão do dono do produto para virar *Aceito*.
 - Data: 2026-10-12
 - Autores: Prof. Othon Luiz, Claude (Anthropic)
 
@@ -186,18 +187,39 @@ Spike de até duas semanas. O ADR passa a **Aceito** se todos os itens
 abaixo funcionarem; se não, volta-se às opções (fallback preferido: E,
 FastAPI + SQLAdmin + Astro).
 
-- [ ] Modelar Concurso, Órgão, Banca e Cargo e publicar a página de um
+- [x] Modelar Concurso, Órgão, Banca e Cargo e publicar a página de um
       concurso real (ex.: Sefaz-AL 2026) com schema.org e sitemap.
-- [ ] Curadoria no admin: listar descobertas pendentes, aprovar e fundir
-      duplicatas.
-- [ ] Worker publica `contest.discovery.created` no RabbitMQ do LexLearn,
-      validado contra o JSON Schema.
-- [ ] changedetection.io dispara o webhook para uma fonte real, e o
+- [x] Curadoria no admin: listar descobertas pendentes, aprovar e fundir
+      duplicatas. (A fusão é por marcação `duplicada_de`; a ação em lote
+      fica para o MVP.)
+- [x] Worker publica `contest.discovery.created` no RabbitMQ, validado
+      contra o JSON Schema.
+- [x] changedetection.io dispara o webhook para uma fonte real, e o
       worker registra a descoberta.
-- [ ] `docker compose up` sobe tudo (portal, worker, postgres) e se liga
-      à rede do LexLearn.
-- [ ] Checklist de hardening: `manage.py check --deploy` limpo, admin fora
+- [x] `docker compose up` sobe tudo (portal, worker, postgres). O overlay
+      para a rede do LexLearn foi validado (`compose config`), mas ainda
+      não foi executado no gpu01.
+- [x] Checklist de hardening: `manage.py check --deploy` limpo, admin fora
       da URL padrão, CSP e cabeçalhos de segurança.
+
+### Resultado do spike (12/10/2026, notebook de desenvolvimento)
+
+| Item | Evidência |
+|---|---|
+| Página real | `/sefaz-al-2026/` com os dados da API oficial da Cebraspe; JSON-LD `JobPosting` (40 vagas, R$ 25.270,68); sitemap e robots |
+| Evento no broker | Aprovação → outbox → worker → RabbitMQ: routing key `contest.discovery.created`, mensagem persistente, `message_id` = `event_id`, payload revalidado contra o schema na leitura |
+| Resiliência | Broker derrubado: o evento fica pendente e o worker tenta de novo com backoff (10 s, 20 s…). Broker de volta: reconexão e publicação automáticas, sem perda |
+| changedetection.io | Monitor da API da Cebraspe → mudança detectada → `json://` → webhook 201 → Descoberta pendente. A proteção contra SSRF do changedetection (`ALLOW_IANA_RESTRICTED_ADDRESSES`) foi mantida: ela não bloqueia o `json://` nativo |
+| Hardening | `check --deploy` com `LEXPUBLI_HTTPS=1`: só o W021 (preload do HSTS, opcional). `/admin/` = 404. CSP `script-src 'none'` no site público. Processo como uid 10001, sem root |
+| Recursos | web 274 MiB, worker 92 MiB, postgres 52 MiB, changedetection 128 MiB (o RabbitMQ em produção é o do LexLearn) |
+| Testes | 27 testes pytest |
+
+Achados que viram backlog: (a) a página pública da Cebraspe é renderizada
+por JavaScript, então o Discovery deve monitorar as APIs e fontes
+estruturadas das bancas; (b) o changedetection registra no log a URL de
+notificação com o token, e por isso o `/webhooks/` não pode ser exposto
+publicamente em produção; (c) as notificações chegam em HTML colorido, e o
+webhook já converte para texto.
 
 ## Consequências
 

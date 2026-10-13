@@ -150,5 +150,9 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": os.environ.get("LEXPUBLI_LOG_LEVEL", "INFO")},
     # Tarefas imediatas do Wagtail (índice de busca/referências) logam cada execução.
-    "loggers": {"django_tasks": {"level": "WARNING"}, "django.tasks": {"level": "WARNING"}},
+    "loggers": {
+        "django_tasks": {"level": "WARNING"},
+        "django.tasks": {"level": "WARNING"},
+        "pika": {"level": "WARNING"},  # INFO do pika loga cada passo da conexão
+    },
 }

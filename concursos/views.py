@@ -9,6 +9,7 @@ import re
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse, JsonResponse
+from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
@@ -46,8 +47,9 @@ def webhook_changedetection(request):
     if not isinstance(corpo, dict):
         return JsonResponse({"erro": "esperado um objeto JSON"}, status=400)
 
-    titulo = str(corpo.get("title") or corpo.get("watch_title") or "").strip()
-    mensagem = str(corpo.get("message") or corpo.get("diff") or "").strip()
+    # O formato padrão do changedetection é 'htmlcolor': a curadoria quer o texto.
+    titulo = strip_tags(str(corpo.get("title") or corpo.get("watch_title") or "")).strip()
+    mensagem = strip_tags(str(corpo.get("message") or corpo.get("diff") or "")).strip()
     url = str(corpo.get("watch_url") or "").strip()
     if not url:
         achadas = _RE_URL.findall(mensagem) or _RE_URL.findall(titulo)
