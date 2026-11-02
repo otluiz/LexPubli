@@ -208,6 +208,11 @@ article h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); margin: 20px 0 10px; }
   background: rgba(255,140,66,.1); border: 1px solid rgba(255,140,66,.3);
   border-radius: var(--raio-sm); padding: 10px 14px; display: inline-block; }
 .resumo { margin: 18px 0; max-width: 66ch; }
+/* reforço discreto do produto pago na página do concurso */
+.isca-topo { margin: 16px 0; padding: 10px 14px; max-width: 66ch;
+  border-left: 3px solid var(--sinal); background: rgba(255,140,66,.06);
+  border-radius: 0 var(--raio-sm) var(--raio-sm) 0; color: var(--tinta); font-size: .96rem; }
+.isca-topo a { font-weight: 600; }
 
 .cargos { width: 100%; border-collapse: collapse; margin: 10px 0 24px; }
 .cargos th { text-align: left; font-size: .82rem; text-transform: none;
