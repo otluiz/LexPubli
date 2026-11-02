@@ -1,47 +1,285 @@
-:root { --fundo: #fbfaf7; --texto: #1d1f23; --suave: #5b6170; --borda: #e2e0da; --acento: #1f5fbf; }
-@media (prefers-color-scheme: dark) {
-  :root { --fundo: #15171b; --texto: #e8e6e1; --suave: #a3a8b3; --borda: #2c3038; --acento: #7fb0ff; }
+/* LexPubli — o radar de concursos antes do edital.
+   Identidade: vigília antes do amanhecer. Azul-meia-noite (o céu antes do
+   edital sair) + âmbar-sinal (o pulso de um sinal oficial captado). A
+   boldness mora no hero (grade de radar + pulso); o resto fica quieto para
+   o conteúdo — ciclo do concurso, radar de sinais — respirar. */
+
+/* ---- tokens ------------------------------------------------------------ */
+:root {
+  /* claro (padrão) */
+  --noite:      #0d1b2a;   /* azul-meia-noite: fundo do radar, hero */
+  --noite-2:    #122840;   /* um degrau acima, para profundidade */
+  --superficie: #f7f9fc;   /* fundo da página, branco-frio */
+  --cartao:     #ffffff;
+  --tinta:      #0f1720;   /* texto principal */
+  --suave:      #5a6b82;   /* texto secundário */
+  --borda:      #dde4ee;
+  --sinal:      #ff8c42;   /* âmbar-sinal: a cor do "captado" */
+  --brasa:      #e85d2a;   /* âmbar forte: CTA, foco */
+  --sereno:     #3f6196;   /* azul-aço: links, acento calmo */
+  --verde:      #1f8a5b;   /* inscrições abertas */
+  --ambar-txt:  #a85816;   /* âmbar legível sobre claro (radar/atrasado) */
+
+  --raio:       14px;
+  --raio-sm:    9px;
+  --sombra:     0 1px 2px rgba(13,27,42,.06), 0 8px 24px -12px rgba(13,27,42,.18);
+  --sombra-cta: 0 8px 28px -8px rgba(232,93,42,.55);
+  --larg:       980px;
+
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --texto:   "Inter", system-ui, -apple-system, sans-serif;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --noite:      #0a1420;
+    --noite-2:    #0f2036;
+    --superficie: #0b1119;
+    --cartao:     #111b27;
+    --tinta:      #e8edf4;
+    --suave:      #93a2b8;
+    --borda:      #203044;
+    --sinal:      #ff9a57;
+    --brasa:      #ff7a43;
+    --sereno:     #8fb3e6;
+    --verde:      #52c48a;
+    --ambar-txt:  #ffb067;
+    --sombra:     0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+    --sombra-cta: 0 10px 30px -8px rgba(255,122,67,.4);
+  }
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.6 system-ui, sans-serif; }
-a { color: var(--acento); }
-.topo, .conteudo, .rodape { max-width: 860px; margin: 0 auto; padding: 16px; }
-.topo { display: flex; gap: 12px; align-items: baseline; border-bottom: 1px solid var(--borda); }
-.marca { font-weight: 700; font-size: 1.25rem; text-decoration: none; }
-.lema, .meta, .numeros, .rodape { color: var(--suave); }
-.lista { list-style: none; padding: 0; }
-.cartao { border: 1px solid var(--borda); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
-.cartao p { margin: 4px 0; }
-.selo { display: inline-block; font-size: .8rem; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--borda); }
-.selo-edital_aberto { border-color: #2e8b57; color: #2e8b57; }
-.destaque { font-weight: 600; }
-.cargos { width: 100%; border-collapse: collapse; }
-.cargos th, .cargos td { text-align: left; padding: 8px; border-bottom: 1px solid var(--borda); }
-.rodape { border-top: 1px solid var(--borda); font-size: .9rem; }
-/* página inicial */
-.abertura h1 { font-size: 2rem; line-height: 1.2; margin: 24px 0 8px; }
-.subtitulo { font-size: 1.1rem; color: var(--suave); max-width: 60ch; }
-.numeros-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 24px 0 8px; }
-.numeros-grade div { border: 1px solid var(--borda); border-radius: 8px; padding: 12px 16px; }
-.numeros-grade strong { display: block; font-size: 1.8rem; color: var(--acento); }
-.numeros-grade span, .poderes { color: var(--suave); font-size: .9rem; }
-.grupo h2, .como h2 { margin-top: 32px; }
-.grupo-radar .cartao { border-left: 4px solid var(--acento); }
-.passos li { margin: 8px 0; }
-.selo-previsto, .selo-autorizado { border-color: var(--acento); color: var(--acento); }
-/* chamada ao LexLearn, em todas as páginas */
-.chamada { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
-  margin: 32px 0 16px; padding: 20px; border-radius: 12px; background: var(--acento); color: #fff; }
-.chamada h2 { margin: 4px 0; font-size: 1.3rem; }
-.chamada p { margin: 4px 0; max-width: 60ch; }
-.chamada-rotulo { text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; opacity: .85; }
-.botao { display: inline-block; padding: 10px 18px; border-radius: 8px; background: #fff; color: #1f5fbf;
-  font-weight: 600; text-decoration: none; white-space: nowrap; }
-@media (prefers-color-scheme: dark) { .chamada { color: #0d1117; } .botao { background: #0d1117; color: #7fb0ff; } }
-/* radar de sinais (ADR-0008) */
-.radar { border: 1px solid var(--borda); border-left: 4px solid var(--acento); border-radius: 8px; padding: 12px 16px; margin: 24px 0; }
-.radar h2 { margin-top: 4px; }
-.linha-do-tempo { padding-left: 20px; }
-.linha-do-tempo li { margin: 6px 0; }
-.selo-prazo-no_prazo { border-color: #2e8b57; color: #2e8b57; }
-.selo-prazo-atrasado { border-color: #b35900; color: #b35900; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--superficie);
+  color: var(--tinta);
+  font-family: var(--texto);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.12; letter-spacing: -.015em; }
+
+a { color: var(--sereno); text-underline-offset: 2px; }
+a:hover { text-decoration: underline; }
+
+:focus-visible { outline: 3px solid var(--brasa); outline-offset: 2px; border-radius: 3px; }
+
+.conteudo { max-width: var(--larg); margin: 0 auto; padding: 0 20px; }
+
+/* ---- topo -------------------------------------------------------------- */
+.topo {
+  max-width: var(--larg); margin: 0 auto;
+  padding: 18px 20px;
+  display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap;
+}
+.marca {
+  font-family: var(--display); font-weight: 600; font-size: 1.4rem;
+  letter-spacing: -.02em; text-decoration: none; color: var(--tinta);
+}
+.marca::first-letter { color: var(--brasa); }
+.lema { color: var(--suave); font-size: .92rem; }
+
+/* ---- hero: a grade do radar + o pulso ---------------------------------- */
+/* Usado pela abertura da home. O fundo é a varredura; o texto, a promessa. */
+.abertura {
+  position: relative;
+  margin: 8px 0 28px;
+  padding: clamp(40px, 7vw, 76px) clamp(22px, 4vw, 52px) clamp(36px, 5vw, 56px);
+  border-radius: calc(var(--raio) + 6px);
+  background:
+    radial-gradient(120% 140% at 12% 0%, var(--noite-2) 0%, var(--noite) 55%, #081220 100%);
+  color: #eaf1fb;
+  overflow: hidden;
+  isolation: isolate;
+}
+/* a grade do radar */
+.abertura::before {
+  content: ""; position: absolute; inset: 0; z-index: -2;
+  background-image:
+    linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(120% 120% at 20% 10%, #000 35%, transparent 78%);
+}
+/* o pulso do sinal captado — um glow âmbar que respira, no canto */
+.abertura::after {
+  content: ""; position: absolute; z-index: -1;
+  width: 420px; height: 420px; right: -90px; top: -120px;
+  background: radial-gradient(circle, rgba(255,140,66,.42) 0%, rgba(255,140,66,0) 68%);
+  animation: pulso 5.5s ease-in-out infinite;
+}
+@keyframes pulso {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.12); }
+}
+.abertura h1 {
+  color: #fff;
+  font-size: clamp(2.1rem, 5.2vw, 3.4rem);
+  max-width: 17ch;
+  margin: 0 0 16px;
+}
+.abertura .subtitulo {
+  color: #c7d4e6; font-size: clamp(1rem, 1.6vw, 1.18rem);
+  max-width: 62ch; margin: 0;
+}
+.abertura .intro { margin-top: 16px; color: #c7d4e6; }
+.abertura .intro a { color: #ffd9b8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .abertura::after { animation: none; }
+}
+
+/* ---- números: o que acompanhamos --------------------------------------- */
+.numeros-grade {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px; margin: 26px 0 10px;
+}
+.numeros-grade div {
+  background: var(--cartao); border: 1px solid var(--borda);
+  border-radius: var(--raio-sm); padding: 16px 18px; box-shadow: var(--sombra);
+}
+.numeros-grade strong {
+  display: block; font-family: var(--display); font-weight: 600;
+  font-size: 2.1rem; color: var(--brasa); letter-spacing: -.02em; line-height: 1;
+}
+.numeros-grade span { color: var(--suave); font-size: .9rem; display: block; margin-top: 4px; }
+.poderes { color: var(--suave); font-size: .9rem; margin: 10px 2px 0; }
+
+/* ---- grupos de concurso (as fases da varredura) ------------------------ */
+.grupo { margin-top: 38px; }
+.grupo h2 {
+  font-size: 1.5rem; margin: 0 0 14px; display: flex; align-items: center; gap: 10px;
+}
+/* ponto-sinal antes do título do grupo */
+.grupo h2::before {
+  content: ""; width: 9px; height: 9px; border-radius: 99px;
+  background: var(--sereno); flex: none;
+}
+.grupo-radab h2::before,
+.grupo-radar h2::before { background: var(--sinal); box-shadow: 0 0 0 4px rgba(255,140,66,.18); }
+.grupo-abertos h2::before { background: var(--verde); }
+
+.lista { list-style: none; padding: 0; margin: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.cartao {
+  background: var(--cartao); border: 1px solid var(--borda);
+  border-radius: var(--raio-sm); padding: 16px 18px;
+  box-shadow: var(--sombra);
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+}
+.cartao:hover { transform: translateY(-2px); border-color: #c4d0e2;
+  box-shadow: 0 2px 4px rgba(13,27,42,.08), 0 16px 32px -16px rgba(13,27,42,.3); }
+.cartao a { color: var(--tinta); text-decoration: none; font-size: 1.08rem; }
+.cartao a:hover { color: var(--sereno); }
+.cartao strong { font-family: var(--display); font-weight: 600; }
+.cartao p { margin: 6px 0; color: var(--suave); font-size: .94rem; }
+.cartao .numeros { color: var(--tinta); font-size: .9rem; }
+.grupo-radar .cartao { border-left: 3px solid var(--sinal); }
+
+/* ---- selos de status --------------------------------------------------- */
+.selo {
+  display: inline-block; font-size: .74rem; font-weight: 600;
+  padding: 2px 10px; border-radius: 99px; border: 1px solid var(--borda);
+  color: var(--suave); letter-spacing: .01em;
+}
+.selo-previsto, .selo-autorizado { border-color: var(--sinal); color: var(--ambar-txt);
+  background: rgba(255,140,66,.08); }
+.selo-edital_aberto { border-color: var(--verde); color: var(--verde);
+  background: rgba(31,138,91,.08); }
+
+/* ---- como funciona (quieto de propósito: a chamada LexLearn é a âncora) - */
+.como { margin-top: 44px; padding: 8px 0 0; border-top: 1px solid var(--borda); }
+.como h2 { font-size: 1.3rem; margin: 20px 0 14px; }
+.passos { margin: 0; padding-left: 22px; max-width: 72ch; }
+.passos li { margin: 10px 0; color: var(--suave); }
+.passos strong { color: var(--tinta); }
+
+/* ---- página do concurso ------------------------------------------------ */
+article h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); margin: 20px 0 10px; }
+.meta { color: var(--suave); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.destaque { font-weight: 600; font-size: 1.05rem;
+  background: rgba(255,140,66,.1); border: 1px solid rgba(255,140,66,.3);
+  border-radius: var(--raio-sm); padding: 10px 14px; display: inline-block; }
+.resumo { margin: 18px 0; max-width: 66ch; }
+
+.cargos { width: 100%; border-collapse: collapse; margin: 10px 0 24px; }
+.cargos th { text-align: left; font-size: .82rem; text-transform: none;
+  color: var(--suave); font-weight: 600; padding: 8px; border-bottom: 2px solid var(--borda); }
+.cargos td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--borda); }
+.cargos tr:hover td { background: rgba(63,97,150,.04); }
+
+/* ---- radar de sinais (ADR-0008) ---------------------------------------- */
+.radar {
+  background: var(--cartao); border: 1px solid var(--borda);
+  border-left: 3px solid var(--sinal); border-radius: var(--raio-sm);
+  padding: 18px 20px; margin: 24px 0; box-shadow: var(--sombra);
+}
+.radar h2 { margin: 0 0 10px; font-size: 1.3rem; }
+.radar-nota { font-size: 1.02rem; }
+.linha-do-tempo { padding-left: 18px; margin: 14px 0; border-left: 2px solid var(--borda); list-style: none; }
+.linha-do-tempo li { position: relative; margin: 12px 0; padding-left: 16px; }
+.linha-do-tempo li::before {
+  content: ""; position: absolute; left: -7px; top: 7px;
+  width: 10px; height: 10px; border-radius: 99px;
+  background: var(--sinal); border: 2px solid var(--cartao);
+}
+.linha-do-tempo time { font-variant-numeric: tabular-nums; color: var(--suave); font-weight: 600; }
+.selo-prazo-no_prazo { border-color: var(--verde); color: var(--verde); }
+.selo-prazo-atrasado { border-color: var(--ambar-txt); color: var(--ambar-txt);
+  background: rgba(255,140,66,.08); }
+
+/* ---- chamada ao LexLearn: a conversão ---------------------------------- */
+/* Peça de venda em todas as páginas (ADR-0005: só um link de saída). */
+.chamada {
+  position: relative; overflow: hidden; isolation: isolate;
+  margin: 40px 0 20px; padding: clamp(24px, 4vw, 38px);
+  border-radius: var(--raio);
+  background: linear-gradient(135deg, var(--noite-2) 0%, var(--noite) 70%);
+  color: #eaf1fb;
+  display: grid; gap: 18px;
+}
+.chamada::before { /* grade-radar discreta, amarra com o hero */
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(130% 130% at 90% 0%, #000 30%, transparent 75%);
+}
+.chamada-rotulo {
+  font-family: var(--display); font-weight: 600; font-size: 1rem;
+  color: var(--sinal); margin: 0; letter-spacing: -.01em;
+}
+.chamada h2 { margin: 2px 0; font-size: clamp(1.3rem, 2.6vw, 1.75rem); color: #fff; max-width: 20ch; }
+.chamada p { margin: 0; color: #c7d4e6; max-width: 58ch; }
+.chamada-acoes { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 4px; }
+.botao {
+  display: inline-block; padding: 13px 26px; border-radius: var(--raio-sm);
+  background: linear-gradient(135deg, var(--sinal), var(--brasa));
+  color: #fff; font-weight: 600; font-size: 1.02rem; text-decoration: none;
+  box-shadow: var(--sombra-cta); white-space: nowrap;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.botao:hover { transform: translateY(-2px); text-decoration: none;
+  box-shadow: 0 12px 34px -8px rgba(232,93,42,.7); }
+.chamada-reforco { color: #9fb2cc; font-size: .9rem; }
+
+/* ---- rodapé ------------------------------------------------------------ */
+.rodape {
+  max-width: var(--larg); margin: 48px auto 0; padding: 22px 20px 40px;
+  border-top: 1px solid var(--borda); color: var(--suave); font-size: .9rem;
+}
+
+/* ---- responsivo -------------------------------------------------------- */
+@media (max-width: 560px) {
+  .lista { grid-template-columns: 1fr; }
+  .chamada-acoes { flex-direction: column; align-items: stretch; }
+  .botao { text-align: center; }
+}
