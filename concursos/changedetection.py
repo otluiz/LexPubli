@@ -201,7 +201,7 @@ def sincronizar_uma(fonte, cliente: Cliente, url_notificacao: str) -> Relatorio:
     """A fonte que o curador acabou de gravar no painel. Não olha órfãos:
     isso é da sincronização completa."""
     rel = Relatorio()
-    if fonte.tipo != fonte.Tipo.PAGINA:
+    if fonte.tipo not in (fonte.Tipo.PAGINA, fonte.Tipo.PISTA):
         return rel
     etiqueta = cliente.etiqueta(ETIQUETA)
     _aplicar(fonte, cliente, campos_do_watch(fonte, etiqueta, url_notificacao),
