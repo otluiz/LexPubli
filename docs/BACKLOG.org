@@ -432,6 +432,44 @@
          cronograma, links oficiais
    - [ ] schema.org (Event/JobPosting) + sitemap + SEO
    - [ ] Listagens: abertos, previstos, por banca, por órgão, por UF
+** TODO [#A] Quiz-isca "Teste seus conhecimentos" (conversão/gamificação)
+   Ideia (02/11): na página do concurso, um quiz curto que mede o
+   conhecimento prévio do visitante e o converte para o LexLearn. Sorteia 5
+   perguntas FÁCEIS; ao final, score + medalha (gamificação) se acertar >=80%;
+   CTA "Estudar no LexLearn". O visitante EXPERIMENTA antes de sair da página.
+   Protótipo visual validado em 02/11 (server-side e client-side; ficam
+   idênticos — a diferença é só mecânica).
+
+   DECISÕES TOMADAS (02/11):
+   - FONTE DAS PERGUNTAS: banco PRÓPRIO do LexPubli, pequeno e estático
+     (~10-15 iscas fáceis/genéricas por concurso ou por área), curado à mão.
+     NÃO vem do LexLearn (não furar ADR-0005) nem precisa dele. As perguntas
+     são de conhecimento básico que qualquer um com o edital cria; NÃO são as
+     questões-produto do LexLearn (DNA das bancas, gabarito ancorado) — essas
+     são o que se VENDE, atrás do CTA.
+   - RISCO DO F5 (insight do dono do produto): o quiz é AMOSTRA, não poço sem
+     fundo. Banco pequeno => apertar F5 logo repete perguntas, e isso é
+     BOM/intencional: o limite da amostra é a isca funcionando. Por isso
+     "sortear sem repetir" NÃO é requisito; pode repetir.
+   - CSP: SERVER-SIDE, sem JavaScript (respeita script-src 'none'; mantém a
+     superfície mínima do projeto exposto, ADR-0006). Sem o requisito de
+     sorteio-sem-repetir, o server-side fica trivial: cada resposta é um POST,
+     o servidor conta e devolve o próximo passo / o resultado. Nada de afrouxar
+     a CSP para JS.
+   - GAMIFICAÇÃO sem login: o LexPubli é portal público (sem conta). Medalha/
+     score são por-sessão (cookie) ou efêmeros; a medalha pode virar gancho
+     ("crie conta no LexLearn para guardar") — mais um fio de conversão.
+
+   A fazer:
+   - [ ] Modelo PerguntaIsca (concurso/área, enunciado, 4 opções, correta,
+         ativa) + curadoria no painel Wagtail
+   - [ ] View server-side do quiz (POST por resposta; sorteio de 5; score;
+         medalha >=80%) — sem JS, dentro da CSP atual
+   - [ ] CSS já prototipado (bloco .quiz, medalha, progresso) — portar do
+         protótipo de 02/11
+   - [ ] Popular ~10-15 iscas para os primeiros concursos (ex.: ISS Caruaru)
+   - [ ] CTA "Estudar no LexLearn" em nova aba (como a chamada principal)
+
 ** TODO [#B] Editorial: notícias e guias
    Páginas editoriais ligadas aos concursos (rascunho, revisão, agendamento).
 ** TODO [#B] API pública + feeds RSS/Atom
@@ -457,6 +495,84 @@
    "Provas anteriores disponíveis" + CTA "estude para este concurso" no
    LexLearn. Fonte: consulta/evento a definir (não ler o storage
    diretamente). ALINHAR com o LexLearn.
+** TODO [#B] Botão "Começar a estudar" abre o LexLearn em nova aba
+   CLOSED parcialmente: o link já abre em nova aba (target=_blank,
+   rel=noopener), então o visitante fecha e volta ao LexPubli sem precisar
+   de "voltar" dentro do LexLearn (que o LexPubli não controla, ADR-0005).
+   - [X] target=_blank + rel no _chamada_lexlearn.html (02/11)
+   - [ ] (Fronteira) Um "voltar ao LexPubli" DENTRO do LexLearn exigiria o
+         LexPubli passar origem na URL (?origem=lexpubli&contest=...) e o
+         LexLearn renderizar o retorno. Depende de rever o ADR-0005 (hoje o
+         LexPubli não acopla ao LexLearn). Só se houver demanda real.
+
+** TODO [#A] Marketing: CTA do LexLearn repetitivo e consistente
+   Decisão de marketing (02/11, dono do produto): martelar "questões INÉDITAS
+   (estilo da banca, gabarito oficial) estão no LexLearn, na parte paga" em
+   todo ponto de contato, com a MESMA voz. Repetição consistente, não spam.
+   - [X] Chamada principal (_chamada_lexlearn.html): copy reforça "questões
+         inéditas, o que ninguém mais tem" em negrito (02/11)
+   - [X] Linha-isca discreta no topo da página do concurso (.isca-topo) —
+         reforço em texto, não compete com a chamada grande (02/11)
+   - [X] CTA do quiz-isca já leva ao LexLearn (ver item do quiz)
+   - [ ] Banner leve na home (listagem) apontando o LexLearn — avaliar sem
+         saturar; a home já tem a chamada no rodapé
+   - [ ] Padronizar a mensagem única num só lugar (fragmento/trecho) para não
+         divergir entre páginas
+   - FRONTEIRA: todo CTA é só LINK de saída (nova aba). O LexPubli NÃO cadastra
+     usuário, não tem login, não cobra — isso é do LexLearn (ADR-0005: "os
+     serviços pagos usam o LexLearn"). Ver jornada abaixo.
+
+** TODO [#B] Jornada de conversão LexPubli → registro no LexLearn
+   Mapeamento (02/11) de onde a fronteira fica, para não confundir papéis:
+   - LexPubli (público, anônimo, sem conta): descobre concurso → página com
+     radar/quiz/CTA → MANDA o visitante ao LexLearn por link (nova aba),
+     podendo passar contexto público na URL (ex.: ?contest=iss-caruaru-2026).
+   - LexLearn (produto pago): recebe o visitante, faz o REGISTRO de usuário,
+     login, área do assinante, pagamento, questões inéditas. Tudo isso é
+     feature do LEXLEARN, não do LexPubli.
+   - [ ] (LexLearn) Página de registro + área do pagante — backlog do LexLearn
+   - [ ] (LexPubli) Decidir o que, se algo, passar na URL do CTA (contest_slug
+         público ajuda o LexLearn a já abrir no concurso certo; nada sensível)
+   - [ ] Medir conversão: cliques no CTA por página (sem rastrear o usuário
+         além do necessário; LexPubli é público)
+   - NÃO abre canal LexPubli↔LexLearn além do link de saída (ADR-0005).
+
+** TODO [#A] Inventário edital × disciplinas + roteiro no portal :ALINHAR_LexCorpus:
+   Ideias #3 e #6 (02/11): a página do concurso mostrar as disciplinas do
+   edital cobertas pelo acervo e um reflexo do roteiro de estudos.
+   DECISÃO DE FRONTEIRA (dono do produto, 02/11): NÃO abrir canal
+   LexLearn→LexPubli (o LexPubli é o exposto à internet; ADR-0005 isola de
+   propósito). Estudo das vias em ADR-0010 (em estudo). Resumo:
+   - A parte "disciplinas do edital" já tem meio caminho: o edital chega ao
+     LexLearn pela pasta /data/raw/editais (ADR-0003); o cruzamento com o
+     acervo acontece NO LEXLEARN, não no LexPubli.
+   - Para o portal EXIBIR esse estado sem tocar o LexLearn: via B-triangulada
+     do ADR-0010 — o LexLearn empurra um resumo de cobertura ao LexCorpus
+     (push do protegido), e o LexPubli lê só o LexCorpus. Canal novo
+     LexLearn→LexCorpus a desenhar e alinhar com o parceiro.
+   - Roteiro de estudos: a GERAÇÃO é função-fim do LexLearn; aqui trata-se só
+     de como o portal exibiria um reflexo. Ver ADR-0010 §Encaminhamento.
+   - [ ] Maturar ADR-0010 com o parceiro do LexCorpus antes de qualquer código.
+
+** TODO [#B] Portal mostra "provas disponíveis" via LexCorpus :ALINHAR_LexCorpus:
+   A parte LIMPA das ideias #3/#5/#6: mostrar na página do concurso quantas
+   provas anteriores existem, consultando SÓ o LexCorpus (que é o dono desse
+   dado). Não toca o LexLearn; não precisa do ADR-0010. É o item já existente
+   "Página do concurso mostra o acervo do LexCorpus/LexLearn" — pode avançar
+   independentemente. Fonte: evento/consulta ao LexCorpus a definir.
+
+** TODO [#A] Ampliar descoberta de editais e provas (fontes externas)
+   Itens 4 e 5 de 02/11 — JÁ COBERTOS pelos mecanismos existentes, falta
+   ampliar cobertura:
+   - "Encontrar editais em outros sítios": é evolução das Fontes (ADR-0007),
+     Pistas e Discovery já existentes. Ampliar o leque de fontes, não criar
+     mecanismo novo. Ver "Discovery: primeiras fontes" e ADR-0007.
+   - "Encontrar provas e avisar o LexCorpus para baixar": é EXATAMENTE o
+     contrato que já existe — contest.discovery.created/updated → o LexCorpus
+     decide coletar (ADR-0002, ADR-0004). Caminho pronto; falta cobrir mais
+     fontes de prova. Ver "LexCorpus consome contest.discovery.*" (acima).
+   - [ ] Nenhum mecanismo novo; priorizar quais fontes adicionar.
+
 ** TODO [#C] Identidade compartilhada (SSO) LexPubli ↔ LexLearn
    Depois do MVP.
 
