@@ -1,16 +1,30 @@
-{# Chamada ao LexLearn, o produto principal. Só um link (ADR-0005). #}
-<aside class="chamada" aria-label="LexLearn">
+{# Chamada ao LexLearn, o produto principal. Só um link de saída (ADR-0005:
+   sem API, sem evento, sem assinar nada do LexLearn). A copy vende; a
+   fronteira técnica continua sendo um único link. #}
+<aside class="chamada" aria-label="Estude no LexLearn">
   <div>
-    <p class="chamada-rotulo">LexLearn</p>
+    <p class="chamada-rotulo">LexLearn · o estudo que vem depois do radar</p>
     {% if concurso %}
-      <h2>Vai prestar {{ concurso.title }}? Comece a estudar agora.</h2>
-      <p>No LexLearn você resolve as questões das provas anteriores{% if concurso.banca %} da {{ concurso.banca.nome }}{% endif %}
-        e questões novas, geradas no estilo da banca.</p>
+      <h2>Vai prestar {{ concurso.title }}? Saia na frente.</h2>
+      <p>No LexLearn você resolve as provas anteriores{% if concurso.banca %} da {{ concurso.banca.nome }}{% endif %}
+        e, o que ninguém mais tem, <strong>questões inéditas geradas no estilo da banca</strong>, com
+        gabarito ancorado no texto oficial. É o treino de verdade, antes de o edital sair.</p>
     {% else %}
-      <h2>Do aviso à aprovação: estude com o LexLearn.</h2>
-      <p>Questões originais das bancas, com o gabarito oficial, e questões novas geradas no estilo de cada
-        banca, para treinar antes de o edital sair.</p>
+      <h2>Do primeiro sinal à aprovação: estude com o LexLearn.</h2>
+      <p>Provas anteriores com gabarito oficial e, o diferencial, <strong>questões inéditas no estilo
+        de cada banca</strong> — geradas sob medida, que você não encontra em lugar nenhum. Treine
+        antes de o edital sair e chegue à frente.</p>
     {% endif %}
   </div>
-  {% if LEXLEARN_URL %}<a class="botao" href="{{ LEXLEARN_URL }}">Conhecer o LexLearn</a>{% endif %}
+  <div class="chamada-acoes">
+    {% if LEXLEARN_URL %}
+      {# nova aba: o LexLearn é outro app (ADR-0005). Abrindo em aba nova, o
+         visitante fecha e volta ao LexPubli sem precisar de "voltar" lá
+         dentro — que o LexPubli não controla. rel protege contra tabnabbing. #}
+      <a class="botao" href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">Começar a estudar</a>
+      <span class="chamada-reforco">Abre o LexLearn em nova aba · grátis para começar</span>
+    {% else %}
+      <span class="chamada-reforco">Em breve: o estudo ancorado nas bancas.</span>
+    {% endif %}
+  </div>
 </aside>
