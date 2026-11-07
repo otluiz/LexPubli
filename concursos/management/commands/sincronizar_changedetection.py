@@ -26,7 +26,7 @@ class Command(BaseCommand):
             cliente = Cliente(settings.LEXPUBLI_CHANGEDETECTION_URL,
                               settings.LEXPUBLI_CHANGEDETECTION_API_KEY)
             url = notificacao(settings.LEXPUBLI_WEBHOOK_INTERNO, settings.LEXPUBLI_WEBHOOK_TOKEN)
-            rel = sincronizar(Fonte.objects.filter(tipo=Fonte.Tipo.PAGINA).order_by("pk"),
+            rel = sincronizar(Fonte.objects.filter(tipo__in=(Fonte.Tipo.PAGINA, Fonte.Tipo.PISTA)).order_by("pk"),
                               cliente, url, simular=simular, remover_orfaos=remover_orfaos)
         except ErroChangedetection as exc:
             raise CommandError(str(exc)) from exc
