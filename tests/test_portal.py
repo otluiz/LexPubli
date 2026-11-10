@@ -71,7 +71,7 @@ def test_chamada_ao_lexlearn_em_todas_as_paginas(client, exemplo, settings):
     settings.LEXPUBLI_LEXLEARN_URL = "https://app.lexlearn.exemplo"
     inicio = client.get("/").content.decode()
     concurso = client.get("/sefaz-al-2026/").content.decode()
-    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Conhecer o LexLearn" in inicio
+    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Começar a estudar" in inicio
     assert "Vai prestar Sefaz-AL 2026" in concurso and "da Cebraspe" in concurso
     assert 'href="https://app.lexlearn.exemplo"' in concurso
 
@@ -79,4 +79,16 @@ def test_chamada_ao_lexlearn_em_todas_as_paginas(client, exemplo, settings):
 def test_sem_url_do_lexlearn_a_chamada_fica_sem_botao(client, exemplo, settings):
     settings.LEXPUBLI_LEXLEARN_URL = ""
     html = client.get("/").content.decode()
-    assert "estude com o LexLearn" in html and "Conhecer o LexLearn" not in html
+    assert "estude com o LexLearn" in html and "Começar a estudar" not in html
+
+
+def test_nenhum_comentario_de_template_vaza_para_a_pagina(client, exemplo, settings):
+    """`{# #}` do Django e de UMA linha; em varias ele nao comenta — vira texto
+    na pagina. Em 10/11 isso expunha ao visitante as notas de arquitetura
+    (ADR-0005, tabnabbing, "produto pago") em todas as paginas do portal.
+    Comentario de varias linhas usa a tag comment."""
+    settings.LEXPUBLI_LEXLEARN_URL = "https://app.lexlearn.exemplo"
+    for url in ("/", "/sefaz-al-2026/"):
+        corpo = client.get(url).content.decode()
+        assert "{#" not in corpo and "#}" not in corpo, f"comentario vazou em {url}"
+        assert "ADR-" not in corpo, f"nota de arquitetura vazou em {url}"

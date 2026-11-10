@@ -20,8 +20,8 @@
 
     {% if page.resumo %}<div class="resumo">{{ page.resumo|richtext }}</div>{% endif %}
 
-    {# Reforço discreto do produto pago — repetição consistente da oferta,
-       em texto (não compete com a chamada grande do rodapé). #}
+    {% comment %} Reforço discreto do produto pago — repetição consistente da oferta,
+       em texto (não compete com a chamada grande do rodapé). {% endcomment %}
     {% if LEXLEARN_URL %}
       <p class="isca-topo">Questões inéditas no estilo d{% if page.banca %}a {{ page.banca.nome }}{% else %}a banca{% endif %}
         para este concurso só no <a href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">LexLearn</a>.</p>

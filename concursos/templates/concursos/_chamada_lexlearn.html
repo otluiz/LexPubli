@@ -1,6 +1,6 @@
-{# Chamada ao LexLearn, o produto principal. Só um link de saída (ADR-0005:
+{% comment %} Chamada ao LexLearn, o produto principal. Só um link de saída (ADR-0005:
    sem API, sem evento, sem assinar nada do LexLearn). A copy vende; a
-   fronteira técnica continua sendo um único link. #}
+   fronteira técnica continua sendo um único link. {% endcomment %}
 <aside class="chamada" aria-label="Estude no LexLearn">
   <div>
     <p class="chamada-rotulo">LexLearn · o estudo que vem depois do radar</p>
@@ -18,9 +18,9 @@
   </div>
   <div class="chamada-acoes">
     {% if LEXLEARN_URL %}
-      {# nova aba: o LexLearn é outro app (ADR-0005). Abrindo em aba nova, o
+      {% comment %} nova aba: o LexLearn é outro app (ADR-0005). Abrindo em aba nova, o
          visitante fecha e volta ao LexPubli sem precisar de "voltar" lá
-         dentro — que o LexPubli não controla. rel protege contra tabnabbing. #}
+         dentro — que o LexPubli não controla. rel protege contra tabnabbing. {% endcomment %}
       <a class="botao" href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">Começar a estudar</a>
       <span class="chamada-reforco">Abre o LexLearn em nova aba · grátis para começar</span>
     {% else %}
