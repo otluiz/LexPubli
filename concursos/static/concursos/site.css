@@ -4,6 +4,23 @@
    boldness mora no hero (grade de radar + pulso); o resto fica quieto para
    o conteúdo — ciclo do concurso, radar de sinais — respirar. */
 
+/* ---- fontes (SPEC-0003 D5) ---------------------------------------------- */
+/* Servidas pelo próprio portal: nenhuma requisição a terceiros, nenhum IP de
+   visitante entregue a ninguém. Fraunces e Inter, SIL OFL 1.1 (licenças em
+   fontes/). Recorte latino, que cobre o português. */
+@font-face {
+  font-family: "Fraunces"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fontes/fraunces-latin-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces"; font-style: italic; font-weight: 100 900; font-display: swap;
+  src: url("fontes/fraunces-latin-italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fontes/inter-latin.woff2") format("woff2");
+}
+
 /* ---- tokens ------------------------------------------------------------ */
 :root {
   /* claro (padrão) */
@@ -17,7 +34,7 @@
   --sinal:      #ff8c42;   /* âmbar-sinal: a cor do "captado" */
   --brasa:      #e85d2a;   /* âmbar forte: CTA, foco */
   --sereno:     #3f6196;   /* azul-aço: links, acento calmo */
-  --verde:      #1f8a5b;   /* inscrições abertas */
+  --verde:      #187a4f;   /* inscrições abertas (escurecido para AA sobre o claro) */
   --ambar-txt:  #a85816;   /* âmbar legível sobre claro (radar/atrasado) */
 
   --raio:       14px;
@@ -73,23 +90,48 @@ a:hover { text-decoration: underline; }
 
 .conteudo { max-width: var(--larg); margin: 0 auto; padding: 0 20px; }
 
-/* ---- topo -------------------------------------------------------------- */
+/* ---- topo (SPEC-0003 D7) ------------------------------------------------ */
+.pular {
+  position: absolute; left: 12px; top: -60px; z-index: 10;
+  background: var(--cartao); color: var(--tinta); padding: 8px 14px;
+  border-radius: var(--raio-sm); box-shadow: var(--sombra);
+}
+.pular:focus { top: 12px; }
+.so-leitor {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
 .topo {
   max-width: var(--larg); margin: 0 auto;
   padding: 18px 20px;
-  display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap;
+  display: flex; gap: 6px 14px; align-items: center; flex-wrap: wrap;
 }
 .marca {
   font-family: var(--display); font-weight: 600; font-size: 1.4rem;
   letter-spacing: -.02em; text-decoration: none; color: var(--tinta);
+  display: inline-flex; align-items: center; gap: 9px;
 }
-.marca::first-letter { color: var(--brasa); }
+.marca:hover { text-decoration: none; }
+/* o sinal da marca: um ponto captado, com o anel do radar em volta */
+.marca-sinal {
+  width: 12px; height: 12px; border-radius: 99px; background: var(--brasa);
+  box-shadow: 0 0 0 4px rgba(255,140,66,.22);
+}
 .lema { color: var(--suave); font-size: .92rem; }
+.navegacao { margin-left: auto; display: flex; gap: 4px 18px; flex-wrap: wrap; }
+.navegacao a {
+  color: var(--tinta); text-decoration: none; font-weight: 500; font-size: .95rem;
+  padding: 4px 0; border-bottom: 2px solid transparent;
+}
+.navegacao a:hover { border-bottom-color: var(--sinal); text-decoration: none; }
+.navegacao .externo { color: var(--ambar-txt); }
 
 /* ---- hero: a grade do radar + o pulso ---------------------------------- */
 /* Usado pela abertura da home. O fundo é a varredura; o texto, a promessa. */
 .abertura {
   position: relative;
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 44px); align-items: center;
   margin: 8px 0 28px;
   padding: clamp(40px, 7vw, 76px) clamp(22px, 4vw, 52px) clamp(36px, 5vw, 56px);
   border-radius: calc(var(--raio) + 6px);
@@ -121,10 +163,16 @@ a:hover { text-decoration: underline; }
 }
 .abertura h1 {
   color: #fff;
-  font-size: clamp(2.1rem, 5.2vw, 3.4rem);
-  max-width: 17ch;
+  font-size: clamp(2.1rem, 5vw, 3.3rem);
+  max-width: 14ch;
   margin: 0 0 16px;
 }
+/* a serifa itálica carrega o diferencial do produto */
+.abertura h1 em { font-style: italic; font-weight: 500; color: var(--sinal); }
+.sobretitulo {
+  margin: 0 0 12px; color: #ffd9b8; font-weight: 500; font-size: .98rem; letter-spacing: .01em;
+}
+.abertura-acoes { margin: 22px 0 0; }
 .abertura .subtitulo {
   color: #c7d4e6; font-size: clamp(1rem, 1.6vw, 1.18rem);
   max-width: 62ch; margin: 0;
@@ -132,9 +180,71 @@ a:hover { text-decoration: underline; }
 .abertura .intro { margin-top: 16px; color: #c7d4e6; }
 .abertura .intro a { color: #ffd9b8; }
 
-@media (prefers-reduced-motion: reduce) {
-  .abertura::after { animation: none; }
+
+/* ---- radar vivo (SPEC-0003 D2) ----------------------------------------- */
+/* Cada ponto é um concurso publicado. O varredor dá uma volta a cada 6 s e
+   acende o ponto ao passar: o atraso de cada .setor-N põe o brilho do
+   ponto no instante em que o feixe chega ao ângulo dele. */
+.radar-vivo { margin: 0; justify-self: center; width: 100%; max-width: 340px; }
+.radar-vivo svg { display: block; width: 100%; height: auto; overflow: visible; }
+.radar-vivo .disco  { fill: rgba(255,255,255,.025); stroke: rgba(160,190,230,.35); stroke-width: .8; }
+.radar-vivo .anel   { fill: none; stroke: rgba(160,190,230,.2); stroke-width: .6; }
+.radar-vivo .eixo   { stroke: rgba(160,190,230,.14); stroke-width: .6; }
+.radar-vivo .centro { fill: var(--sinal); }
+.radar-vivo .cone   { fill: url(#cone); }
+.radar-vivo .cone-fim   { stop-color: #ff8c42; stop-opacity: 0; }
+.radar-vivo .cone-ponta { stop-color: #ff8c42; stop-opacity: .38; }
+.radar-vivo .feixe  { stroke: #ffb27a; stroke-width: 1.1; stroke-linecap: round; }
+.radar-vivo .varredor {
+  transform-box: view-box; transform-origin: 0 0;   /* (0,0) do viewBox = centro do disco */
+  animation: varrer 6s linear infinite;
 }
+@keyframes varrer { to { transform: rotate(360deg); } }
+
+.radar-vivo .ponto { cursor: pointer; }
+.radar-vivo .nucleo { fill: #ffc79d; }
+.radar-vivo .halo   { fill: rgba(255,140,66,.28); }
+.radar-vivo .ponto .nucleo, .radar-vivo .ponto .halo { animation: captar 6s linear infinite; }
+@keyframes captar {
+  0%   { opacity: 1; }
+  45%  { opacity: .5; }
+  100% { opacity: .5; }
+}
+.radar-vivo .rotulo {
+  fill: #eaf1fb; font-family: var(--texto); font-size: 8px; font-weight: 600;
+  paint-order: stroke; stroke: rgba(8,18,32,.85); stroke-width: 3px;
+}
+.radar-vivo .ponto:hover .nucleo, .radar-vivo .ponto:focus-visible .nucleo { fill: #fff; }
+.radar-vivo .ponto:focus { outline: none; }
+.radar-vivo .ponto:focus-visible .halo { fill: none; stroke: #fff; stroke-width: 1.6; opacity: 1; }
+.radar-vivo figcaption { margin-top: 10px; color: #c7d4e6; font-size: .86rem; text-align: center; }
+.radar-vivo figcaption strong { color: #fff; }
+
+/* atraso por setor de 15°: (N/24 − 1) × 6 s. Gerado — manter com SETORES em radar_vivo.py */
+.radar-vivo .setor-0 .nucleo, .radar-vivo .setor-0 .halo { animation-delay: -6.0s; }
+.radar-vivo .setor-1 .nucleo, .radar-vivo .setor-1 .halo { animation-delay: -5.75s; }
+.radar-vivo .setor-2 .nucleo, .radar-vivo .setor-2 .halo { animation-delay: -5.5s; }
+.radar-vivo .setor-3 .nucleo, .radar-vivo .setor-3 .halo { animation-delay: -5.25s; }
+.radar-vivo .setor-4 .nucleo, .radar-vivo .setor-4 .halo { animation-delay: -5.0s; }
+.radar-vivo .setor-5 .nucleo, .radar-vivo .setor-5 .halo { animation-delay: -4.75s; }
+.radar-vivo .setor-6 .nucleo, .radar-vivo .setor-6 .halo { animation-delay: -4.5s; }
+.radar-vivo .setor-7 .nucleo, .radar-vivo .setor-7 .halo { animation-delay: -4.25s; }
+.radar-vivo .setor-8 .nucleo, .radar-vivo .setor-8 .halo { animation-delay: -4.0s; }
+.radar-vivo .setor-9 .nucleo, .radar-vivo .setor-9 .halo { animation-delay: -3.75s; }
+.radar-vivo .setor-10 .nucleo, .radar-vivo .setor-10 .halo { animation-delay: -3.5s; }
+.radar-vivo .setor-11 .nucleo, .radar-vivo .setor-11 .halo { animation-delay: -3.25s; }
+.radar-vivo .setor-12 .nucleo, .radar-vivo .setor-12 .halo { animation-delay: -3.0s; }
+.radar-vivo .setor-13 .nucleo, .radar-vivo .setor-13 .halo { animation-delay: -2.75s; }
+.radar-vivo .setor-14 .nucleo, .radar-vivo .setor-14 .halo { animation-delay: -2.5s; }
+.radar-vivo .setor-15 .nucleo, .radar-vivo .setor-15 .halo { animation-delay: -2.25s; }
+.radar-vivo .setor-16 .nucleo, .radar-vivo .setor-16 .halo { animation-delay: -2.0s; }
+.radar-vivo .setor-17 .nucleo, .radar-vivo .setor-17 .halo { animation-delay: -1.75s; }
+.radar-vivo .setor-18 .nucleo, .radar-vivo .setor-18 .halo { animation-delay: -1.5s; }
+.radar-vivo .setor-19 .nucleo, .radar-vivo .setor-19 .halo { animation-delay: -1.25s; }
+.radar-vivo .setor-20 .nucleo, .radar-vivo .setor-20 .halo { animation-delay: -1.0s; }
+.radar-vivo .setor-21 .nucleo, .radar-vivo .setor-21 .halo { animation-delay: -0.75s; }
+.radar-vivo .setor-22 .nucleo, .radar-vivo .setor-22 .halo { animation-delay: -0.5s; }
+.radar-vivo .setor-23 .nucleo, .radar-vivo .setor-23 .halo { animation-delay: -0.25s; }
 
 /* ---- números: o que acompanhamos --------------------------------------- */
 .numeros-grade {
@@ -165,6 +275,8 @@ a:hover { text-decoration: underline; }
 .grupo-radab h2::before,
 .grupo-radar h2::before { background: var(--sinal); box-shadow: 0 0 0 4px rgba(255,140,66,.18); }
 .grupo-abertos h2::before { background: var(--verde); }
+.grupo-andamento h2::before { background: var(--suave); }
+.vazio { color: var(--suave); }
 
 .lista { list-style: none; padding: 0; margin: 0;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
@@ -191,8 +303,11 @@ a:hover { text-decoration: underline; }
 }
 .selo-previsto, .selo-autorizado { border-color: var(--sinal); color: var(--ambar-txt);
   background: rgba(255,140,66,.08); }
-.selo-edital_aberto { border-color: var(--verde); color: var(--verde);
+.selo-edital_aberto, .selo-aberto { border-color: var(--verde); color: var(--verde);
   background: rgba(31,138,91,.08); }
+.selo-em-breve { border-color: var(--sereno); color: var(--sereno); background: rgba(63,97,150,.08); }
+.selo-encerrado, .selo-prova-realizada, .selo-inscricoes_encerradas,
+.selo-prova_realizada, .selo-resultado { color: var(--suave); }
 
 /* ---- como funciona (quieto de propósito: a chamada LexLearn é a âncora) - */
 .como { margin-top: 44px; padding: 8px 0 0; border-top: 1px solid var(--borda); }
@@ -215,6 +330,7 @@ article h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); margin: 20px 0 10px; }
 .isca-topo a { font-weight: 600; }
 
 .cargos { width: 100%; border-collapse: collapse; margin: 10px 0 24px; }
+.cargos td:first-child { overflow-wrap: anywhere; }
 .cargos th { text-align: left; font-size: .82rem; text-transform: none;
   color: var(--suave); font-weight: 600; padding: 8px; border-bottom: 2px solid var(--borda); }
 .cargos td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--borda); }
@@ -283,8 +399,23 @@ article h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); margin: 20px 0 10px; }
 }
 
 /* ---- responsivo -------------------------------------------------------- */
+@media (max-width: 760px) {
+  .abertura { grid-template-columns: 1fr; }
+  .radar-vivo { max-width: 280px; }
+}
 @media (max-width: 560px) {
   .lista { grid-template-columns: 1fr; }
+  .navegacao { margin-left: 0; width: 100%; }
+  .abertura::after { width: 300px; height: 300px; right: -120px; }
   .chamada-acoes { flex-direction: column; align-items: stretch; }
   .botao { text-align: center; }
+}
+
+/* ---- movimento reduzido (SPEC-0003 critério 4) ------------------------- */
+/* Nenhuma animação nem transição. O radar fica parado, com o varredor
+   escondido e os pontos acesos. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .radar-vivo .varredor { display: none; }
+  .cartao:hover, .botao:hover { transform: none; }
 }

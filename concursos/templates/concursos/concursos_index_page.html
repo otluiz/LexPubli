@@ -2,11 +2,16 @@
 {% load wagtailcore_tags lexpubli %}
 {% block content %}
   <section class="abertura">
-    <h1>Saiba do concurso antes do edital.</h1>
-    <p class="subtitulo">O LexPubli acompanha direto nas fontes oficiais as páginas de concursos e as notícias
-      de tribunais, ministérios públicos, Legislativo e Executivo. Comissão formada, banca contratada, autorização
-      publicada: os sinais de um concurso aparecem ali antes do edital, e chegam aqui conferidos.</p>
-    {% if page.introducao %}<div class="intro">{{ page.introducao|richtext }}</div>{% endif %}
+    <div class="abertura-texto">
+      <p class="sobretitulo">Quando o edital sai, a corrida já começou.</p>
+      <h1>O radar de concursos <em>antes do edital</em>.</h1>
+      <p class="subtitulo">O LexPubli acompanha direto nas fontes oficiais as páginas de concursos e as notícias
+        de tribunais, ministérios públicos, Legislativo e Executivo. Comissão formada, banca contratada, autorização
+        publicada: os sinais de um concurso aparecem ali antes do edital, e chegam aqui conferidos.</p>
+      {% if page.introducao %}<div class="intro">{{ page.introducao|richtext }}</div>{% endif %}
+      {% if concursos %}<p class="abertura-acoes"><a class="botao" href="#concursos">Ver os concursos</a></p>{% endif %}
+    </div>
+    {% include "concursos/_radar_vivo.html" %}
   </section>
 
   <section class="numeros-grade" aria-label="O que acompanhamos">
@@ -18,6 +23,7 @@
     <p class="poderes">{% for nome, n in fontes_por_poder %}{{ nome }}: {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
   {% endif %}
 
+  <div id="concursos">
   {% for chave, titulo, lista in grupos %}
     {% if lista %}
       <section class="grupo grupo-{{ chave }}">
@@ -38,8 +44,9 @@
         </ul>
       </section>
     {% endif %}
-  {% empty %}{% endfor %}
-  {% if not concursos %}<p>Nenhum concurso publicado ainda.</p>{% endif %}
+  {% endfor %}
+  {% if not concursos %}<p class="vazio">Nenhum concurso publicado ainda.</p>{% endif %}
+  </div>
 
   <section class="como">
     <h2>Como funciona</h2>

@@ -125,7 +125,7 @@ def test_chamada_ao_lexlearn_em_todas_as_paginas(client, exemplo, settings):
     settings.LEXPUBLI_LEXLEARN_URL = "https://app.lexlearn.exemplo"
     inicio = client.get("/").content.decode()
     concurso = client.get("/sefaz-al-2026/").content.decode()
-    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Começar a estudar" in inicio
+    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Conhecer o LexLearn" in inicio
     assert "Vai prestar Sefaz-AL 2026" in concurso and "da Cebraspe" in concurso
     assert 'href="https://app.lexlearn.exemplo"' in concurso
 

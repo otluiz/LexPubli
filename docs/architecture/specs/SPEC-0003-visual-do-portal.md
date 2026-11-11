@@ -1,6 +1,6 @@
 # SPEC-0003 — Visual do portal e radar vivo
 
-- **Status:** proposta
+- **Status:** implementada (11/11/2026)
 - **Data:** 2026-11-10
 - **Relacionadas:** SPEC-0002 (captura de interesse), ADR-0005 (fronteira LexPubli × LexLearn)
 - **Base visual:** versão **03-sinal**, preservada em `docs/frontend/0001-frontend-radar.patch` e nas pré-visualizações `preview_claro.png`, `preview_concurso.png`, `preview_mobile.png`, `concurso_isca.png`
@@ -97,3 +97,14 @@ Fora:
 **Trabalho visual não termina.** Sempre dá para melhorar mais um pouco, e isso compete com funcionalidade que ainda não existe. Mitigação: os critérios de aceite acima são a definição de pronto. Atendidos, a spec fecha, mesmo que dê para melhorar.
 
 **Regressão na página de concurso.** É a página que o Google indexa e a que mais importa. Mitigação: os testes existentes cobrem conteúdo e presença dos blocos; conferir `preview_concurso.png` antes de fechar.
+
+## 6. Notas de implementação
+
+- **Radar em SVG, não em CSS puro.** A CSP não aceita `style=""`, então a posição de cada ponto vai em atributos do SVG (`cx`, `cy`). O momento em que o varredor acende cada ponto vem de 24 classes `.setor-N` (15° cada) no `site.css`; o ângulo sai do slug e é estável entre visitas. Lógica em `concursos/radar_vivo.py`.
+- **Recência:** 90 dias desde a primeira publicação. Concurso mais antigo sai do radar e continua na lista.
+- **Rótulo** só no ponto mais recente (sigla do órgão + ano), na primeira posição em volta dele que não cubra outro ponto.
+- **CTA do hero:** "Ver os concursos", âncora para a lista. A 03-sinal tinha "Acompanhar um concurso", mas acompanhar depende da SPEC-0002, que está travada pela D6 dela.
+- **`--verde` do tema claro** passou de `#1f8a5b` (4,1:1) para `#187a4f` (5,1:1) para atingir AA no selo.
+- **Critério 7** não tem teste automático (precisa de navegador). Conferido no Chrome a 360px: `scrollWidth` = 360 na home e na página de concurso.
+- Testes: `tests/test_visual.py`, um por critério.
+

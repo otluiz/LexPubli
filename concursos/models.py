@@ -166,6 +166,9 @@ class ConcursosIndexPage(Page):
             .select_related("orgao", "banca").order_by("-first_published_at")
         )
         ctx["concursos"] = concursos
+        from .radar_vivo import JANELA_DIAS, pontos
+        ctx["radar_pontos"] = pontos(concursos)
+        ctx["radar_janela"] = JANELA_DIAS
         ctx["grupos"] = [(chave, titulo, [c for c in concursos if c.situacao_classe in situacoes])
                          for chave, titulo, situacoes in self.GRUPOS]
         # "acompanhada" = ativa e com watch no changedetection: o número da
