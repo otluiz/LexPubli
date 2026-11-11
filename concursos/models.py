@@ -145,10 +145,15 @@ class ConcursosIndexPage(Page):
 
     # a página inicial agrupa os concursos pela fase: o que está no radar
     # (antes do edital) é o diferencial do portal
+    # O grupo segue a situação derivada das datas (ConcursoPage.situacao_classe),
+    # não o status gravado: concurso com inscrições encerradas não pode aparecer
+    # em "Inscrições abertas" só porque ninguém atualizou o status.
     GRUPOS = [
         ("radar", "No radar: antes do edital", [StatusConcurso.PREVISTO, StatusConcurso.AUTORIZADO]),
-        ("abertos", "Inscrições abertas", [StatusConcurso.EDITAL_ABERTO]),
-        ("andamento", "Em andamento", [StatusConcurso.INSCRICOES_ENCERRADAS,
+        ("abertos", "Inscrições abertas", ["aberto", StatusConcurso.EDITAL_ABERTO]),
+        ("em-breve", "Inscrições em breve", ["em-breve"]),
+        ("andamento", "Em andamento", ["encerrado", "prova-realizada",
+                                       StatusConcurso.INSCRICOES_ENCERRADAS,
                                        StatusConcurso.PROVA_REALIZADA, StatusConcurso.RESULTADO]),
     ]
 
@@ -161,8 +166,11 @@ class ConcursosIndexPage(Page):
             .select_related("orgao", "banca").order_by("-first_published_at")
         )
         ctx["concursos"] = concursos
-        ctx["grupos"] = [(chave, titulo, [c for c in concursos if c.status in status])
-                         for chave, titulo, status in self.GRUPOS]
+        from .radar_vivo import JANELA_DIAS, pontos
+        ctx["radar_pontos"] = pontos(concursos)
+        ctx["radar_janela"] = JANELA_DIAS
+        ctx["grupos"] = [(chave, titulo, [c for c in concursos if c.situacao_classe in situacoes])
+                         for chave, titulo, situacoes in self.GRUPOS]
         # "acompanhada" = ativa e com watch no changedetection: o número da
         # página é o que está sendo vigiado de fato, não o que está cadastrado
         ativas = (Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")
@@ -242,6 +250,9 @@ class ConcursoPage(Page):
         salarios = [c.salario for c in self.cargos.all() if c.salario is not None]
         return max(salarios) if salarios else None
 
+    # A situação exibida segue as datas, não o status gravado: o status é
+    # preenchido na curadoria e não envelhece; as datas envelhecem sozinhas.
+    # Quando as duas coisas se contradizem, a data manda.
     @property
     def situacao_classe(self) -> str:
         """Classe CSS do selo, derivada junto com o rótulo."""
@@ -253,8 +264,28 @@ class ConcursoPage(Page):
         if self.inscricoes_inicio and self.inscricoes_inicio <= hoje:
             return "aberto"
         if self.inscricoes_inicio:
-            return "previsto"
+            return "em-breve"
         return self.status
+
+    @property
+    def situacao(self) -> str:
+        """Rótulo do selo. Sem data preenchida, cai no status gravado."""
+        rotulos = {"prova-realizada": "Prova realizada", "encerrado": "Inscrições encerradas",
+                   "aberto": "Inscrições abertas", "em-breve": "Inscrições em breve"}
+        return rotulos.get(self.situacao_classe) or self.get_status_display()
+
+    @property
+    def prazo_inscricoes(self) -> str:
+        """Linha do prazo no tempo verbal certo, ou "" se não há data."""
+        hoje = timezone.localdate()
+        if self.inscricoes_fim and self.inscricoes_fim < hoje:
+            return f"inscrições encerradas em {self.inscricoes_fim:%d/%m/%Y}"
+        if self.inscricoes_inicio and self.inscricoes_inicio > hoje:
+            return f"inscrições a partir de {self.inscricoes_inicio:%d/%m/%Y}"
+        if self.inscricoes_fim:
+            return f"inscrições até {self.inscricoes_fim:%d/%m/%Y}"
+        return ""
+
 
 class Cargo(Orderable):
     concurso = ParentalKey(ConcursoPage, on_delete=models.CASCADE, related_name="cargos")

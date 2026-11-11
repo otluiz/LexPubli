@@ -11,9 +11,8 @@
         gabarito ancorado no texto oficial. É o treino de verdade, antes de o edital sair.</p>
     {% else %}
       <h2>Do primeiro sinal à aprovação: estude com o LexLearn.</h2>
-      <p>Provas anteriores com gabarito oficial e, o diferencial, <strong>questões inéditas no estilo
-        de cada banca</strong> — geradas sob medida, que você não encontra em lugar nenhum. Treine
-        antes de o edital sair e chegue à frente.</p>
+      <p>O LexLearn reúne provas anteriores com gabarito oficial e, o diferencial, <strong>questões
+        inéditas no estilo de cada banca</strong>, com gabarito ancorado no texto oficial.</p>
     {% endif %}
   </div>
   <div class="chamada-acoes">
@@ -21,8 +20,8 @@
       {% comment %} nova aba: o LexLearn é outro app (ADR-0005). Abrindo em aba nova, o
          visitante fecha e volta ao LexPubli sem precisar de "voltar" lá
          dentro — que o LexPubli não controla. rel protege contra tabnabbing. {% endcomment %}
-      <a class="botao" href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">Começar a estudar</a>
-      <span class="chamada-reforco">Abre o LexLearn em nova aba · grátis para começar</span>
+      <a class="botao" href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">Conhecer o LexLearn</a>
+      <span class="chamada-reforco">Abre o LexLearn em nova aba</span>
     {% else %}
       <span class="chamada-reforco">Em breve: o estudo ancorado nas bancas.</span>
     {% endif %}

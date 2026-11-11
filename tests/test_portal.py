@@ -48,12 +48,66 @@ def test_carregar_exemplo_e_idempotente(exemplo):
 
 # --- página inicial e chamada ao LexLearn -------------------------------------
 
+def _datas(concurso, inicio=None, fim=None, prova=None):
+    """Move as datas do concurso em relação a hoje (dias) e republica."""
+    import datetime as dt
+    from django.utils import timezone
+
+    hoje = timezone.localdate()
+    concurso.inscricoes_inicio = hoje + dt.timedelta(days=inicio) if inicio is not None else None
+    concurso.inscricoes_fim = hoje + dt.timedelta(days=fim) if fim is not None else None
+    concurso.data_prova = hoje + dt.timedelta(days=prova) if prova is not None else None
+    concurso.save_revision().publish()
+
+
 def test_pagina_inicial_explica_o_portal_e_agrupa_por_fase(client, exemplo):
+    _datas(exemplo["concurso"], inicio=-10, fim=10)
     html = client.get("/").content.decode()
-    assert "Saiba do concurso antes do edital." in html
-    assert "Inscrições abertas" in html and "sefaz-al-2026" in html     # o exemplo tem edital aberto
-    assert "No radar" not in html                                       # grupo vazio não aparece
+    assert "antes do edital" in html
+    assert "Inscrições abertas" in html and "sefaz-al-2026" in html
+    assert "No radar:" not in html                                      # grupo vazio não aparece
     assert "fontes oficiais acompanhadas" in html
+
+
+# --- situação segue a data, não o status gravado ------------------------------
+# O exemplo tem status "edital aberto" gravado. Em 11/11 o portal mostrava o
+# selo vazio e o Sefaz-AL em "Inscrições abertas" com inscrições encerradas
+# em 21/10: as propriedades usadas pelos templates não existiam, e o Django
+# renderiza atributo inexistente como texto vazio, sem erro.
+
+def test_inscricoes_encerradas_vencem_o_status_gravado(client, exemplo):
+    _datas(exemplo["concurso"], inicio=-40, fim=-5)
+    c = exemplo["concurso"]
+    assert c.situacao == "Inscrições encerradas"
+    assert c.prazo_inscricoes.startswith("inscrições encerradas em ")
+    home = client.get("/").content.decode()
+    assert "Edital aberto" not in home and "Inscrições abertas" not in home
+    assert "Em andamento" in home
+    assert "Inscrições encerradas" in client.get("/sefaz-al-2026/").content.decode()
+
+
+def test_cada_fase_da_data_tem_rotulo_e_prazo(exemplo):
+    c = exemplo["concurso"]
+    casos = [
+        (dict(inicio=-3, fim=7), "Inscrições abertas", "inscrições até "),
+        (dict(inicio=5, fim=20), "Inscrições em breve", "inscrições a partir de "),
+        (dict(inicio=-60, fim=-30, prova=-2), "Prova realizada", "inscrições encerradas em "),
+        (dict(), "Edital aberto", ""),                    # sem data: cai no status gravado
+    ]
+    for datas, rotulo, prazo in casos:
+        _datas(c, **datas)
+        assert c.situacao == rotulo, datas
+        assert c.prazo_inscricoes.startswith(prazo) and bool(c.prazo_inscricoes) == bool(prazo), datas
+
+
+def test_selo_nunca_sai_vazio(client, exemplo):
+    import re
+
+    for datas in (dict(inicio=-3, fim=7), dict(inicio=-40, fim=-5), dict()):
+        _datas(exemplo["concurso"], **datas)
+        for url in ("/", "/sefaz-al-2026/"):
+            html = client.get(url).content.decode()
+            assert not re.search(r'class="selo selo-[^"]*">\s*<', html), (url, datas)
 
 
 def test_so_conta_fonte_com_watch(client, exemplo):
@@ -71,7 +125,7 @@ def test_chamada_ao_lexlearn_em_todas_as_paginas(client, exemplo, settings):
     settings.LEXPUBLI_LEXLEARN_URL = "https://app.lexlearn.exemplo"
     inicio = client.get("/").content.decode()
     concurso = client.get("/sefaz-al-2026/").content.decode()
-    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Começar a estudar" in inicio
+    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Conhecer o LexLearn" in inicio
     assert "Vai prestar Sefaz-AL 2026" in concurso and "da Cebraspe" in concurso
     assert 'href="https://app.lexlearn.exemplo"' in concurso
 

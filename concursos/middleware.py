@@ -10,12 +10,12 @@ from django.conf import settings
 CSP_PUBLICA = "; ".join([
     "default-src 'self'",
     "script-src 'none'",
-    # Google Fonts: o <link> do CSS vem de fonts.googleapis.com e os
-    # arquivos de fonte de fonts.gstatic.com. Exceção deliberada e mínima
-    # (dono do produto, 02/11) — só tipografia; nada mais sai de 'self'.
-    "style-src 'self' https://fonts.googleapis.com",
+    # Nada de terceiros (SPEC-0003 D5): as fontes são servidas pelo próprio
+    # portal. A exceção ao Google Fonts de 02/11 acabou — ela mandava o IP de
+    # cada visitante ao Google sem que ele soubesse.
+    "style-src 'self'",
     "img-src 'self' data:",
-    "font-src 'self' https://fonts.gstatic.com",
+    "font-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
