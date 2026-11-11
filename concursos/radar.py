@@ -117,11 +117,11 @@ def aplicar(orgao, hoje: date | None = None):
             return None      # já há concurso do órgão naquele ano: decisão do curador
         banca = next((s.banca for s in sinais if s.banca_id), None)
         chamada = ConcursoPage(
-            title=f"{orgao.sigla or orgao.nome} {ano}: concurso autorizado",
+            title=f"{orgao.sigla or orgao.nome_com_estado} {ano}: concurso autorizado",
             orgao=orgao, banca=banca, ano=ano, status=StatusConcurso.AUTORIZADO,
             fonte_url=av.sinal.documento_url,
             resumo=f"<p>{av.sinal.resumo}</p>",
-            search_description=f"{orgao.nome}: concurso autorizado. Previsão do edital e "
+            search_description=f"{orgao.nome_com_estado}: concurso autorizado. Previsão do edital e "
                                "documentos oficiais.",
         )
         indice.add_child(instance=chamada)

@@ -82,6 +82,29 @@ class Orgao(index.Indexed, models.Model):
     def __str__(self):
         return self.sigla or self.nome
 
+    @property
+    def estado(self) -> str:
+        """Nome do estado, para órgão estadual ou distrital com UF; senão ""."""
+        from .orgaos import ESTADO
+
+        if self.esfera in (self.Esfera.ESTADUAL, self.Esfera.DISTRITAL):
+            return ESTADO.get(self.uf.upper(), "")
+        return ""
+
+    @property
+    def nome_com_estado(self) -> str:
+        """O nome com o estado quando o nome sozinho não diz qual é.
+
+        "Secretaria da Fazenda" existe em 27 unidades da federação; o nome do
+        PNCP não traz o estado. Se o nome já o menciona ("... do Estado de
+        Mato Grosso do Sul", "Tribunal de Justiça — Alagoas"), fica como está.
+        """
+        from .orgaos import _plano
+
+        if not self.estado or _plano(self.estado) in _plano(self.nome):
+            return self.nome
+        return f"{self.nome} — {self.estado}"
+
 
 class Banca(models.Model):
     nome = models.CharField(max_length=200)

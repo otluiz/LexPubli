@@ -33,7 +33,7 @@
             <li class="cartao">
               <a href="{% pageurl c %}"><strong>{{ c.title }}</strong></a>
               <span class="selo selo-{{ c.situacao_classe }}">{{ c.situacao }}</span>
-              <p>{{ c.orgao.nome }}{% if c.banca %} · {{ c.banca.nome }}{% endif %}</p>
+              <p>{{ c.orgao.nome_com_estado }}{% if c.banca %} · {{ c.banca.nome }}{% endif %}</p>
               <p class="numeros">
                 {% if c.total_vagas %}{{ c.total_vagas }} vaga{{ c.total_vagas|pluralize }}{% endif %}
                 {% if c.maior_salario %} · até {{ c.maior_salario|brl }}{% endif %}

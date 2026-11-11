@@ -146,3 +146,46 @@ def test_nenhum_comentario_de_template_vaza_para_a_pagina(client, exemplo, setti
         corpo = client.get(url).content.decode()
         assert "{#" not in corpo and "#}" not in corpo, f"comentario vazou em {url}"
         assert "ADR-" not in corpo, f"nota de arquitetura vazou em {url}"
+
+
+# --- o card diz de que estado é o órgão --------------------------------------
+# Em 11/11 a home tinha "Secretaria da Fazenda" sem estado: o nome vem do
+# PNCP, que não o traz, e era preciso abrir a página para saber.
+
+def test_orgao_estadual_mostra_o_estado_quando_o_nome_nao_diz(client, exemplo):
+    from concursos.models import Orgao
+
+    fazenda = Orgao(nome="Secretaria da Fazenda", esfera="estadual", uf="PR")
+    assert fazenda.nome_com_estado == "Secretaria da Fazenda — Paraná"
+    # o nome já diz: não repete
+    crmv = Orgao(nome="Conselho Regional de Medicina Veterinaria do Estado de Mato Grosso do Sul",
+                 esfera="estadual", uf="MS")
+    assert crmv.nome_com_estado == crmv.nome
+    assert Orgao(nome="Tribunal de Justiça — Alagoas", esfera="estadual", uf="AL").nome_com_estado \
+        == "Tribunal de Justiça — Alagoas"
+    # federal ou sem UF: fica como está
+    assert Orgao(nome="Ministério da Fazenda", esfera="federal", uf="DF").nome_com_estado \
+        == "Ministério da Fazenda"
+    assert Orgao(nome="Secretaria da Fazenda", esfera="estadual").nome_com_estado \
+        == "Secretaria da Fazenda"
+
+    orgao = exemplo["concurso"].orgao
+    orgao.nome = "Secretaria da Fazenda"
+    orgao.save()
+    assert "Secretaria da Fazenda — Alagoas" in client.get("/").content.decode()
+    pagina = client.get("/sefaz-al-2026/").content.decode()
+    assert "Secretaria da Fazenda — Alagoas" in pagina and "(AL)" not in pagina
+
+
+def test_chamada_automatica_nasce_com_o_estado_no_titulo(exemplo):
+    import datetime as dt
+
+    from concursos.models import Orgao, Sinal
+    from concursos.radar import aplicar
+
+    orgao = Orgao.objects.create(nome="Secretaria da Fazenda", esfera="estadual", uf="PR",
+                                 slug="secretaria_da_fazenda_pr")
+    Sinal.objects.create(orgao=orgao, tipo="autorizacao", data_documento=dt.date.today(),
+                         documento_url="https://www.aen.pr.gov.br/x", resumo="Autorizado.")
+    chamada = aplicar(orgao)
+    assert chamada.title.startswith("Secretaria da Fazenda — Paraná ")
