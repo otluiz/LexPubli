@@ -1,0 +1,102 @@
+From 3580afd96a5cda637ca62d9b7b0e6a1b44c26464 Mon Sep 17 00:00:00 2001
+From: Othon Oliveira <prof.othon.oliveira@gmail.com>
+Date: Tue, 10 Nov 2026 20:43:29 -0300
+Subject: [PATCH] =?UTF-8?q?fix(templates):=20coment=C3=A1rio=20de=20v?=
+ =?UTF-8?q?=C3=A1rias=20linhas=20vazava=20para=20a=20p=C3=A1gina?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+O {# #} do Django é de UMA linha. Em várias ele não comenta: o texto vai
+para a saída. Três comentários assim expunham ao visitante as notas de
+arquitetura (ADR-0005, tabnabbing, "produto pago") em todas as páginas
+do portal — visto no ar em 10/11. Passam a usar {% comment %}.
+
+Junto, conserta test_chamada_ao_lexlearn_em_todas_as_paginas, vermelho na
+main desde o merge do PR #3 (07/11): o botão passou de "Conhecer o
+LexLearn" para "Começar a estudar" e a asserção ficou para trás.
+
+Novo teste garante que nenhum {# ou ADR- chega ao HTML servido.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01GD4eEhGARXdBXUSqgCvAcr
+---
+ .../templates/concursos/_chamada_lexlearn.html   |  8 ++++----
+ concursos/templates/concursos/concurso_page.html |  4 ++--
+ tests/test_portal.py                             | 16 ++++++++++++++--
+ 3 files changed, 20 insertions(+), 8 deletions(-)
+
+diff --git a/concursos/templates/concursos/_chamada_lexlearn.html b/concursos/templates/concursos/_chamada_lexlearn.html
+index 16d14dc..c8dfd77 100644
+--- a/concursos/templates/concursos/_chamada_lexlearn.html
++++ b/concursos/templates/concursos/_chamada_lexlearn.html
+@@ -1,6 +1,6 @@
+-{# Chamada ao LexLearn, o produto principal. Só um link de saída (ADR-0005:
++{% comment %} Chamada ao LexLearn, o produto principal. Só um link de saída (ADR-0005:
+    sem API, sem evento, sem assinar nada do LexLearn). A copy vende; a
+-   fronteira técnica continua sendo um único link. #}
++   fronteira técnica continua sendo um único link. {% endcomment %}
+ <aside class="chamada" aria-label="Estude no LexLearn">
+   <div>
+     <p class="chamada-rotulo">LexLearn · o estudo que vem depois do radar</p>
+@@ -18,9 +18,9 @@
+   </div>
+   <div class="chamada-acoes">
+     {% if LEXLEARN_URL %}
+-      {# nova aba: o LexLearn é outro app (ADR-0005). Abrindo em aba nova, o
++      {% comment %} nova aba: o LexLearn é outro app (ADR-0005). Abrindo em aba nova, o
+          visitante fecha e volta ao LexPubli sem precisar de "voltar" lá
+-         dentro — que o LexPubli não controla. rel protege contra tabnabbing. #}
++         dentro — que o LexPubli não controla. rel protege contra tabnabbing. {% endcomment %}
+       <a class="botao" href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">Começar a estudar</a>
+       <span class="chamada-reforco">Abre o LexLearn em nova aba · grátis para começar</span>
+     {% else %}
+diff --git a/concursos/templates/concursos/concurso_page.html b/concursos/templates/concursos/concurso_page.html
+index 6a1ea0a..8adfd0a 100644
+--- a/concursos/templates/concursos/concurso_page.html
++++ b/concursos/templates/concursos/concurso_page.html
+@@ -20,8 +20,8 @@
+ 
+     {% if page.resumo %}<div class="resumo">{{ page.resumo|richtext }}</div>{% endif %}
+ 
+-    {# Reforço discreto do produto pago — repetição consistente da oferta,
+-       em texto (não compete com a chamada grande do rodapé). #}
++    {% comment %} Reforço discreto do produto pago — repetição consistente da oferta,
++       em texto (não compete com a chamada grande do rodapé). {% endcomment %}
+     {% if LEXLEARN_URL %}
+       <p class="isca-topo">Questões inéditas no estilo d{% if page.banca %}a {{ page.banca.nome }}{% else %}a banca{% endif %}
+         para este concurso só no <a href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">LexLearn</a>.</p>
+diff --git a/tests/test_portal.py b/tests/test_portal.py
+index 1fe9311..c34e010 100644
+--- a/tests/test_portal.py
++++ b/tests/test_portal.py
+@@ -71,7 +71,7 @@ def test_chamada_ao_lexlearn_em_todas_as_paginas(client, exemplo, settings):
+     settings.LEXPUBLI_LEXLEARN_URL = "https://app.lexlearn.exemplo"
+     inicio = client.get("/").content.decode()
+     concurso = client.get("/sefaz-al-2026/").content.decode()
+-    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Conhecer o LexLearn" in inicio
++    assert 'href="https://app.lexlearn.exemplo"' in inicio and "Começar a estudar" in inicio
+     assert "Vai prestar Sefaz-AL 2026" in concurso and "da Cebraspe" in concurso
+     assert 'href="https://app.lexlearn.exemplo"' in concurso
+ 
+@@ -79,4 +79,16 @@ def test_chamada_ao_lexlearn_em_todas_as_paginas(client, exemplo, settings):
+ def test_sem_url_do_lexlearn_a_chamada_fica_sem_botao(client, exemplo, settings):
+     settings.LEXPUBLI_LEXLEARN_URL = ""
+     html = client.get("/").content.decode()
+-    assert "estude com o LexLearn" in html and "Conhecer o LexLearn" not in html
++    assert "estude com o LexLearn" in html and "Começar a estudar" not in html
++
++
++def test_nenhum_comentario_de_template_vaza_para_a_pagina(client, exemplo, settings):
++    """`{# #}` do Django e de UMA linha; em varias ele nao comenta — vira texto
++    na pagina. Em 10/11 isso expunha ao visitante as notas de arquitetura
++    (ADR-0005, tabnabbing, "produto pago") em todas as paginas do portal.
++    Comentario de varias linhas usa a tag comment."""
++    settings.LEXPUBLI_LEXLEARN_URL = "https://app.lexlearn.exemplo"
++    for url in ("/", "/sefaz-al-2026/"):
++        corpo = client.get(url).content.decode()
++        assert "{#" not in corpo and "#}" not in corpo, f"comentario vazou em {url}"
++        assert "ADR-" not in corpo, f"nota de arquitetura vazou em {url}"
+-- 
+2.43.0
+

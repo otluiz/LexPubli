@@ -242,6 +242,19 @@ class ConcursoPage(Page):
         salarios = [c.salario for c in self.cargos.all() if c.salario is not None]
         return max(salarios) if salarios else None
 
+    @property
+    def situacao_classe(self) -> str:
+        """Classe CSS do selo, derivada junto com o rótulo."""
+        hoje = timezone.localdate()
+        if self.data_prova and self.data_prova < hoje:
+            return "prova-realizada"
+        if self.inscricoes_fim and self.inscricoes_fim < hoje:
+            return "encerrado"
+        if self.inscricoes_inicio and self.inscricoes_inicio <= hoje:
+            return "aberto"
+        if self.inscricoes_inicio:
+            return "previsto"
+        return self.status
 
 class Cargo(Orderable):
     concurso = ParentalKey(ConcursoPage, on_delete=models.CASCADE, related_name="cargos")

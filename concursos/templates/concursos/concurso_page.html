@@ -6,7 +6,7 @@
   <article>
     <h1>{{ page.title }}</h1>
     <p class="meta">
-      <span class="selo selo-{{ page.status }}">{{ page.get_status_display }}</span>
+      <span class="selo selo-{{ page.situacao_classe }}">{{ page.situacao }}</span>
       {{ page.orgao.nome }}{% if page.orgao.uf %} ({{ page.orgao.uf }}){% endif %}
       · Banca: {% if page.banca %}{{ page.banca.nome }}{% else %}a definir{% endif %}
     </p>
