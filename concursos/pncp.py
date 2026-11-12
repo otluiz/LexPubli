@@ -51,11 +51,14 @@ def e_concurso_publico(objeto: str) -> bool:
 
 def _nome_orgao(razao: str) -> str:
     """'TRIBUNAL REGIONAL DO TRABALHO DA 8A REGIAO' -> 'Tribunal Regional do
-    Trabalho da 8ª Regiao'. Acentos e siglas o curador acerta no painel."""
-    pequenas = {"da", "de", "do", "das", "dos", "e", "em", "para"}
+    Trabalho da 8ª Região'. Acentos pelo dicionário (concursos/acentos.py);
+    siglas e o que o dicionário não cobre o curador acerta no painel."""
+    from .acentos import acentuar
+
+    pequenas = {"a", "as", "o", "os", "da", "de", "do", "das", "dos", "e", "em", "na", "no", "nas", "nos", "para"}
     palavras = [p.lower() if i and p.lower() in pequenas else p.capitalize()
                 for i, p in enumerate(razao.strip().split())]
-    return re.sub(r"\b(\d+)[aA]\b", r"\1ª", " ".join(palavras))
+    return acentuar(re.sub(r"\b(\d+)[aA]\b", r"\1ª", " ".join(palavras)))
 
 
 class ErroPncp(RuntimeError):
