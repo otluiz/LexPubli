@@ -27,3 +27,10 @@ class PublicadorFalso:
 @pytest.fixture
 def publicador():
     return PublicadorFalso()
+
+
+@pytest.fixture(autouse=True)
+def _caderno_pncp_isolado(settings, tmp_path):
+    """Cada teste com o seu caderno do PNCP: o caderno é ponto de retomada,
+    e um dia gravado por um teste pularia o PNCP no seguinte."""
+    settings.LEXPUBLI_PNCP_CADERNO = tmp_path / "pncp_caderno"

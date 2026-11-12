@@ -125,6 +125,8 @@ LEXPUBLI_ADMIN_PATH = os.environ.get("LEXPUBLI_ADMIN_PATH", "painel/").strip("/"
 # --- Integração --------------------------------------------------------------
 # Broker: o RabbitMQ PRÓPRIO do LexPubli (ADR-0005 §2a), nunca o do LexLearn.
 # Vazio = o worker não publica.
+# Caderno do PNCP: um JSONL por dia lido (concursos/pncp.py). Volume próprio no compose.
+LEXPUBLI_PNCP_CADERNO = Path(os.environ.get("LEXPUBLI_PNCP_CADERNO", BASE_DIR / "pncp_caderno"))
 LEXPUBLI_RABBITMQ_URL = os.environ.get("LEXPUBLI_RABBITMQ_URL", "")
 LEXPUBLI_EXCHANGE = os.environ.get("LEXPUBLI_EXCHANGE", "lexpubli.events")
 # Token compartilhado do webhook do changedetection.io. Vazio = webhook desligado.

@@ -44,8 +44,12 @@ matéria e prestam concursos em série, em qualquer cidade.
 
 Entram, em qualquer esfera e em todo o país:
 
-- **(a) Carreira fiscal municipal:** auditor fiscal, analista fiscal, fiscal
-  de tributos, auditor do tesouro e equivalentes ("ISS <cidade>").
+- **(a) Trilha fiscal e controle**, em todas as esferas: auditor e analista
+  fiscal, fiscal de tributos ("ISS <cidade>"), Receita e Sefaz, tribunais de
+  contas (controle externo) e controladorias (controle interno). Federal e
+  estadual já entravam pela esfera; a trilha passa a marcá-los, e o que
+  muda é o município, que entra quando é desta trilha. Bancas e cursinhos
+  apontam 2026 e 2027 como anos de concursos fiscais e de controle.
 - **(b) Rede Federal de EPCT:** professor do Ensino Básico, Técnico e
   Tecnológico (EBTT) e técnico-administrativo (TAE), nas 38 instituições da
   rede e no CEFET-MG, CEFET-RJ, UTFPR e Colégio Pedro II.
@@ -66,10 +70,18 @@ Rede Federal, volume maior.
   IF Sertão-PE...) e (ii) município + termo fiscal ("ISS Caruaru", "auditor
   fiscal de Maringá"). A pista continua só disparando a busca do documento
   oficial (ADR-0002).
-- **PNCP:** publicação municipal deixa de ser só contada quando o órgão
-  contratante é fazendário (Secretaria de Fazenda, Finanças, Receita) ou o
-  objeto cita a carreira. O objeto quase nunca cita o cargo, então este
-  canal pega pouco; serve de confirmação.
+- **PNCP:** publicação municipal deixa de ser só contada quando o órgão ou a
+  unidade compradora é fazendária ou de controle (Fazenda, Finanças,
+  Receita, Controladoria) ou o objeto cita a carreira. O objeto quase nunca
+  cita o cargo, então este canal pega menos que as pistas.
+- **Leitura retroativa do PNCP, com caderno.** Do edital à prova são cerca
+  de dois meses, mas a contratação da banca vem meses antes do edital (no
+  ISS Caruaru, edital em 06/08 e prova em 29/11). Para ver os concursos
+  deste ano que ainda não tiveram prova, o coletor lê para trás desde
+  01/01/2026, em lotes por noite (`--desde 2026-01-01 --limite-dias 15`),
+  porque o PNCP bloqueia quem pede demais. Cada dia lido vira um arquivo no
+  caderno, com as publicações de concurso de todas as esferas: é o ponto
+  de retomada e o material da medição, sem pedir de novo ao PNCP.
 - **Fontes (onda E):** a página de concursos de cada instituição da Rede
   Federal, conferida como as demais (texto sem JavaScript, robots.txt), no
   changedetection.
@@ -88,8 +100,9 @@ LexLearn (ADR-0005). Esta ADR só faz o portal enxergar os concursos.
 
 ## Ordem de implementação
 
-1. **Medir antes de abrir:** um relatório sobre as pistas e as publicações
-   do PNCP do último mês, contando o que D1 deixaria entrar, por carreira.
+1. **Medir antes de abrir:** caderno do PNCP desde 01/01/2026 e
+   `medir_escopo`, que conta por trilha e esfera o que D1 deixaria entrar.
+   Feito em 12/11; falta rodar a leitura retroativa no gpu01.
 2. Reconhecedor das pistas: siglas da Rede Federal e município + termo
    fiscal; campo `municipio` no `Orgao`.
 3. Onda E: as páginas de concursos da Rede Federal.

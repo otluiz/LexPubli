@@ -11,3 +11,4 @@ media/
 # Os templates do Wagtail SÃO código: a exceção abaixo os mantém.
 *.html
 !**/templates/**/*.html
+pncp_caderno/
