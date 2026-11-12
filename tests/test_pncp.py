@@ -55,7 +55,7 @@ def test_contrato_e_contratacao_viram_sinais_e_publicam_a_chamada(db, exemplo):
     falso = PncpFalso(contratos=[contrato()], contratacoes=[contratacao()])
     rel = pncp.coletar(dias=1, hoje=date(2026, 10, 13), get=falso, pausa=0)
     orgao = Orgao.objects.get(cnpj="02390435000115")
-    assert orgao.nome == "Tribunal Regional do Trabalho da 8ª Regiao" and orgao.esfera == "federal"
+    assert orgao.nome == "Tribunal Regional do Trabalho da 8ª Região" and orgao.esfera == "federal"
     tipos = set(orgao.sinais.values_list("tipo", flat=True))
     assert tipos == {"banca_contratada", "licitacao_banca"}
     s7 = orgao.sinais.get(tipo="banca_contratada")

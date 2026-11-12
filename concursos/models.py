@@ -82,6 +82,29 @@ class Orgao(index.Indexed, models.Model):
     def __str__(self):
         return self.sigla or self.nome
 
+    @property
+    def estado(self) -> str:
+        """Nome do estado, para órgão estadual ou distrital com UF; senão ""."""
+        from .orgaos import ESTADO
+
+        if self.esfera in (self.Esfera.ESTADUAL, self.Esfera.DISTRITAL):
+            return ESTADO.get(self.uf.upper(), "")
+        return ""
+
+    @property
+    def nome_com_estado(self) -> str:
+        """O nome com o estado quando o nome sozinho não diz qual é.
+
+        "Secretaria da Fazenda" existe em 27 unidades da federação; o nome do
+        PNCP não traz o estado. Se o nome já o menciona ("... do Estado de
+        Mato Grosso do Sul", "Tribunal de Justiça — Alagoas"), fica como está.
+        """
+        from .orgaos import _plano
+
+        if not self.estado or _plano(self.estado) in _plano(self.nome):
+            return self.nome
+        return f"{self.nome} — {self.estado}"
+
 
 class Banca(models.Model):
     nome = models.CharField(max_length=200)
@@ -148,10 +171,13 @@ class ConcursosIndexPage(Page):
     # O grupo segue a situação derivada das datas (ConcursoPage.situacao_classe),
     # não o status gravado: concurso com inscrições encerradas não pode aparecer
     # em "Inscrições abertas" só porque ninguém atualizou o status.
+    # A reta final vem primeiro: quem já se inscreveu e tem data de prova é
+    # quem estuda agora, o público principal do LexLearn (decisão de 12/11).
     GRUPOS = [
-        ("radar", "No radar: antes do edital", [StatusConcurso.PREVISTO, StatusConcurso.AUTORIZADO]),
+        ("reta-final", "Reta final: prova marcada", ["prova-marcada"]),
         ("abertos", "Inscrições abertas", ["aberto", StatusConcurso.EDITAL_ABERTO]),
         ("em-breve", "Inscrições em breve", ["em-breve"]),
+        ("radar", "No radar: antes do edital", [StatusConcurso.PREVISTO, StatusConcurso.AUTORIZADO]),
         ("andamento", "Em andamento", ["encerrado", "prova-realizada",
                                        StatusConcurso.INSCRICOES_ENCERRADAS,
                                        StatusConcurso.PROVA_REALIZADA, StatusConcurso.RESULTADO]),
@@ -171,6 +197,8 @@ class ConcursosIndexPage(Page):
         ctx["radar_janela"] = JANELA_DIAS
         ctx["grupos"] = [(chave, titulo, [c for c in concursos if c.situacao_classe in situacoes])
                          for chave, titulo, situacoes in self.GRUPOS]
+        # na reta final, a prova mais próxima primeiro
+        ctx["grupos"][0][2].sort(key=lambda c: c.data_prova)
         # "acompanhada" = ativa e com watch no changedetection: o número da
         # página é o que está sendo vigiado de fato, não o que está cadastrado
         ativas = (Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")
@@ -259,6 +287,11 @@ class ConcursoPage(Page):
         hoje = timezone.localdate()
         if self.data_prova and self.data_prova < hoje:
             return "prova-realizada"
+        encerradas = ((self.inscricoes_fim and self.inscricoes_fim < hoje)
+                      or (not self.inscricoes_fim and self.status == StatusConcurso.INSCRICOES_ENCERRADAS))
+        if encerradas and self.data_prova:
+            # inscrito estudando para uma prova com data: o público principal do LexLearn
+            return "prova-marcada"
         if self.inscricoes_fim and self.inscricoes_fim < hoje:
             return "encerrado"
         if self.inscricoes_inicio and self.inscricoes_inicio <= hoje:
@@ -268,8 +301,29 @@ class ConcursoPage(Page):
         return self.status
 
     @property
+    def dias_para_prova(self) -> int | None:
+        if not self.data_prova:
+            return None
+        dias = (self.data_prova - timezone.localdate()).days
+        return dias if dias >= 0 else None
+
+    @property
+    def contagem_prova(self) -> str:
+        """"faltam 32 dias para a prova", "a prova é amanhã"; "" sem data futura."""
+        dias = self.dias_para_prova
+        if dias is None:
+            return ""
+        if dias == 0:
+            return "a prova é hoje"
+        if dias == 1:
+            return "a prova é amanhã"
+        return f"faltam {dias} dias para a prova"
+
+    @property
     def situacao(self) -> str:
         """Rótulo do selo. Sem data preenchida, cai no status gravado."""
+        if self.situacao_classe == "prova-marcada":
+            return f"Prova em {self.data_prova:%d/%m/%Y}"
         rotulos = {"prova-realizada": "Prova realizada", "encerrado": "Inscrições encerradas",
                    "aberto": "Inscrições abertas", "em-breve": "Inscrições em breve"}
         return rotulos.get(self.situacao_classe) or self.get_status_display()

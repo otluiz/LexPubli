@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     LEXPUBLI_STATIC_ROOT=/app/staticfiles \
-    LEXPUBLI_MEDIA_ROOT=/data/media
+    LEXPUBLI_MEDIA_ROOT=/data/media \
+    LEXPUBLI_PNCP_CADERNO=/data/pncp
 
 WORKDIR /app
 COPY requirements.txt .
@@ -17,7 +18,7 @@ COPY . .
 RUN LEXPUBLI_SECRET_KEY=build LEXPUBLI_DEBUG=0 python manage.py collectstatic --noinput -v0
 
 RUN useradd --system --uid 10001 --home /app lexpubli \
-    && mkdir -p /data/media && chown -R lexpubli /data
+    && mkdir -p /data/media /data/pncp && chown -R lexpubli /data
 USER lexpubli
 
 EXPOSE 8000

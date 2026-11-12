@@ -160,3 +160,45 @@ def sinal_gravado(request, instance):
     chamada = aplicar(instance.orgao)
     if chamada is not None:
         messages.info(request, f"Radar: chamada no portal em {chamada.url}.")
+
+
+# --- Painel: concursos que deveriam estar na reta final -----------------------
+# Inscrições encerradas sem data de prova não entram em "Reta final" (a
+# situação vem das datas). Sem este aviso, o concurso cairia em "Em andamento"
+# em silêncio, justo na fase em que o candidato mais estuda.
+class SemDataDeProvaPanel:
+    order = 50
+
+    def __init__(self, concursos):
+        self.concursos = concursos
+
+    @property
+    def media(self):
+        from django.forms import Media
+
+        return Media()
+
+    def render_html(self, parent_context=None):
+        from django.template.loader import render_to_string
+
+        return render_to_string("concursos/admin/sem_data_de_prova.html", {"concursos": self.concursos})
+
+
+def concursos_sem_data_de_prova():
+    from django.db.models import Q
+    from django.utils import timezone
+
+    from .models import ConcursoPage, StatusConcurso
+
+    hoje = timezone.localdate()
+    return list(ConcursoPage.objects.live().filter(data_prova__isnull=True)
+                .filter(Q(inscricoes_fim__lt=hoje) | Q(inscricoes_fim__isnull=True,
+                                                       status=StatusConcurso.INSCRICOES_ENCERRADAS))
+                .select_related("orgao").order_by("inscricoes_fim"))
+
+
+@hooks.register("construct_homepage_panels")
+def painel_sem_data_de_prova(request, panels):
+    concursos = concursos_sem_data_de_prova()
+    if concursos:
+        panels.append(SemDataDeProvaPanel(concursos))

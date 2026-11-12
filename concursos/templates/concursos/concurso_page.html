@@ -7,11 +7,14 @@
     <h1>{{ page.title }}</h1>
     <p class="meta">
       <span class="selo selo-{{ page.situacao_classe }}">{{ page.situacao }}</span>
-      {{ page.orgao.nome }}{% if page.orgao.uf %} ({{ page.orgao.uf }}){% endif %}
+      {{ page.orgao.nome_com_estado }}{% if page.orgao.uf and not page.orgao.estado %} ({{ page.orgao.uf }}){% endif %}
       · Banca: {% if page.banca %}{{ page.banca.nome }}{% else %}a definir{% endif %}
     </p>
 
-    {% if page.inscricoes_inicio or page.inscricoes_fim %}
+    {% if page.situacao_classe == "prova-marcada" %}
+      <p class="destaque destaque-prova">Prova em {{ page.data_prova|date:"d/m/Y" }}: {{ page.contagem_prova }}.
+        Inscrições encerradas{% if page.inscricoes_fim %} em {{ page.inscricoes_fim|date:"d/m/Y" }}{% endif %}.</p>
+    {% elif page.inscricoes_inicio or page.inscricoes_fim %}
       <p class="destaque">Inscrições:
         {% if page.inscricoes_inicio %}de {{ page.inscricoes_inicio|date:"d/m/Y" }}{% endif %}
         {% if page.inscricoes_fim %}até {{ page.inscricoes_fim|date:"d/m/Y" }}{% endif %}

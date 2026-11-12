@@ -36,8 +36,11 @@ class Ponto:
     @property
     def texto_rotulo(self) -> str:
         c = self.concurso
-        sigla = getattr(c.orgao, "sigla", "")
-        return f"{sigla} {c.ano}" if sigla else c.title[:22]
+        sigla = c.orgao.sigla or ""
+        if not sigla:
+            return c.title[:22]
+        uf = c.orgao.uf if c.orgao.estado and c.orgao.uf not in sigla else ""
+        return f"{sigla}{'-' + uf if uf else ''} {c.ano}"
 
 
 def _setor_inicial(chave: str) -> int:

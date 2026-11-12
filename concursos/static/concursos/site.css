@@ -305,6 +305,12 @@ a:hover { text-decoration: underline; }
   background: rgba(255,140,66,.08); }
 .selo-edital_aberto, .selo-aberto { border-color: var(--verde); color: var(--verde);
   background: rgba(31,138,91,.08); }
+/* reta final: inscrito com prova marcada, o público principal do LexLearn */
+.selo-prova-marcada { border-color: var(--brasa); color: var(--ambar-txt); background: rgba(255,140,66,.10); }
+.grupo-reta-final h2::before { background: var(--brasa); }
+.grupo-nota { margin: -4px 0 14px; color: var(--suave); max-width: 70ch; }
+.numeros .contagem { color: var(--ambar-txt); font-family: var(--texto); font-size: 1em; font-weight: 600; }
+.destaque-prova { color: var(--ambar-txt); }
 .selo-em-breve { border-color: var(--sereno); color: var(--sereno); background: rgba(63,97,150,.08); }
 .selo-encerrado, .selo-prova-realizada, .selo-inscricoes_encerradas,
 .selo-prova_realizada, .selo-resultado { color: var(--suave); }

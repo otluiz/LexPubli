@@ -3,7 +3,7 @@
 - **Status:** proposta
 - **Data:** 2026-11-10
 - **Substitui:** a versão anterior da SPEC-0002 ("Home do LexPubli" / "Caminho de conversão do portal"), que está na `main` e deve ser removida no mesmo commit.
-- **Relacionadas:** ADR-0005 (fronteira LexPubli × LexLearn), ADR-0013 (itinerário por edital), SPEC-0003 (visual da home, a escrever)
+- **Relacionadas:** ADR-0005 (fronteira LexPubli × LexLearn), ADR-0013_LL (itinerário de estudos a partir do edital), SPEC-0003 (visual da home, a escrever)
 
 ---
 

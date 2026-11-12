@@ -1,0 +1,13 @@
+<section class="w-panel" aria-labelledby="sem-data-de-prova">
+  <div class="w-panel__header">
+    <h2 class="w-panel__heading" id="sem-data-de-prova">Inscrições encerradas sem data de prova ({{ concursos|length }})</h2>
+  </div>
+  <div class="w-panel__content">
+    <p>Sem a data da prova, estes concursos não aparecem em "Reta final" no portal. Preencha quando o órgão ou a banca divulgar.</p>
+    <ul>
+      {% for c in concursos %}
+        <li><a href="{% url 'wagtailadmin_pages:edit' c.pk %}">{{ c.title }}</a>{% if c.inscricoes_fim %}: inscrições encerradas em {{ c.inscricoes_fim|date:"d/m/Y" }}{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>

@@ -29,6 +29,7 @@ services:
       - "127.0.0.1:${LEXPUBLI_PORT:-8190}:8000"   # só localhost; exposição pública é decisão de produção
     volumes:
       - media:/data/media
+      - pncp:/data/pncp           # caderno do PNCP: um JSONL por dia lido (ADR-0012)
     deploy:
       resources:
         limits: {cpus: "2", memory: 768M}
@@ -116,6 +117,7 @@ services:
 volumes:
   pgdata:
   media:
+  pncp:
   changedetection:
   rabbitmq:
 

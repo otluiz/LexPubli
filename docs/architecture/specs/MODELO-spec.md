@@ -14,6 +14,18 @@ feature, com uma página, versionada ao lado do código.
 | Spec | O quê, fora do escopo, contrato, critérios de aceite | Antes de implementar uma feature ou mudar um contrato | `docs/architecture/specs/SPEC-NNNN-*.md` |
 | Teste | Se o critério continua valendo | Junto da implementação | `tests/` |
 
+## Referências a outro projeto
+
+ADRs e specs são numeradas por repositório, e os números se repetem entre
+LexPubli, LexLearn e LexCorpus. Dentro do próprio repositório, o número puro
+basta. Para citar o de outro projeto, use o sufixo do projeto:
+
+| Sufixo | Projeto | Exemplo |
+|---|---|---|
+| `_LP` | LexPubli | ADR-0012_LP |
+| `_LL` | LexLearn | ADR-0014_LL |
+| `_LC` | LexCorpus | ADR-0003_LC |
+
 ## Ciclo de uma spec
 
 1. Diagnóstico primeiro (grep, contagens, testes isolados). A spec só é

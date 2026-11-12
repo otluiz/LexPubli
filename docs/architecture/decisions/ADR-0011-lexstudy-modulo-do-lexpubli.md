@@ -3,10 +3,8 @@
 - **Status:** aceito
 - **Data:** 2026-11-11
 - **Substitui:** nada
-- **Relacionadas:** ADR-0002 (fronteira LexPubli × LexCorpus), ADR-0005 (fronteira LexPubli × LexLearn), ADR-0014 (virtualização do gpu01), SPEC-0002 (captura de interesse)
+- **Relacionadas:** ADR-0002 (fronteira LexPubli × LexCorpus), ADR-0005 (fronteira LexPubli × LexLearn), ADR-0014_LL (virtualização do gpu01), SPEC-0002 (captura de interesse)
 - **Estudo de origem:** `LexStudy_levantamento_specs_adrs_v0.1.0`, de 11/11/2026
-
-> Numeração: no repositório LexPubli a última ADR na `main` é a ADR-0010; o próximo número livre é **ADR-0011**. Conferir com `ls docs/architecture/decisions/ | tail -3` antes de commitar.
 
 ---
 
@@ -70,7 +68,7 @@ Razão: estudo descartado some; estudo arquivado com a ressalva no topo evita qu
 
 **Negativas.** O LexPubli acumula responsabilidade: era radar público, passa a ter também jornada do candidato. Existe risco real de virar aplicação-canivete. A reavaliação abaixo é a válvula.
 
-**Custo evitado.** Identidade compartilhada, quarto pipeline de deploy, quarta VM no desenho da ADR-0014, e a sincronização de progresso entre dois bancos — que a SPEC-LEXSTUDY-004 descreve corretamente como problema de consistência eventual, com deduplicação e ordenação. Esse é trabalho de equipe, não de pessoa só.
+**Custo evitado.** Identidade compartilhada, quarto pipeline de deploy, quarta VM no desenho da ADR-0014_LL, e a sincronização de progresso entre dois bancos — que a SPEC-LEXSTUDY-004 descreve corretamente como problema de consistência eventual, com deduplicação e ordenação. Esse é trabalho de equipe, não de pessoa só.
 
 ## Condições para reavaliar
 
@@ -87,6 +85,6 @@ Uma só não basta. A primeira sozinha é tentação; a quarta sozinha é organo
 
 **Criar o LexStudy como serviço agora**, conforme o levantamento. Rejeitada por D1 — o custo de identidade e operação não se paga antes de haver receita.
 
-**Colocar o módulo no LexLearn.** Rejeitada: o LexLearn não tem tráfego de entrada nem cadastro, e é ele que está atrás do perímetro com o banco e a GPU (ADR-0014). Captação é superfície pública; não se coloca superfície pública no núcleo.
+**Colocar o módulo no LexLearn.** Rejeitada: o LexLearn não tem tráfego de entrada nem cadastro, e é ele que está atrás do perímetro com o banco e a GPU (ADR-0014_LL). Captação é superfície pública; não se coloca superfície pública no núcleo.
 
 **Engavetar inteiro.** Rejeitada: a verticalização com incidência é diferencial defensável e o acervo para produzi-la já está sendo construído por outro motivo.
