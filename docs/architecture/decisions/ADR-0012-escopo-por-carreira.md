@@ -6,7 +6,9 @@
 
 # ADR-0012: O radar recorta por carreira, não por esfera
 
-- Status: **Proposto** em 2026-11-12. Falta decidir D1(c), a procuradoria municipal.
+- Status: **Proposto** em 2026-11-12. D1(c) decidida no mesmo dia: a
+  procuradoria municipal entra. Falta decidir se as universidades federais
+  entram já ou depois da medição.
 - Data: 2026-11-12
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0002 (fonte oficial obrigatória; agregador só como
@@ -53,8 +55,12 @@ Entram, em qualquer esfera e em todo o país:
 - **(b) Rede Federal de EPCT:** professor do Ensino Básico, Técnico e
   Tecnológico (EBTT) e técnico-administrativo (TAE), nas 38 instituições da
   rede e no CEFET-MG, CEFET-RJ, UTFPR e Colégio Pedro II.
-- **(c) Procuradoria municipal:** *a decidir.* Estuda direito tributário e
-  administrativo, e costuma pagar bem nas cidades grandes.
+- **(c) Trilha jurídica:** procuradorias e advocacia pública em todas as
+  esferas (procurador do município, PGE, AGU). Decidido em 12/11: o
+  produto é especialista em leis, e a procuradoria municipal estuda o mesmo
+  direito tributário e administrativo da trilha fiscal. O Exame da OAB fica
+  como possibilidade futura; não é concurso público e não entra no radar
+  sem ADR própria.
 
 Continua como está o que já é coberto (federal, estadual, distrital). Os
 outros concursos municipais seguem só contados.
@@ -67,13 +73,14 @@ Rede Federal, volume maior.
 - **Pistas** (PCI, Gran, Estratégia): é o canal mais produtivo, porque os
   cursinhos vendem curso para exatamente esses concursos. O reconhecedor
   passa a identificar (i) as siglas da Rede Federal (IFS, IFPE, IF Baiano,
-  IF Sertão-PE...) e (ii) município + termo fiscal ("ISS Caruaru", "auditor
-  fiscal de Maringá"). A pista continua só disparando a busca do documento
-  oficial (ADR-0002).
+  IF Sertão-PE...) e (ii) município + termo da carreira ("ISS Caruaru",
+  "auditor fiscal de Maringá", "procurador do município de Natal"). A
+  pista continua só disparando a busca do documento oficial (ADR-0002).
 - **PNCP:** publicação municipal deixa de ser só contada quando o órgão ou a
-  unidade compradora é fazendária ou de controle (Fazenda, Finanças,
-  Receita, Controladoria) ou o objeto cita a carreira. O objeto quase nunca
-  cita o cargo, então este canal pega menos que as pistas.
+  unidade compradora é fazendária, de controle ou procuradoria (Fazenda,
+  Finanças, Receita, Controladoria, Procuradoria) ou o objeto cita a
+  carreira. O objeto quase nunca cita o cargo, então este canal pega menos
+  que as pistas.
 - **Leitura retroativa do PNCP, com caderno.** Do edital à prova são cerca
   de dois meses, mas a contratação da banca vem meses antes do edital (no
   ISS Caruaru, edital em 06/08 e prova em 29/11). Para ver os concursos

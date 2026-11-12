@@ -54,10 +54,10 @@ class Command(BaseCommand):
             partes = ", ".join(f"{e} {n}" for (tt, e), n in sorted(por_trilha.items()) if tt == t)
             self.stdout.write(f"  {nome:<36} {partes or '0'}")
         hoje = sum(n for e, n in por_esfera.items() if e != "municipal")
-        acrescimo = novos["fiscal_controle"]
-        self.stdout.write(f"\nEntram hoje: {hoje}. A ADR-0012 acrescentaria {acrescimo} municipal(is) "
-                          f"de fiscal e controle em {len(dias)} dia(s) "
-                          f"(~{acrescimo / len(dias) * 30:.0f} por mês para a curadoria).")
+        acrescimo = novos["fiscal_controle"] + novos["juridica"]   # um concurso pode estar nas duas
+        self.stdout.write(f"\nEntram hoje: {hoje}. A ADR-0012 acrescentaria até {acrescimo} municipal(is) "
+                          f"(fiscal e controle {novos['fiscal_controle']}, jurídica {novos['juridica']}) "
+                          f"em {len(dias)} dia(s) (~{acrescimo / len(dias) * 30:.0f} por mês para a curadoria).")
         self.stdout.write("A Rede Federal já entra quando contrata banca; a que faz o concurso com "
                           "comissão própria não passa pelo PNCP (ADR-0012 D2: fontes da onda E).")
         for a in listagem:

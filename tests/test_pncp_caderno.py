@@ -71,6 +71,9 @@ def test_municipal_fica_no_caderno_mas_nao_vira_sinal(db, exemplo):
     ("TRIBUNAL DE CONTAS DO ESTADO DE PERNAMBUCO", "", "", ["fiscal_controle"]),
     ("CONTROLADORIA-GERAL DO MUNICIPIO DE SAO PAULO", "", "", ["fiscal_controle"]),
     ("MUNICIPIO DE OLINDA", "SECRETARIA DE SAUDE", "provimento de cargos diversos", []),
+    ("MUNICIPIO DE RECIFE", "PROCURADORIA GERAL DO MUNICIPIO", "", ["juridica"]),
+    ("MUNICIPIO DE NATAL", "", "concurso para o cargo de Procurador do Município", ["juridica"]),
+    ("ADVOCACIA-GERAL DA UNIAO", "", "", ["juridica"]),
 ])
 def test_trilhas(razao, unidade, objeto, esperado):
     assert trilhas(razao, unidade, objeto) == esperado
@@ -82,7 +85,7 @@ def test_medir_escopo_conta_por_trilha_sem_pedir_nada(db, exemplo):
     call_command("medir_escopo", "--listar", "fiscal_controle", stdout=saida)
     texto = saida.getvalue()
     assert "2 publicação(ões) de concurso público" in texto
-    assert "Entram hoje: 1. A ADR-0012 acrescentaria 1 municipal(is)" in texto
+    assert "Entram hoje: 1. A ADR-0012 acrescentaria até 1 municipal(is)" in texto
     assert "MUNICIPIO DE CARUARU · Caruaru-PE" in texto and "banca: IBAM" in texto
 
 

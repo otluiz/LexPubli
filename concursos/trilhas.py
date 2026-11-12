@@ -26,9 +26,14 @@ RE_FISCAL_OBJETO = re.compile(
     r"auditor|fiscal de (tributos|rendas|receita)|fiscal (municipal|tributario|de tributos)|"
     r"tributari|fazendari|controle externo|controle interno|\biss\b|\bissqn\b|\bitbi\b|\biptu\b")
 
+# Jurídica: procuradorias (procurador do município, do estado, advocacia pública)
+RE_JURIDICA_ORGAO = re.compile(r"procuradoria|advocacia geral|advocacia-geral")
+RE_JURIDICA_OBJETO = re.compile(r"procurador|advogado publico|advogado municipal")
+
 TRILHAS = {
     "rede_federal": "Rede Federal de EPCT",
     "fiscal_controle": "Fiscal e controle",
+    "juridica": "Jurídica (procuradorias)",
     "universidade_federal": "Universidade federal (só medição)",
 }
 
@@ -43,4 +48,6 @@ def trilhas(razao: str, unidade: str = "", objeto: str = "") -> list[str]:
         saida.append("universidade_federal")
     if RE_FISCAL_ORGAO.search(orgao) or RE_FISCAL_OBJETO.search(obj):
         saida.append("fiscal_controle")
+    if RE_JURIDICA_ORGAO.search(orgao) or RE_JURIDICA_OBJETO.search(obj):
+        saida.append("juridica")
     return saida
