@@ -4,7 +4,11 @@
 <aside class="chamada" aria-label="Estude no LexLearn">
   <div>
     <p class="chamada-rotulo">LexLearn · o estudo que vem depois do radar</p>
-    {% if concurso %}
+    {% if concurso and concurso.situacao_classe == "prova-marcada" %}
+      <h2>{{ concurso.contagem_prova|capfirst }}. Hora de treinar.</h2>
+      <p>Para {{ concurso.title }}, o LexLearn reúne as provas anteriores{% if concurso.banca %} da {{ concurso.banca.nome }}{% endif %}
+        e <strong>questões inéditas no estilo da banca</strong>, com gabarito ancorado no texto oficial.</p>
+    {% elif concurso %}
       <h2>Vai prestar {{ concurso.title }}? Saia na frente.</h2>
       <p>No LexLearn você resolve as provas anteriores{% if concurso.banca %} da {{ concurso.banca.nome }}{% endif %}
         e, o que ninguém mais tem, <strong>questões inéditas geradas no estilo da banca</strong>, com
