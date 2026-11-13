@@ -7,8 +7,9 @@ o coletor lê as publicações do dia e filtra aqui (esfera e objeto).
 
 O PNCP limita requisições com rigor (13/10/2026: o endereço foi bloqueado por
 algumas horas depois de ~20 consultas de teste em poucos minutos). Por isso:
-uma rodada por dia, pausa entre requisições, e para na primeira recusa; a
-rodada seguinte continua dali, porque nada é gravado duas vezes.
+uma rodada por dia, pausa entre requisições, duas novas tentativas espaçadas
+quando a conexão cai (http_get), e para se a falha persistir; a rodada
+seguinte continua dali, porque nada é gravado duas vezes.
 
 - contratos: /v1/contratos, todas as modalidades, 500 por página;
 - contratações: /v1/contratacoes/publicacao, só dispensa (8; é como Cebraspe,
@@ -66,16 +67,30 @@ class ErroPncp(RuntimeError):
     pass
 
 
-def http_get(caminho: str, params: dict, *, abrir=urllib.request.urlopen) -> dict:
+# Esperas entre tentativas. O PNCP derruba conexões de vez em quando
+# ("Connection reset by peer") e responde no pedido seguinte: em 12 e 13/11,
+# a mesma consulta falhou no cron e passou minutos depois, à mão. Sem
+# repetir, uma queda dessas perdia a noite inteira de coleta.
+ESPERAS = (15, 60)
+
+
+def http_get(caminho: str, params: dict, *, abrir=urllib.request.urlopen,
+             dormir=time.sleep, esperas=ESPERAS) -> dict:
     req = urllib.request.Request(f"{API}{caminho}?{urlencode(params)}",
                                  headers={"User-Agent": UA, "Accept": "application/json"})
-    try:
-        with abrir(req, timeout=60) as resp:
-            if resp.status == 204:
-                return {"data": [], "totalPaginas": 0}
-            return json.loads(resp.read().decode() or "{}")
-    except (urllib.error.URLError, ConnectionError, TimeoutError, json.JSONDecodeError) as exc:
-        raise ErroPncp(f"PNCP recusou ou não respondeu ({caminho} {params}): {exc}") from exc
+    for tentativa, espera in enumerate((*esperas, None), start=1):
+        try:
+            with abrir(req, timeout=60) as resp:
+                if resp.status == 204:
+                    return {"data": [], "totalPaginas": 0}
+                return json.loads(resp.read().decode() or "{}")
+        except (urllib.error.URLError, ConnectionError, TimeoutError, json.JSONDecodeError) as exc:
+            # 4xx que não seja 429 é recusa de verdade: repetir não muda nada
+            definitivo = isinstance(exc, urllib.error.HTTPError) and 400 <= exc.code < 500 and exc.code != 429
+            if espera is None or definitivo:
+                raise ErroPncp(f"PNCP recusou ou não respondeu ({caminho} {params}) "
+                               f"na tentativa {tentativa}: {exc}") from exc
+            dormir(espera)
 
 
 @dataclass

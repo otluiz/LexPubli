@@ -107,3 +107,72 @@ def test_paginacao_segue_ate_a_ultima_pagina():
 
     list(pncp.publicacoes(date(2026, 10, 12), get=get, pausa=0))
     assert [p for c, p in paginas if c == "/contratos"] == [1, 2, 3]
+
+
+# --- conexão derrubada: repetir antes de desistir -----------------------------
+# Em 12 e 13/11 o cron parou no primeiro pedido com "Connection reset by peer",
+# e a mesma consulta passou minutos depois, à mão. Uma queda isolada não pode
+# custar a noite inteira de coleta.
+
+class _Resposta:
+    status = 200
+
+    def __init__(self, corpo):
+        self.corpo = corpo
+
+    def read(self):
+        return self.corpo
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+def _abrir_que_falha(vezes, erro=None):
+    chamadas = []
+
+    def abrir(req, timeout):
+        chamadas.append(req.full_url)
+        if len(chamadas) <= vezes:
+            raise erro or ConnectionResetError(104, "Connection reset by peer")
+        return _Resposta(b'{"data": [1], "totalPaginas": 1}')
+    return abrir, chamadas
+
+
+def test_conexao_derrubada_e_repetida_com_espera():
+    from concursos.pncp import http_get
+
+    abrir, chamadas = _abrir_que_falha(2)
+    esperas = []
+    assert http_get("/contratos", {"pagina": 1}, abrir=abrir, dormir=esperas.append) == {
+        "data": [1], "totalPaginas": 1}
+    assert len(chamadas) == 3 and esperas == [15, 60]
+
+
+def test_falha_que_persiste_vira_erro_com_o_numero_da_tentativa():
+    from concursos.pncp import ErroPncp, http_get
+
+    abrir, chamadas = _abrir_que_falha(99)
+    with pytest.raises(ErroPncp, match="tentativa 3"):
+        http_get("/contratos", {"pagina": 1}, abrir=abrir, dormir=lambda s: None)
+    assert len(chamadas) == 3
+
+
+def test_recusa_4xx_nao_e_repetida_mas_429_e():
+    import urllib.error
+
+    from concursos.pncp import ErroPncp, http_get
+
+    def http(code):
+        return urllib.error.HTTPError("u", code, "x", {}, None)
+
+    abrir, chamadas = _abrir_que_falha(99, http(400))
+    with pytest.raises(ErroPncp, match="tentativa 1"):
+        http_get("/contratos", {}, abrir=abrir, dormir=lambda s: None)
+    assert len(chamadas) == 1
+
+    abrir, chamadas = _abrir_que_falha(1, http(429))
+    assert http_get("/contratos", {}, abrir=abrir, dormir=lambda s: None)["data"] == [1]
+    assert len(chamadas) == 2
