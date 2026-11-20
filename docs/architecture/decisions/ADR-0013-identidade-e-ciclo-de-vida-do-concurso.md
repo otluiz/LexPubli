@@ -133,10 +133,12 @@ previsões viraram edital".
 ## Ordem de implementação
 
 1. ~~Confirmar no PNCP que o contrato aponta para a compra de origem~~
-   (confirmado em 19/11, ver D1). Guardar o processo no `Sinal` e no
-   caderno. Os cadernos já gravados não têm o campo, e a coleta não pede
-   de novo um dia que já está no caderno: como preencher os antigos se
-   decide nesta etapa.
+   (confirmado em 19/11, ver D1). ~~Guardar o processo no `Sinal` e no
+   caderno~~ (feito em 19/11: `Sinal.processo_pncp`). Os cadernos de antes
+   disso não têm o campo e **não são relidos**: o sinal que vem deles fica
+   sem processo e, pela D1, identifica só o órgão. Quando o mesmo documento
+   é lido de novo (busca por órgão disparada por uma pista), o sinal ganha
+   o processo.
 2. D2 e o painel de sinais de outro processo.
 3. D3: ordem por procedimento e o rótulo de cada data.
 4. D4 e D5: campos, título, quadro de outros concursos, sugestão de edital.

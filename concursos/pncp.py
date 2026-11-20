@@ -108,6 +108,7 @@ class Achado:
     unidade: str = ""          # nome da unidade compradora (ex.: SECRETARIA DE FAZENDA)
     municipio: str = ""
     ibge: str = ""             # código IBGE do município
+    processo: str = ""         # número de controle PNCP da compra: a identidade do concurso (ADR-0013 D1)
 
 
 def _local(u: dict) -> dict:
@@ -122,7 +123,8 @@ def _contrato(x: dict) -> Achado:
                   u.get("ufSigla", ""), x.get("objetoContrato") or "",
                   date.fromisoformat((x.get("dataAssinatura") or x["dataPublicacaoPncp"])[:10]),
                   f"{APP}/contratos/{cnpj}/{x.get('anoContrato')}/{x.get('sequencialContrato')}",
-                  x.get("nomeRazaoSocialFornecedor") or "", **_local(u))
+                  x.get("nomeRazaoSocialFornecedor") or "", **_local(u),
+                  processo=x.get("numeroControlePncpCompra") or "")       # a compra que originou o contrato
 
 
 def _contratacao(x: dict) -> Achado:
@@ -131,7 +133,8 @@ def _contratacao(x: dict) -> Achado:
     return Achado("licitacao_banca", cnpj, o.get("razaoSocial", ""), o.get("esferaId", ""),
                   u.get("ufSigla", ""), x.get("objetoCompra") or "",
                   date.fromisoformat(x["dataPublicacaoPncp"][:10]),
-                  f"{APP}/editais/{cnpj}/{x.get('anoCompra')}/{x.get('sequencialCompra')}", **_local(u))
+                  f"{APP}/editais/{cnpj}/{x.get('anoCompra')}/{x.get('sequencialCompra')}", **_local(u),
+                  processo=x.get("numeroControlePNCP") or "")
 
 
 def publicacoes(dia: date, *, get=http_get, pausa: float = 3.0):
@@ -221,9 +224,12 @@ def gravar(a: Achado, rel: Relatorio):
         resumo = f"{resumo} Contratada: {a.fornecedor}."
     sinal, novo = Sinal.objects.get_or_create(
         orgao=orgao, tipo=a.tipo_sinal, documento_url=a.url,
-        defaults={"data_documento": a.data, "origem": Sinal.Origem.PNCP, "resumo": resumo[:300]})
+        defaults={"data_documento": a.data, "origem": Sinal.Origem.PNCP, "resumo": resumo[:300],
+                  "processo_pncp": a.processo})
     if not novo:
         rel.ja_vistos += 1
+        if a.processo and not sinal.processo_pncp:       # sinal de antes da ADR-0013 relido
+            Sinal.objects.filter(pk=sinal.pk).update(processo_pncp=a.processo)
         return None
     rel.sinais.append(f"{orgao} · {sinal.get_tipo_display()} · {a.url}")
     return orgao

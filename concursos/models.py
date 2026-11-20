@@ -546,6 +546,10 @@ class Sinal(models.Model):
     resumo = models.CharField(max_length=300, help_text="O que o documento diz, em uma frase.")
     documento_url = models.URLField("documento oficial", max_length=500)
     origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.MANUAL)
+    processo_pncp = models.CharField(
+        "processo no PNCP", max_length=40, blank=True, db_index=True,
+        help_text="Número de controle PNCP da compra (ex.: 10870883000144-1-000061/2026). "
+                  "Identifica o concurso antes do edital (ADR-0013 D1). Vazio: o sinal identifica só o órgão.")
     banca = models.ForeignKey(Banca, on_delete=models.SET_NULL, null=True, blank=True,
                               related_name="sinais", help_text="Quando o sinal já diz a banca.")
     concurso = models.ForeignKey(ConcursoPage, on_delete=models.SET_NULL, null=True, blank=True,
@@ -558,7 +562,7 @@ class Sinal(models.Model):
     panels = [
         FieldRowPanel([FieldPanel("orgao"), FieldPanel("tipo"), FieldPanel("data_documento")]),
         FieldPanel("resumo"),
-        FieldRowPanel([FieldPanel("documento_url"), FieldPanel("origem")]),
+        FieldRowPanel([FieldPanel("documento_url"), FieldPanel("origem"), FieldPanel("processo_pncp")]),
         FieldRowPanel([FieldPanel("banca"), FieldPanel("concurso"), FieldPanel("revisado")]),
     ]
 
