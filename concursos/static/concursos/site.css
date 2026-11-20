@@ -185,12 +185,20 @@ a:hover { text-decoration: underline; }
 /* Cada ponto é um concurso publicado. O varredor dá uma volta a cada 6 s e
    acende o ponto ao passar: o atraso de cada .setor-N põe o brilho do
    ponto no instante em que o feixe chega ao ângulo dele. */
-.radar-vivo { margin: 0; justify-self: center; width: 100%; max-width: 340px; }
+.radar-vivo { margin: 0; justify-self: center; width: 100%; max-width: 400px; }
 .radar-vivo svg { display: block; width: 100%; height: auto; overflow: visible; }
 .radar-vivo .disco  { fill: rgba(255,255,255,.025); stroke: rgba(160,190,230,.35); stroke-width: .8; }
-.radar-vivo .anel   { fill: none; stroke: rgba(160,190,230,.2); stroke-width: .6; }
-.radar-vivo .eixo   { stroke: rgba(160,190,230,.14); stroke-width: .6; }
-.radar-vivo .centro { fill: var(--sinal); }
+/* o mapa (19/11): estado com concurso é link e filtra a lista */
+.radar-vivo .uf, .radar-vivo .uf path, .radar-vivo .uf rect {
+  fill: rgba(160,190,230,.07); stroke: rgba(160,190,230,.32); stroke-width: .5; stroke-linejoin: round;
+}
+.radar-vivo .com-concurso path, .radar-vivo .com-concurso rect { fill: rgba(160,190,230,.17); }
+.radar-vivo .com-concurso:hover path, .radar-vivo .com-concurso:hover rect,
+.radar-vivo .com-concurso:focus-visible path, .radar-vivo .com-concurso:focus-visible rect { fill: rgba(255,140,66,.22); }
+.radar-vivo .ativa path, .radar-vivo .ativa rect { fill: rgba(255,140,66,.3); stroke: #ffb27a; stroke-width: .9; }
+.radar-vivo .com-concurso:focus { outline: none; }
+.radar-vivo .nacional rect { stroke-dasharray: 2 1.5; }
+.radar-vivo .nacional text { fill: #c7d4e6; font-family: var(--texto); font-size: 6px; font-weight: 600; }
 .radar-vivo .cone   { fill: url(#cone); }
 .radar-vivo .cone-fim   { stop-color: #ff8c42; stop-opacity: 0; }
 .radar-vivo .cone-ponta { stop-color: #ff8c42; stop-opacity: .38; }
@@ -198,6 +206,7 @@ a:hover { text-decoration: underline; }
 .radar-vivo .varredor {
   transform-box: view-box; transform-origin: 0 0;   /* (0,0) do viewBox = centro do disco */
   animation: varrer 6s linear infinite;
+  pointer-events: none;                             /* o feixe passa por cima do mapa sem tapar o clique */
 }
 @keyframes varrer { to { transform: rotate(360deg); } }
 
@@ -277,6 +286,16 @@ a:hover { text-decoration: underline; }
 .grupo-abertos h2::before { background: var(--verde); }
 .grupo-andamento h2::before { background: var(--suave); }
 .vazio { color: var(--suave); }
+/* dentro do grupo, um bloco por estado (Nacional primeiro, depois N, NE, CO, SE, S),
+   os blocos lado a lado; os cartões de um estado empilham sob o nome dele */
+.blocos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px 14px;
+  align-items: start; }
+.blocos .lista { grid-template-columns: 1fr; }
+.lugar { font-family: var(--texto); font-size: .8rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--suave); margin: 0 0 8px; }
+.filtro-uf { margin: 30px 0 0; padding: 10px 14px; border-radius: var(--raio-sm);
+  background: rgba(255,140,66,.08); border: 1px solid var(--sinal); }
+.filtro-uf a { margin-left: 6px; }
 
 .lista { list-style: none; padding: 0; margin: 0;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }

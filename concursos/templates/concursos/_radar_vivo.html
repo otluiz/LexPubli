@@ -1,7 +1,9 @@
 {% load wagtailcore_tags %}
-{% comment %} Radar vivo (SPEC-0003 D2): cada ponto é um concurso publicado de verdade.
-   Sem descoberta recente, o radar gira vazio. Posição em atributos do SVG,
-   nunca em style="" (a CSP não aceita estilo inline). {% endcomment %}
+{% comment %} Radar vivo (SPEC-0003 D2, revisto em 19/11): cada ponto é um concurso
+   publicado de verdade, no estado do órgão. Estado com concurso é link: filtra a
+   lista (?uf=). Sem descoberta recente, o radar gira vazio sobre o mapa. Posição
+   em atributos do SVG, nunca em style="" (a CSP não aceita estilo inline).
+   Malha dos estados: IBGE (via CodeGeo / Click That 'Hood, MIT). {% endcomment %}
 <figure class="radar-vivo">
   <svg viewBox="-100 -100 200 200" role="group" aria-labelledby="radar-legenda">
     <defs>
@@ -11,33 +13,48 @@
       </linearGradient>
     </defs>
     <circle class="disco" r="98"/>
-    <circle class="anel" r="72"/>
-    <circle class="anel" r="46"/>
-    <circle class="anel" r="20"/>
-    <line class="eixo" x1="-98" y1="0" x2="98" y2="0"/>
-    <line class="eixo" x1="0" y1="-98" x2="0" y2="98"/>
+    <g class="mapa">
+      {% for e in mapa_estados %}
+        {% if e.n %}
+          <a class="uf com-concurso{% if e.ativo %} ativa{% endif %}" href="?uf={{ e.uf }}#concursos"
+             aria-label="{{ e.nome }}: {{ e.n }} concurso{{ e.n|pluralize }}"{% if e.ativo %} aria-current="true"{% endif %}>
+            <title>{{ e.nome }} — {{ e.n }} concurso{{ e.n|pluralize }}</title>
+            <path d="{{ e.d }}"/>
+          </a>
+        {% else %}
+          <path class="uf" d="{{ e.d }}"><title>{{ e.nome }}</title></path>
+        {% endif %}
+      {% endfor %}
+      {% if nacionais %}
+        <a class="uf nacional com-concurso{% if uf_ativa == 'BR' %} ativa{% endif %}" href="?uf=BR#concursos"
+           aria-label="Nacional: {{ nacionais }} concurso{{ nacionais|pluralize }}">
+          <title>Nacional — {{ nacionais }} concurso{{ nacionais|pluralize }}</title>
+          <rect x="47" y="47" width="30" height="26" rx="4"/>
+          <text x="62" y="80" text-anchor="middle">Nacional</text>
+        </a>
+      {% endif %}
+    </g>
     <g class="varredor" aria-hidden="true">
       <path class="cone" d="M0 0 L75.1 -63 A98 98 0 0 1 98 0 Z"/>
       <line class="feixe" x1="0" y1="0" x2="98" y2="0"/>
     </g>
     {% for p in radar_pontos %}
-      <a class="ponto setor-{{ p.setor }}{% if forloop.first %} ponto-novo{% endif %}" href="{% pageurl p.concurso %}"
+      <a class="ponto setor-{{ p.setor }}{% if p.recente %} ponto-recente{% endif %}{% if forloop.first %} ponto-novo{% endif %}" href="{% pageurl p.concurso %}"
          aria-label="{{ p.concurso.title }} — publicado há {{ p.dias }} dia{{ p.dias|pluralize }}">
         <title>{{ p.concurso.title }}</title>
-        <circle class="halo" cx="{{ p.x|stringformat:'.1f' }}" cy="{{ p.y|stringformat:'.1f' }}" r="7"/>
-        <circle class="nucleo" cx="{{ p.x|stringformat:'.1f' }}" cy="{{ p.y|stringformat:'.1f' }}" r="3.2"/>
+        <circle class="halo" cx="{{ p.x|stringformat:'.1f' }}" cy="{{ p.y|stringformat:'.1f' }}" r="{% if p.recente %}5.5{% else %}4{% endif %}"/>
+        <circle class="nucleo" cx="{{ p.x|stringformat:'.1f' }}" cy="{{ p.y|stringformat:'.1f' }}" r="{% if p.recente %}2.4{% else %}1.7{% endif %}"/>
         {% if forloop.first %}
           <text class="rotulo" x="{{ p.x|stringformat:'.1f' }}" y="{{ p.y|stringformat:'.1f' }}"
                 dx="{{ p.rotulo.0|stringformat:'g' }}" dy="{{ p.rotulo.1|stringformat:'g' }}" text-anchor="{{ p.rotulo.2 }}">{{ p.texto_rotulo }}</text>
         {% endif %}
       </a>
     {% endfor %}
-    <circle class="centro" r="2.5"/>
   </svg>
   <figcaption id="radar-legenda">
     {% if radar_pontos %}
       <strong>{{ radar_pontos|length }}</strong> concurso{{ radar_pontos|length|pluralize }} publicado{{ radar_pontos|length|pluralize }}
-      nos últimos {{ radar_janela }} dias. Quanto mais perto do centro, mais recente.
+      nos últimos {{ radar_janela }} dias; o ponto maior é da última semana. Toque num estado para ver os concursos dele.
     {% else %}
       Nenhum concurso novo nos últimos {{ radar_janela }} dias. O radar segue varrendo.
     {% endif %}

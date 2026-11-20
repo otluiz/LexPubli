@@ -24,14 +24,22 @@
   {% endif %}
 
   <div id="concursos">
-  {% for chave, titulo, lista in grupos %}
-    {% if lista %}
+  {% if uf_ativa %}
+    <p class="filtro-uf">Mostrando os concursos de <strong>{{ uf_ativa_nome }}</strong>.
+      <a href="{% pageurl page %}#concursos">Ver todos os estados</a></p>
+  {% endif %}
+  {% for chave, titulo, blocos in grupos %}
+    {% if blocos %}
       <section class="grupo grupo-{{ chave }}">
         <h2>{{ titulo }}</h2>
         {% if chave == "reta-final" %}
           <p class="grupo-nota">Inscrições encerradas, prova com data. Se você está em uma destas, é hora de treinar
             com as provas da banca{% if LEXLEARN_URL %}: <a href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">conhecer o LexLearn<span class="so-leitor"> (abre em nova aba)</span></a>{% endif %}.</p>
         {% endif %}
+        <div class="{% if not uf_ativa %}blocos{% endif %}">
+        {% for lugar, lista in blocos %}
+        <div class="bloco-lugar">
+        {% if not uf_ativa %}<h3 class="lugar">{{ lugar }}</h3>{% endif %}
         <ul class="lista">
           {% for c in lista %}
             <li class="cartao">
@@ -47,6 +55,9 @@
             </li>
           {% endfor %}
         </ul>
+        </div>
+        {% endfor %}
+        </div>
       </section>
     {% endif %}
   {% endfor %}
