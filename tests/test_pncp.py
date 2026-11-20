@@ -15,14 +15,16 @@ def contrato(cnpj="02390435000115", razao="TRIBUNAL REGIONAL DO TRABALHO DA 8A R
     return {"orgaoEntidade": {"cnpj": cnpj, "razaoSocial": razao, "esferaId": esfera, "poderId": "J"},
             "unidadeOrgao": {"ufSigla": "PA"}, "objetoContrato": objeto, "anoContrato": 2026,
             "sequencialContrato": seq, "dataAssinatura": assinatura,
-            "dataPublicacaoPncp": "2026-10-12T10:00:00", "nomeRazaoSocialFornecedor": "CEBRASPE"}
+            "dataPublicacaoPncp": "2026-10-12T10:00:00", "nomeRazaoSocialFornecedor": "CEBRASPE",
+            "numeroControlePNCP": f"{cnpj}-2-{seq:06d}/2026", "numeroControlePncpCompra": f"{cnpj}-1-000021/2026"}
 
 
 def contratacao(cnpj="02390435000115", objeto=OBJ, esfera="F", seq=21):
     return {"orgaoEntidade": {"cnpj": cnpj, "razaoSocial": "TRIBUNAL REGIONAL DO TRABALHO DA 8A REGIAO",
                               "esferaId": esfera, "poderId": "J"},
             "unidadeOrgao": {"ufSigla": "PA"}, "objetoCompra": objeto, "anoCompra": 2026,
-            "sequencialCompra": seq, "dataPublicacaoPncp": "2026-10-12T09:00:00"}
+            "sequencialCompra": seq, "dataPublicacaoPncp": "2026-10-12T09:00:00",
+            "numeroControlePNCP": f"{cnpj}-1-{seq:06d}/2026"}
 
 
 class PncpFalso:
@@ -176,3 +178,32 @@ def test_recusa_4xx_nao_e_repetida_mas_429_e():
     abrir, chamadas = _abrir_que_falha(1, http(429))
     assert http_get("/contratos", {}, abrir=abrir, dormir=lambda s: None)["data"] == [1]
     assert len(chamadas) == 2
+
+
+def test_contrato_e_compra_do_mesmo_processo_guardam_o_mesmo_numero(db, exemplo):
+    """ADR-0013 D1: o contrato aponta para a compra de origem; os dois sinais
+    ficam com o número de controle da compra."""
+    falso = PncpFalso(contratos=[contrato()], contratacoes=[contratacao(seq=21)])
+    pncp.coletar(dias=1, hoje=date(2026, 10, 13), get=falso, pausa=0)
+    processos = set(Sinal.objects.values_list("processo_pncp", flat=True))
+    assert processos == {"02390435000115-1-000021/2026"}
+
+
+def test_caderno_antigo_sem_processo_ainda_carrega(db, exemplo, settings):
+    """Os cadernos de antes da ADR-0013 não têm o campo: o sinal fica sem
+    processo, e identifica só o órgão (D1)."""
+    pasta = pncp.caderno_dir()
+    pasta.mkdir(parents=True)
+    a = pncp._contrato(contrato())
+    linha = {k: v for k, v in pncp.asdict(a).items() if k != "processo"} | {"data": a.data.isoformat()}
+    (pasta / "2026-10-12.jsonl").write_text(pncp.json.dumps(linha) + "\n", encoding="utf-8")
+    pncp.coletar(dias=1, hoje=date(2026, 10, 13), get=PncpFalso(), pausa=0)
+    assert Sinal.objects.get().processo_pncp == ""
+
+
+def test_sinal_antigo_ganha_o_processo_quando_relido(db, exemplo):
+    falso = PncpFalso(contratos=[contrato()])
+    pncp.coletar(hoje=date(2026, 10, 13), get=falso, pausa=0)
+    Sinal.objects.update(processo_pncp="")
+    pncp.por_orgao("02390435000115", hoje=date(2026, 10, 13), get=falso, pausa=0)
+    assert Sinal.objects.get().processo_pncp == "02390435000115-1-000021/2026"
