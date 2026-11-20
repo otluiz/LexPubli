@@ -44,7 +44,7 @@
           {% for s in r.sinais %}
             <li><time datetime="{{ s.data_documento|date:"Y-m-d" }}">{{ s.data_documento|date:"d/m/Y" }}</time>
               · {{ s.get_tipo_display|slice:"4:" }}: {{ s.resumo }}
-              <a href="{{ s.documento_url }}" rel="noopener nofollow">documento oficial</a></li>
+              <a href="{{ s.documento_url }}" target="_blank" rel="noopener nofollow">documento oficial<span class="so-leitor"> (abre em nova aba)</span></a></li>
           {% endfor %}
         </ol>
         <p class="meta">A previsão usa o prazo típico entre cada tipo de documento e o edital. Só documentos
@@ -53,6 +53,9 @@
     {% endif %}{% endwith %}
 
     <h2>Cargos</h2>
+    {% if not page.cargos.all %}
+      <p class="meta">Cargos, vagas e salários ainda não foram divulgados: saem no edital.</p>
+    {% else %}
     <table class="cargos">
       <thead><tr><th>Cargo</th><th>Vagas</th><th>Remuneração inicial</th></tr></thead>
       <tbody>
@@ -65,11 +68,15 @@
         {% endfor %}
       </tbody>
     </table>
+    {% endif %}
 
     <h2>Fontes oficiais</h2>
-    <ul>
-      {% if page.edital_url %}<li><a href="{{ page.edital_url }}" rel="noopener nofollow">Edital</a></li>{% endif %}
-      <li><a href="{{ page.fonte_url }}" rel="noopener nofollow">Página do concurso na fonte</a></li>
+    {% comment %} Fonte é site de terceiro (PNCP, DOU, órgão): abre em nova aba, e o visitante
+       volta ao LexPubli fechando a aba, como no link do LexLearn. {% endcomment %}
+    <ul class="fontes">
+      {% if page.edital_url %}<li><a href="{{ page.edital_url }}" target="_blank" rel="noopener nofollow">Edital<span class="so-leitor"> (abre em nova aba)</span></a></li>{% endif %}
+      <li><a href="{{ page.fonte_url }}" target="_blank" rel="noopener nofollow">Página do concurso na fonte<span class="so-leitor"> (abre em nova aba)</span></a></li>
     </ul>
+    <p class="meta">Os links oficiais abrem em outra aba: esta página continua aberta aqui.</p>
   </article>
 {% endblock %}

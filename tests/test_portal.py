@@ -189,3 +189,19 @@ def test_chamada_automatica_nasce_com_o_estado_no_titulo(exemplo):
                          documento_url="https://www.aen.pr.gov.br/x", resumo="Autorizado.")
     chamada = aplicar(orgao)
     assert chamada.title.startswith("Secretaria da Fazenda — Paraná ")
+
+
+def test_links_oficiais_abrem_em_nova_aba_e_cargos_vazios_avisam(client, exemplo):
+    """Quem clica na fonte (PNCP, DOU) não perde a página do LexPubli; sem
+    cargos cadastrados, a página diz que eles saem no edital em vez de
+    mostrar uma tabela vazia."""
+    import re
+
+    c = exemplo["concurso"]
+    html = client.get(c.url).content.decode()
+    fonte = re.search(r'<a href="%s"[^>]*>' % re.escape(c.fonte_url), html).group(0)
+    assert 'target="_blank"' in fonte and "noopener" in fonte
+    assert "Página do concurso na fonte<span class=\"so-leitor\"> (abre em nova aba)" in html
+    c.cargos.all().delete()
+    html = client.get(c.url).content.decode()
+    assert "saem no edital" in html and '<table class="cargos">' not in html
