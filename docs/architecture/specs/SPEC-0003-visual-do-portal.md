@@ -27,6 +27,8 @@ Razão: três variantes mantidas é três vezes o custo de cada mudança futura,
 
 Cada ponto no radar corresponde a uma `ConcursoPage` publicada. A posição no disco indica recência: quanto mais recente a descoberta, mais perto do centro. O varredor acende o ponto ao passar. Cada ponto é clicável e leva à página do concurso.
 
+> **Revisto em 19/11/2026.** Com 19 concursos, os pontos se amontoavam no anel mais recente. O disco passa a ter o mapa do Brasil ao fundo e cada ponto fica no estado do órgão (`Orgao.lugar`); federal de alcance nacional (registrado no DF pelo PNCP) vai para a caixa "Nacional", no oceano. A recência passa a ser o tamanho do ponto (maior = publicado na última semana). Estado com concurso é link e filtra a lista (`?uf=PE`); na lista, cada grupo de situação se divide por estado, Nacional primeiro e depois as regiões N, NE, CO, SE, S. Malha: IBGE, via CodeGeo / Click That 'Hood (MIT), gerada por `scripts/gerar_mapa_uf.py`.
+
 Quando não há descoberta recente, o radar gira vazio. Isso é informação correta, não falha.
 
 Razão: ponto inventado no radar é o mesmo erro da lista fictícia do Lovable, num lugar onde dói mais — é exatamente a parte da página que afirma que o sistema encontra coisas.

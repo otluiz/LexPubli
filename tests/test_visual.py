@@ -69,18 +69,75 @@ def test_radar_mostra_um_ponto_por_concurso_publicado(client, exemplo):
     assert {"/sefaz-al-2026/", "/acre-2027/", "/seap-2027/"} == set(pontos)
 
 
-def test_mais_recente_fica_mais_perto_do_centro_e_ganha_rotulo(exemplo):
-    from concursos.models import ConcursoPage, ConcursosIndexPage
-    from concursos.radar_vivo import pontos
+def test_ponto_fica_no_estado_do_orgao_e_o_mais_recente_ganha_rotulo(exemplo):
+    from concursos.models import ConcursoPage, ConcursosIndexPage, Orgao
+    from concursos.radar_vivo import NACIONAL, _mapa, pontos
 
     indice = ConcursosIndexPage.objects.get()
     ConcursoPage.objects.update(first_published_at=timezone.now() - dt.timedelta(days=30))
-    _publicar(indice, "acre-2027", "Estado do Acre 2027", 2, sigla="AC")
-    _publicar(indice, "seap-2027", "Seap 2027", 60)
-    ps = pontos(ConcursoPage.objects.live().select_related("orgao"))
-    raio = {p.concurso.slug: (p.x ** 2 + p.y ** 2) ** .5 for p in ps}
-    assert raio["acre-2027"] < raio["seap-2027"]
-    assert ps[0].concurso.slug == "acre-2027" and ps[0].texto_rotulo == "AC 2027"
+    acre = _publicar(indice, "acre-2027", "Estado do Acre 2027", 2, sigla="AC")
+    Orgao.objects.filter(pk=acre.orgao_id).update(uf="AC")
+    bacen = _publicar(indice, "bacen-2027", "Banco Central 2027", 60)
+    Orgao.objects.filter(pk=bacen.orgao_id).update(esfera="federal", uf="DF")
+    todos = pontos(ConcursoPage.objects.live().select_related("orgao"))
+    ps = {p.concurso.slug: p for p in todos}
+    assert (ps["acre-2027"].x, ps["acre-2027"].y) == (_mapa()["AC"]["x"], _mapa()["AC"]["y"])
+    assert (ps["bacen-2027"].x, ps["bacen-2027"].y) == NACIONAL      # federal no DF é nacional
+    assert ps["acre-2027"].recente and not ps["bacen-2027"].recente
+    assert todos[0].concurso.slug == "acre-2027" and todos[0].texto_rotulo == "AC 2027"
+
+
+def test_varios_no_mesmo_estado_nao_ficam_um_em_cima_do_outro(exemplo):
+    from concursos.models import ConcursoPage, ConcursosIndexPage, Orgao
+    from concursos.radar_vivo import pontos
+
+    indice = ConcursosIndexPage.objects.get()
+    for i in range(6):
+        c = _publicar(indice, f"pr-{i}", f"Órgão {i} do Paraná", i)
+        Orgao.objects.filter(pk=c.orgao_id).update(uf="PR")
+    ps = [p for p in pontos(ConcursoPage.objects.live().select_related("orgao"))
+          if p.concurso.slug.startswith("pr-")]
+    distancias = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** .5 for i, a in enumerate(ps) for b in ps[i + 1:]]
+    assert len(ps) == 6 and min(distancias) >= 3.4     # o núcleo tem raio 2,4: não se sobrepõem
+
+
+def test_lugar_do_orgao():
+    from concursos.models import Orgao
+
+    def lugar(esfera, uf, nome="Órgão"):
+        return Orgao(nome=nome, esfera=esfera, uf=uf).lugar
+    assert lugar("estadual", "PE") == "PE"
+    assert lugar("federal", "MS", "Conselho Regional de Medicina Veterinária do MS") == "MS"
+    assert lugar("federal", "DF", "Banco Central do Brasil") == "BR"
+    assert lugar("federal", "DF", "Conselho Regional de Medicina do Distrito Federal") == "DF"
+    assert lugar("federal", "") == "BR"
+
+
+def test_clicar_no_estado_filtra_a_lista_e_agrupa_por_estado(client, exemplo):
+    from concursos.models import ConcursosIndexPage, Orgao
+
+    indice = ConcursosIndexPage.objects.get()
+    c = _publicar(indice, "seap-2027", "Seap 2027", 4)
+    Orgao.objects.filter(pk=c.orgao_id).update(uf="PR")
+    html = client.get("/").content.decode()
+    assert 'href="?uf=PR#concursos"' in html and 'href="?uf=AL#concursos"' in html
+    assert '<h3 class="lugar">Alagoas</h3>' in html and '<h3 class="lugar">Paraná</h3>' in html
+    filtrado = client.get("/?uf=pr").content.decode()
+    lista = filtrado[filtrado.index('id="concursos"'):]
+    assert "Seap 2027" in lista and "Sefaz-AL" not in lista
+    assert "Mostrando os concursos de <strong>Paraná</strong>" in filtrado
+    assert "Sefaz-AL" in client.get("/?uf=XX").content.decode()        # UF sem concurso: lista inteira
+
+
+def test_estados_por_regiao_nacional_primeiro():
+    from types import SimpleNamespace as N
+
+    from concursos.models import _por_lugar
+
+    def c(uf):
+        return N(orgao=N(lugar=uf))
+    assert [lugar for lugar, _ in _por_lugar([c("RS"), c("PE"), c("BR"), c("AM"), c("SP")])] == \
+        ["Nacional", "Amazonas", "Pernambuco", "São Paulo", "Rio Grande do Sul"]
 
 
 def test_concurso_antigo_sai_do_radar_mas_fica_na_lista(client, exemplo):

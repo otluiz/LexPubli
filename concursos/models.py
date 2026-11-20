@@ -7,6 +7,9 @@ Fluxo do spike (ADR-0001):
 """
 from __future__ import annotations
 
+import re
+from collections import Counter
+
 from django.db import models, transaction
 from django.utils import timezone
 from modelcluster.fields import ParentalKey
@@ -105,6 +108,25 @@ class Orgao(index.Indexed, models.Model):
             return self.nome
         return f"{self.nome} — {self.estado}"
 
+    @property
+    def lugar(self) -> str:
+        """A UF onde o concurso fica no mapa da home, ou "BR" para o nacional.
+
+        O PNCP registra quase todo órgão federal no DF, mas as vagas de Banco
+        Central ou Receita são do país inteiro: federal no DF (ou sem UF) é
+        nacional, salvo quando o nome diz que é do DF (CRM-DF, IFB). Federal
+        com outra UF (conselho regional, instituto federal) fica no estado.
+        """
+        from .orgaos import ESTADO, _plano
+
+        uf = self.uf.upper()
+        if uf not in ESTADO:
+            return "BR"
+        if self.esfera == self.Esfera.FEDERAL and uf == "DF" and not re.search(
+                r"distrito federal|brasilia|regional", _plano(self.nome)):
+            return "BR"
+        return uf
+
 
 class Banca(models.Model):
     nome = models.CharField(max_length=200)
@@ -154,6 +176,22 @@ class Carreira(models.TextChoices):
     EDUCACAO = "educacao", "Educação"
 
 
+REGIOES = ["AC AP AM PA RO RR TO", "AL BA CE MA PB PE PI RN SE", "DF GO MT MS", "ES MG RJ SP", "PR RS SC"]
+_ORDEM_UF = {uf: i for i, uf in enumerate(" ".join(REGIOES).split())}
+
+
+def _por_lugar(concursos: list) -> list[tuple[str, list]]:
+    """Os concursos de um grupo, juntos por estado: Nacional primeiro, depois
+    as UFs por região (N, NE, CO, SE, S). A ordem dentro do estado é a da lista."""
+    from .orgaos import ESTADO
+
+    blocos: dict[str, list] = {}
+    for c in concursos:
+        blocos.setdefault(c.orgao.lugar, []).append(c)
+    ordem = sorted(blocos, key=lambda uf: _ORDEM_UF.get(uf, -1))
+    return [("Nacional" if uf == "BR" else ESTADO[uf], blocos[uf]) for uf in ordem]
+
+
 class ConcursosIndexPage(Page):
     """Página inicial do portal: lista os concursos publicados."""
 
@@ -192,13 +230,24 @@ class ConcursosIndexPage(Page):
             .select_related("orgao", "banca").order_by("-first_published_at")
         )
         ctx["concursos"] = concursos
-        from .radar_vivo import JANELA_DIAS, pontos
+        from .orgaos import ESTADO
+        from .radar_vivo import JANELA_DIAS, estados, pontos
         ctx["radar_pontos"] = pontos(concursos)
         ctx["radar_janela"] = JANELA_DIAS
-        ctx["grupos"] = [(chave, titulo, [c for c in concursos if c.situacao_classe in situacoes])
-                         for chave, titulo, situacoes in self.GRUPOS]
-        # na reta final, a prova mais próxima primeiro
-        ctx["grupos"][0][2].sort(key=lambda c: c.data_prova)
+        # clicar num estado do mapa filtra a lista (?uf=PE; ?uf=BR é o nacional)
+        contagem = Counter(c.orgao.lugar for c in concursos)
+        uf = request.GET.get("uf", "").upper()
+        uf = uf if uf in contagem else ""
+        ctx["mapa_estados"] = estados(contagem, uf)
+        ctx["nacionais"], ctx["uf_ativa"] = contagem.get("BR", 0), uf
+        ctx["uf_ativa_nome"] = "Nacional" if uf == "BR" else ESTADO.get(uf, "")
+        lista = [c for c in concursos if not uf or c.orgao.lugar == uf]
+        ctx["grupos"] = []
+        for chave, titulo, situacoes in self.GRUPOS:
+            do_grupo = [c for c in lista if c.situacao_classe in situacoes]
+            if chave == "reta-final":
+                do_grupo.sort(key=lambda c: c.data_prova)      # a prova mais próxima primeiro
+            ctx["grupos"].append((chave, titulo, _por_lugar(do_grupo)))
         # "acompanhada" = ativa e com watch no changedetection: o número da
         # página é o que está sendo vigiado de fato, não o que está cadastrado
         ativas = (Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")
