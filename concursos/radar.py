@@ -81,6 +81,21 @@ def avaliar(sinais, hoje: date | None = None) -> Avaliacao | None:
     return Avaliacao(forca(principal.tipo), principal, *(jan or (None, None)), prazo)
 
 
+def em_ordem(sinais) -> list:
+    """Linha do tempo (ADR-0013 D3). Dentro de um processo, a ordem é a do
+    procedimento (a força do tipo: licitação antes do contrato), porque as
+    datas são de naturezas diferentes: o contrato tem a data de assinatura, a
+    licitação a de publicação no PNCP. Entre processos, e para os sinais sem
+    processo, vale a data: cada processo entra pela data do primeiro sinal."""
+    sinais = list(sinais)
+    inicio = {}
+    for s in sinais:
+        if s.processo_pncp:
+            inicio[s.processo_pncp] = min(inicio.get(s.processo_pncp, s.data_documento), s.data_documento)
+    return sorted(sinais, key=lambda s: (inicio.get(s.processo_pncp, s.data_documento), s.processo_pncp or str(s.pk),
+                                         forca(s.tipo), s.data_documento))
+
+
 ROTULO_PRAZO = {"no_prazo": "no prazo", "atrasado": "atrasado", "sem_janela": "sem previsão"}
 STATUS_DO_RADAR = ("previsto", "autorizado")
 

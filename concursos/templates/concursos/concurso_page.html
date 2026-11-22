@@ -42,8 +42,9 @@
         {% endif %}
         <ol class="linha-do-tempo">
           {% for s in r.sinais %}
-            <li><time datetime="{{ s.data_documento|date:"Y-m-d" }}">{{ s.data_documento|date:"d/m/Y" }}</time>
-              · {{ s.get_tipo_display|slice:"4:" }}: {{ s.resumo }}
+            <li><strong>{{ s.get_tipo_display|slice:"4:" }}</strong>, {{ s.rotulo_data }}
+              <time datetime="{{ s.data_documento|date:"Y-m-d" }}">{{ s.data_documento|date:"d/m/Y" }}</time>:
+              {{ s.resumo }}
               <a href="{{ s.documento_url }}" target="_blank" rel="noopener nofollow">documento oficial<span class="so-leitor"> (abre em nova aba)</span></a></li>
           {% endfor %}
         </ol>

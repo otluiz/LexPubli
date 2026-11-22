@@ -186,3 +186,27 @@ def test_painel_do_admin_lista_o_sinal_solto(admin_client, trt8):
     radar.aplicar(trt8)
     html = admin_client.get("/painel/").content.decode()
     assert "Sinal de outro processo do mesmo órgão (1)" in html and B in html
+
+
+# --- ADR-0013 D3: ordem do procedimento e o rótulo de cada data -----------------------
+
+def test_no_mesmo_processo_a_licitacao_vem_antes_do_contrato(trt8):
+    """O caso da PCAC: contrato assinado em 22/10, licitação publicada no PNCP
+    em 06/11. As datas são de naturezas diferentes; vale a ordem do procedimento."""
+    contrato = _sinal(trt8, "banca_contratada", date(2026, 10, 22), url=PNCP, processo_pncp=A,
+                      origem=Sinal.Origem.PNCP)
+    licitacao = _sinal(trt8, "licitacao_banca", date(2026, 11, 6), url=PNCP + "/l", processo_pncp=A,
+                       origem=Sinal.Origem.PNCP)
+    autorizacao = _sinal(trt8, "autorizacao", date(2026, 6, 1))
+    outro = _sinal(trt8, "licitacao_banca", date(2026, 9, 1), url=PNCP + "/b", processo_pncp=B,
+                   origem=Sinal.Origem.PNCP)
+    assert radar.em_ordem([contrato, outro, licitacao, autorizacao]) == [autorizacao, outro, licitacao, contrato]
+
+
+def test_cada_data_diz_o_que_e(client, trt8):
+    _sinal(trt8, "autorizacao", date(2026, 6, 1), origem=Sinal.Origem.DOU)
+    _sinal(trt8, "banca_contratada", date(2026, 10, 22), url=PNCP, processo_pncp=A, origem=Sinal.Origem.PNCP)
+    _sinal(trt8, "licitacao_banca", date(2026, 11, 6), url=PNCP + "/l", processo_pncp=A, origem=Sinal.Origem.PNCP)
+    html = client.get(radar.aplicar(trt8).url).content.decode()
+    assert "publicado no DOU em" in html and "assinado em" in html and "publicado no PNCP em" in html
+    assert html.index("Licitação ou aviso de contratação da banca</strong>") < html.index("Banca contratada</strong>")
