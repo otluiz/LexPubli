@@ -309,9 +309,9 @@ class ConcursoPage(Page):
 
     def radar(self):
         """Nota, previsão e linha do tempo dos sinais (ADR-0008), ou None."""
-        from .radar import ROTULO_PRAZO, avaliar
+        from .radar import ROTULO_PRAZO, avaliar, em_ordem
 
-        sinais = list(self.sinais.all().order_by("data_documento"))
+        sinais = em_ordem(self.sinais.all())
         av = avaliar(sinais)
         if av is None:
             return None
@@ -558,6 +558,16 @@ class Sinal(models.Model):
                                    help_text="O curador conferiu (o radar publica sozinho a partir "
                                              "da força 4; a revisão vem depois).")
     registrado_em = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def rotulo_data(self) -> str:
+        """O que a data quer dizer (ADR-0013 D3): no PNCP, o contrato traz a
+        assinatura e a licitação a publicação."""
+        if self.origem == self.Origem.PNCP:
+            return "assinado em" if self.tipo == self.Tipo.BANCA_CONTRATADA else "publicado no PNCP em"
+        if self.origem == self.Origem.DOU:
+            return "publicado no DOU em"
+        return "de"
 
     panels = [
         FieldRowPanel([FieldPanel("orgao"), FieldPanel("tipo"), FieldPanel("data_documento")]),

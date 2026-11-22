@@ -144,7 +144,10 @@ previsões viraram edital".
    etapa 1 não têm processo: o primeiro sinal com processo que chegar para
    uma delas vai para o painel, e, ligado pelo curador, a página passa a
    ter processo.
-3. D3: ordem por procedimento e o rótulo de cada data.
+3. ~~D3: ordem por procedimento e o rótulo de cada data~~ (feito em
+   22/11: `radar.em_ordem` e `Sinal.rotulo_data`). Os sinais antigos, sem
+   processo, seguem pela data; o rótulo explica a diferença ("assinado
+   em" × "publicado no PNCP em").
 4. D4 e D5: campos, título, quadro de outros concursos, sugestão de edital.
 5. D6: o status "Não chegou a edital" e a tolerância de 12 meses.
 
