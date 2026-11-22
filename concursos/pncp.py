@@ -35,6 +35,7 @@ APP = "https://pncp.gov.br/app"
 UA = "LexPubli/0.1 (radar de concursos; dados abertos do PNCP)"
 MODALIDADES = {8: "Dispensa", 4: "Concorrência eletrônica"}
 ESFERAS = {"F": "federal", "E": "estadual", "D": "distrital"}
+TRILHAS_MUNICIPAIS = {"fiscal_controle", "juridica"}     # o município que entra no radar (ADR-0012 D1)
 
 # o objeto precisa ser a REALIZAÇÃO de concurso para provimento de cargos
 RE_CONCURSO = re.compile(r"concurso\s+p[uú]blico", re.I)
@@ -185,7 +186,7 @@ def orgao_do_achado(a: Achado, rel: Relatorio | None = None):
     razão social: 'TRIBUNAL REGIONAL DO TRABALHO DA 8A REGIAO' -> TRT8), e aí
     o CNPJ é gravado nele; senão é criado com o nome do PNCP."""
     from .models import Orgao
-    from .orgaos import chaves, orgao_da_chave
+    from .orgaos import _plano, chaves, orgao_da_chave
     from .util import slug_lex
 
     orgao = Orgao.objects.filter(cnpj=a.cnpj).first() if a.cnpj else None
@@ -197,12 +198,18 @@ def orgao_do_achado(a: Achado, rel: Relatorio | None = None):
         orgao.cnpj = a.cnpj
         orgao.save(update_fields=["cnpj"])
         return orgao
-    nome = _nome_orgao(a.razao or a.cnpj)
-    slug = slug_lex(achadas[0] if achadas else nome)[:70]
+    municipal = a.esfera not in ESFERAS
+    if municipal and a.municipio and _plano(a.razao).startswith("municipio de"):
+        nome = f"Prefeitura de {a.municipio}"            # 'MUNICIPIO DE CARUARU' -> 'Prefeitura de Caruaru'
+    else:
+        nome = _nome_orgao(a.razao or a.cnpj)
+    slug = slug_lex(achadas[0] if achadas else (f"{nome} {a.uf}" if municipal else nome))[:70]
     if Orgao.objects.filter(slug=slug).exists():
         slug = f"{slug[:60]}_{a.cnpj[-6:]}"
     orgao = Orgao.objects.create(nome=nome, sigla=achadas[0] if achadas else "", slug=slug,
-                                 cnpj=a.cnpj, esfera=ESFERAS[a.esfera], uf=a.uf[:2])
+                                 cnpj=a.cnpj, esfera=ESFERAS.get(a.esfera, "municipal"), uf=a.uf[:2],
+                                 municipio=a.municipio if municipal else "",
+                                 codigo_ibge=a.ibge if municipal else "")
     if rel is not None:
         rel.orgaos_novos.append(nome)
     return orgao
@@ -212,11 +219,12 @@ def gravar(a: Achado, rel: Relatorio):
     """Filtra e grava UMA publicação como Sinal. Devolve o Orgao tocado (sinal
     novo) ou None."""
     from .models import Sinal
+    from .trilhas import trilhas
 
     if not e_concurso_publico(a.objeto):
         return None
-    if a.esfera not in ESFERAS:
-        rel.municipais += 1
+    if a.esfera not in ESFERAS and not TRILHAS_MUNICIPAIS & set(trilhas(a.razao, a.unidade, a.objeto)):
+        rel.municipais += 1          # municipal fora das trilhas fiscal e jurídica: só contado
         return None
     orgao = orgao_do_achado(a, rel)
     resumo = re.sub(r"\s+", " ", a.objeto).strip()

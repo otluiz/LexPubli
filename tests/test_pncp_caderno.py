@@ -51,13 +51,29 @@ def test_dia_interrompido_nao_entra_no_caderno(db, exemplo):
     assert len(rel.sinais) == 1                             # mas o sinal já lido ficou
 
 
-def test_municipal_fica_no_caderno_mas_nao_vira_sinal(db, exemplo):
+def test_municipal_fiscal_vira_sinal_com_municipio(db, exemplo):
+    """ADR-0012: o ISS Caruaru entra no radar; o órgão é a prefeitura, com
+    município e código IBGE (D3)."""
     from concursos.models import Sinal
 
     pncp.coletar(dias=1, hoje=HOJE, get=PncpFalso(contratos=[_municipal()]), pausa=0)
     [a] = pncp.ler_caderno(date(2026, 10, 12))
     assert (a.municipio, a.ibge, a.unidade, a.fornecedor) == (
         "Caruaru", "2604106", "SECRETARIA DA FAZENDA MUNICIPAL", "IBAM")
+    s = Sinal.objects.get(orgao__cnpj="10091536000108")
+    o = s.orgao
+    assert (o.nome, o.esfera, o.uf, o.municipio, o.codigo_ibge) == (
+        "Prefeitura de Caruaru", "municipal", "PE", "Caruaru", "2604106")
+    assert o.nome_com_estado == "Prefeitura de Caruaru — PE" and o.lugar == "PE"
+
+
+def test_municipal_fora_das_trilhas_fica_so_no_caderno(db, exemplo):
+    from concursos.models import Sinal
+
+    x = _municipal()
+    x["unidadeOrgao"]["nomeUnidade"] = "SECRETARIA DE SAUDE"
+    rel = pncp.coletar(dias=1, hoje=HOJE, get=PncpFalso(contratos=[x]), pausa=0)
+    assert len(pncp.ler_caderno(date(2026, 10, 12))) == 1 and rel.municipais == 1
     assert not Sinal.objects.filter(orgao__cnpj="10091536000108").exists()
 
 

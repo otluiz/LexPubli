@@ -62,6 +62,9 @@ class Orgao(index.Indexed, models.Model):
                             help_text="Gerado da sigla (ou do nome) se vazio. Ex.: sefaz_al")
     esfera = models.CharField(max_length=10, choices=Esfera.choices)
     uf = models.CharField("UF", max_length=2, blank=True)
+    municipio = models.CharField("município", max_length=100, blank=True,
+                                 help_text="Só para órgão municipal (ADR-0012 D3).")
+    codigo_ibge = models.CharField("código IBGE", max_length=7, blank=True)
     cnpj = models.CharField("CNPJ", max_length=14, blank=True, db_index=True,
                             help_text="Só dígitos. Liga o órgão às contratações do PNCP (ADR-0008).")
 
@@ -69,6 +72,7 @@ class Orgao(index.Indexed, models.Model):
         FieldPanel("nome"),
         FieldRowPanel([FieldPanel("sigla"), FieldPanel("slug")]),
         FieldRowPanel([FieldPanel("esfera"), FieldPanel("uf"), FieldPanel("cnpj")]),
+        FieldRowPanel([FieldPanel("municipio"), FieldPanel("codigo_ibge")]),
     ]
     search_fields = [index.SearchField("nome"), index.AutocompleteField("sigla")]
 
@@ -104,6 +108,8 @@ class Orgao(index.Indexed, models.Model):
         """
         from .orgaos import _plano
 
+        if self.esfera == self.Esfera.MUNICIPAL and self.uf:
+            return f"{self.nome} — {self.uf.upper()}"        # "Prefeitura de Caruaru — PE" (ADR-0012 D3)
         if not self.estado or _plano(self.estado) in _plano(self.nome):
             return self.nome
         return f"{self.nome} — {self.estado}"
