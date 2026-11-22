@@ -202,3 +202,25 @@ def painel_sem_data_de_prova(request, panels):
     concursos = concursos_sem_data_de_prova()
     if concursos:
         panels.append(SemDataDeProvaPanel(concursos))
+
+
+# --- Painel: sinal que o radar não juntou sozinho (ADR-0013 D2) ---------------
+class SinalDeOutroProcessoPanel(SemDataDeProvaPanel):
+    order = 40
+
+    def __init__(self, sinais):
+        self.sinais = sinais
+
+    def render_html(self, parent_context=None):
+        from django.template.loader import render_to_string
+
+        return render_to_string("concursos/admin/sinal_de_outro_processo.html", {"sinais": self.sinais})
+
+
+@hooks.register("construct_homepage_panels")
+def painel_sinal_de_outro_processo(request, panels):
+    from .radar import sinais_de_outro_processo
+
+    sinais = sinais_de_outro_processo()
+    if sinais:
+        panels.append(SinalDeOutroProcessoPanel(sinais))

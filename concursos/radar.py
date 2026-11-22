@@ -86,48 +86,100 @@ STATUS_DO_RADAR = ("previsto", "autorizado")
 
 
 def aplicar(orgao, hoje: date | None = None):
-    """Leva a nota do órgão ao portal (ADR-0008 §5, opção b). Devolve a
-    ConcursoPage da chamada, ou None.
+    """Leva os sinais do órgão ao portal (ADR-0008 §5, opção b; ADR-0013 D2).
+    Devolve a ConcursoPage da chamada, ou None.
 
-    - Já há chamada (um sinal ligado a uma página, ou uma página Prevista ou
-      Autorizada do órgão): liga a ela os sinais soltos e sobe o status para
-      Autorizado se a força chegou a 4. Nunca rebaixa nem mexe no que o
-      curador escreveu.
-    - Não há, e a força é 4 ou mais: cria e publica a chamada sozinho.
-    - Não há, e a força é menor: nada; abaixo da autorização, quem publica é
-      o curador.
+    Um sinal solto só é ligado a uma página quando não há dúvida de que é o
+    mesmo concurso:
+    - tem processo PNCP, e algum sinal da página é do mesmo processo; ou
+    - não tem processo, e o órgão tem uma única página no radar.
+    Fora disso fica solto, no painel "Sinal de outro processo do mesmo órgão",
+    e quem decide é o curador. O radar não chuta.
+
+    Sem nenhuma página, e com força 4 ou mais, cria e publica a chamada com o
+    sinal mais forte, mais os do mesmo processo e os sem processo. Uma página
+    Prevista sobe para Autorizada quando os sinais DELA chegam à força 4.
+    Nunca rebaixa nem mexe no que o curador escreveu.
     """
-    from .models import ConcursoPage, ConcursosIndexPage, StatusConcurso
+    from .models import ConcursoPage
 
     sinais = list(orgao.sinais.all())
-    av = avaliar(sinais, hoje)
-    if av is None:
+    if not sinais:
         return None
-    chamada = next((s.concurso for s in sinais if s.concurso_id), None) or (
-        ConcursoPage.objects.filter(orgao=orgao, status__in=STATUS_DO_RADAR)
-        .order_by("-first_published_at").first())
-    if chamada is None:
+    paginas = {s.concurso_id: s.concurso for s in sinais if s.concurso_id}
+    for p in ConcursoPage.objects.filter(orgao=orgao, status__in=STATUS_DO_RADAR):
+        paginas.setdefault(p.pk, p)
+    soltos = [s for s in sinais if not s.concurso_id]
+
+    if not paginas:
+        av = avaliar(soltos, hoje)
         if not av.publica_sozinho:
             return None
-        indice = ConcursosIndexPage.objects.first()
-        if indice is None:
+        chamada = _nova_chamada(orgao, av, sinais)
+        if chamada is None:
             return None
-        ano = (av.inicio or av.sinal.data_documento).year
-        if ConcursoPage.objects.filter(contest_slug=f"{orgao.slug}_{ano}").exists():
-            return None      # já há concurso do órgão naquele ano: decisão do curador
-        banca = next((s.banca for s in sinais if s.banca_id), None)
-        chamada = ConcursoPage(
-            title=f"{orgao.sigla or orgao.nome_com_estado} {ano}: concurso autorizado",
-            orgao=orgao, banca=banca, ano=ano, status=StatusConcurso.AUTORIZADO,
-            fonte_url=av.sinal.documento_url,
-            resumo=f"<p>{av.sinal.resumo}</p>",
-            search_description=f"{orgao.nome_com_estado}: concurso autorizado. Previsão do edital e "
-                               "documentos oficiais.",
-        )
-        indice.add_child(instance=chamada)
-        chamada.save_revision().publish()
-    elif av.forca >= forca("autorizacao") and chamada.status == StatusConcurso.PREVISTO:
-        chamada.status = StatusConcurso.AUTORIZADO
-        chamada.save_revision().publish()
-    orgao.sinais.filter(concurso__isnull=True).update(concurso=chamada)
+        grupo = av.sinal.processo_pncp
+        ligar = [s for s in soltos if s.processo_pncp in ("", grupo)]
+    else:
+        do_processo = {s.processo_pncp: s.concurso for s in sinais if s.concurso_id and s.processo_pncp}
+        unica = next(iter(paginas.values())) if len(paginas) == 1 else None
+        ligar = []
+        for s in soltos:
+            destino = do_processo.get(s.processo_pncp) if s.processo_pncp else unica
+            if destino is not None:
+                s.concurso = destino
+                ligar.append(s)
+        chamada = max(paginas.values(), key=lambda p: p.pk)        # a página mais nova do órgão
+
+    for s in ligar:
+        s.concurso = s.concurso or chamada
+        s.save(update_fields=["concurso"])
+    for p in {s.concurso for s in ligar} | ({chamada} if chamada else set()):
+        _subir_status(p, hoje)
     return chamada
+
+
+def _nova_chamada(orgao, av, sinais):
+    from .models import ConcursoPage, ConcursosIndexPage, StatusConcurso
+
+    indice = ConcursosIndexPage.objects.first()
+    if indice is None:
+        return None
+    ano = (av.inicio or av.sinal.data_documento).year
+    if ConcursoPage.objects.filter(contest_slug=f"{orgao.slug}_{ano}").exists():
+        return None      # já há concurso do órgão naquele ano: decisão do curador
+    banca = next((s.banca for s in sinais if s.banca_id), None)
+    chamada = ConcursoPage(
+        title=f"{orgao.sigla or orgao.nome_com_estado} {ano}: concurso autorizado",
+        orgao=orgao, banca=banca, ano=ano, status=StatusConcurso.AUTORIZADO,
+        fonte_url=av.sinal.documento_url,
+        resumo=f"<p>{av.sinal.resumo}</p>",
+        search_description=f"{orgao.nome_com_estado}: concurso autorizado. Previsão do edital e "
+                           "documentos oficiais.",
+    )
+    indice.add_child(instance=chamada)
+    chamada.save_revision().publish()
+    return chamada
+
+
+def _subir_status(pagina, hoje):
+    from .models import StatusConcurso
+
+    av = avaliar(pagina.sinais.all(), hoje)
+    if av and av.forca >= forca("autorizacao") and pagina.status == StatusConcurso.PREVISTO:
+        pagina.status = StatusConcurso.AUTORIZADO
+        pagina.save_revision().publish()
+
+
+def sinais_de_outro_processo():
+    """Sinais soltos de órgão que já tem página: o curador decide se é o mesmo
+    concurso ou um concurso novo (ADR-0013 D2)."""
+    from django.db.models import Q
+
+    from .models import ConcursoPage, Sinal
+
+    no_radar = ConcursoPage.objects.filter(status__in=STATUS_DO_RADAR).values("orgao")
+    ligados = Sinal.objects.filter(concurso__isnull=False).values("orgao")
+    return list(Sinal.objects.filter(concurso__isnull=True)
+                .filter(Q(orgao__in=no_radar) | Q(orgao__in=ligados))
+                .select_related("orgao").order_by("orgao__nome", "data_documento"))
