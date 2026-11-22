@@ -139,7 +139,11 @@ previsões viraram edital".
    sem processo e, pela D1, identifica só o órgão. Quando o mesmo documento
    é lido de novo (busca por órgão disparada por uma pista), o sinal ganha
    o processo.
-2. D2 e o painel de sinais de outro processo.
+2. ~~D2 e o painel de sinais de outro processo~~ (feito em 22/11:
+   `radar.aplicar` e o painel no início do admin). As páginas de antes da
+   etapa 1 não têm processo: o primeiro sinal com processo que chegar para
+   uma delas vai para o painel, e, ligado pelo curador, a página passa a
+   ter processo.
 3. D3: ordem por procedimento e o rótulo de cada data.
 4. D4 e D5: campos, título, quadro de outros concursos, sugestão de edital.
 5. D6: o status "Não chegou a edital" e a tolerância de 12 meses.

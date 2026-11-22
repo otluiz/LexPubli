@@ -1,0 +1,18 @@
+<section class="w-panel" aria-labelledby="sinal-outro-processo">
+  <div class="w-panel__header">
+    <h2 class="w-panel__heading" id="sinal-outro-processo">Sinal de outro processo do mesmo órgão ({{ sinais|length }})</h2>
+  </div>
+  <div class="w-panel__content">
+    <p>O órgão já tem concurso no radar, mas este sinal é de outro processo no PNCP (ou o órgão tem mais de uma
+      página). O radar não junta sozinho (ADR-0013 D2). Abra o sinal e, no campo <strong>Concurso</strong>, escolha
+      a página certa. Se for um concurso novo, crie a página antes e escolha-a ali.</p>
+    <ul>
+      {% for s in sinais %}
+        <li><a href="{% url 'wagtailsnippets_concursos_sinal:edit' s.pk %}">{{ s.orgao }}</a>:
+          {{ s.get_tipo_display|slice:"4:" }} de {{ s.data_documento|date:"d/m/Y" }}
+          {% if s.processo_pncp %}· processo {{ s.processo_pncp }}{% else %}· sem processo{% endif %}
+          · <a href="{{ s.documento_url }}" target="_blank" rel="noopener">documento</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>

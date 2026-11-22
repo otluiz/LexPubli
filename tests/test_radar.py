@@ -119,3 +119,70 @@ def test_pagina_mostra_nota_previsao_e_linha_do_tempo(client, trt8):
     assert html.count("documento oficial") >= 2 and PNCP in html
     inicio = client.get("/").content.decode()
     assert "No radar" in inicio and "TRT-8 2027" in inicio      # contratada em out/26: edital em 2027
+
+
+# --- ADR-0013 D2: só junta o que é do mesmo processo ---------------------------------
+A, B = "02390435000115-1-000021/2026", "02390435000115-1-000099/2026"
+
+
+def test_mesmo_processo_vai_para_a_pagina_e_outro_processo_fica_solto(trt8):
+    _sinal(trt8, "banca_contratada", date(2026, 9, 1), url=PNCP, processo_pncp=A)
+    chamada = radar.aplicar(trt8)
+    mesmo = _sinal(trt8, "licitacao_banca", date(2026, 8, 1), url=PNCP + "/l", processo_pncp=A)
+    outro = _sinal(trt8, "banca_contratada", date(2026, 11, 1), url=PNCP + "/b", processo_pncp=B)
+    radar.aplicar(trt8)
+    mesmo.refresh_from_db(), outro.refresh_from_db()
+    assert mesmo.concurso_id == chamada.pk and outro.concurso_id is None
+    assert ConcursoPage.objects.filter(orgao=trt8).count() == 1      # não cria outra página sozinho
+    assert radar.sinais_de_outro_processo() == [outro]
+
+
+def test_sem_processo_so_junta_quando_o_orgao_tem_uma_pagina(trt8, exemplo):
+    _sinal(trt8, "autorizacao", date(2026, 9, 1), processo_pncp=A)
+    radar.aplicar(trt8)
+    um = _sinal(trt8, "comissao", date(2026, 9, 20), url=DOU + "/c")
+    radar.aplicar(trt8)
+    um.refresh_from_db()
+    assert um.concurso_id is not None                                 # uma página só: sem dúvida
+    indice = exemplo["concurso"].get_parent().specific
+    indice.add_child(instance=ConcursoPage(title="TRT-8 2027: outro", orgao=trt8, ano=2027,
+                                           status=StatusConcurso.PREVISTO, fonte_url=DOU))
+    dois = _sinal(trt8, "comissao", date(2026, 10, 20), url=DOU + "/d")
+    radar.aplicar(trt8)
+    dois.refresh_from_db()
+    assert dois.concurso_id is None and dois in radar.sinais_de_outro_processo()
+
+
+def test_pagina_nova_leva_o_processo_mais_forte_e_deixa_o_outro_solto(trt8):
+    forte = _sinal(trt8, "banca_contratada", date(2026, 9, 1), url=PNCP, processo_pncp=A)
+    sem = _sinal(trt8, "autorizacao", date(2026, 6, 1))
+    outro = _sinal(trt8, "licitacao_banca", date(2026, 10, 1), url=PNCP + "/l", processo_pncp=B)
+    chamada = radar.aplicar(trt8)
+    for s in (forte, sem, outro):
+        s.refresh_from_db()
+    assert forte.concurso_id == sem.concurso_id == chamada.pk and outro.concurso_id is None
+
+
+def test_curador_liga_um_sinal_e_o_resto_do_processo_vai_junto(trt8, exemplo):
+    _sinal(trt8, "banca_contratada", date(2026, 9, 1), url=PNCP, processo_pncp=A)
+    radar.aplicar(trt8)
+    indice = exemplo["concurso"].get_parent().specific
+    novo = ConcursoPage(title="TRT-8 2027 — nível superior", orgao=trt8, ano=2027,
+                        status=StatusConcurso.PREVISTO, fonte_url=DOU)
+    indice.add_child(instance=novo)
+    b1 = _sinal(trt8, "licitacao_banca", date(2026, 10, 1), url=PNCP + "/l", processo_pncp=B)
+    b2 = _sinal(trt8, "banca_contratada", date(2026, 11, 1), url=PNCP + "/b", processo_pncp=B)
+    b1.concurso = novo
+    b1.save()                                    # o que o curador faz no admin
+    radar.aplicar(trt8)
+    b2.refresh_from_db(), novo.refresh_from_db()
+    assert b2.concurso_id == novo.pk and novo.status == StatusConcurso.AUTORIZADO
+
+
+def test_painel_do_admin_lista_o_sinal_solto(admin_client, trt8):
+    _sinal(trt8, "banca_contratada", date(2026, 9, 1), url=PNCP, processo_pncp=A)
+    radar.aplicar(trt8)
+    _sinal(trt8, "banca_contratada", date(2026, 11, 1), url=PNCP + "/b", processo_pncp=B)
+    radar.aplicar(trt8)
+    html = admin_client.get("/painel/").content.decode()
+    assert "Sinal de outro processo do mesmo órgão (1)" in html and B in html
