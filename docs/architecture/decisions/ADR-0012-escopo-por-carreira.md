@@ -113,7 +113,12 @@ LexLearn (ADR-0005). Esta ADR só faz o portal enxergar os concursos.
 2. Reconhecedor das pistas: siglas da Rede Federal e município + termo
    fiscal; campo `municipio` no `Orgao`.
 3. Onda E: as páginas de concursos da Rede Federal.
-4. PNCP: municipal fazendário.
+4. ~~PNCP: municipal fazendário~~ (feito em 22/11). Publicação municipal
+   das trilhas fiscal e controle ou jurídica vira sinal; o órgão é a
+   prefeitura ("Prefeitura de Caruaru — PE"), com `municipio` e
+   `codigo_ibge` (D3). Como a coleta repassa o caderno a cada noite, as
+   publicações municipais já guardadas entram na primeira rodada depois do
+   deploy.
 
 ## Consequências
 
