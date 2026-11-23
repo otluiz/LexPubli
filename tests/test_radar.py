@@ -210,3 +210,16 @@ def test_cada_data_diz_o_que_e(client, trt8):
     html = client.get(radar.aplicar(trt8).url).content.decode()
     assert "publicado no DOU em" in html and "assinado em" in html and "publicado no PNCP em" in html
     assert html.index("Licitação ou aviso de contratação da banca</strong>") < html.index("Banca contratada</strong>")
+
+
+def test_sinal_de_orgao_com_concurso_em_andamento_nao_cria_outra_pagina(trt8, exemplo):
+    """O curador cadastrou o concurso já na reta final (ISS Caruaru); o
+    contrato da banca chega depois, pela leitura retroativa. Não vira uma
+    segunda página "concurso autorizado": fica no painel."""
+    indice = exemplo["concurso"].get_parent().specific
+    indice.add_child(instance=ConcursoPage(title="TRT-8 2026", orgao=trt8, ano=2026,
+                                           status=StatusConcurso.INSCRICOES_ENCERRADAS, fonte_url=DOU))
+    s = _sinal(trt8, "banca_contratada", date(2026, 5, 1), url=PNCP, processo_pncp=A)
+    assert radar.aplicar(trt8) is None
+    assert ConcursoPage.objects.filter(orgao=trt8).count() == 1
+    assert radar.sinais_de_outro_processo() == [s]
