@@ -98,6 +98,8 @@ def em_ordem(sinais) -> list:
 
 ROTULO_PRAZO = {"no_prazo": "no prazo", "atrasado": "atrasado", "sem_janela": "sem previsão"}
 STATUS_DO_RADAR = ("previsto", "autorizado")
+# concurso do órgão já com edital e ainda não encerrado: o radar não cria outra página por cima
+STATUS_EM_ANDAMENTO = ("edital_aberto", "inscricoes_encerradas", "prova_realizada")
 
 
 def aplicar(orgao, hoje: date | None = None):
@@ -127,6 +129,8 @@ def aplicar(orgao, hoje: date | None = None):
     soltos = [s for s in sinais if not s.concurso_id]
 
     if not paginas:
+        if ConcursoPage.objects.filter(orgao=orgao, status__in=STATUS_EM_ANDAMENTO).exists():
+            return None      # pode ser o sinal atrasado do concurso que já está no portal: o curador decide
         av = avaliar(soltos, hoje)
         if not av.publica_sozinho:
             return None
@@ -193,7 +197,7 @@ def sinais_de_outro_processo():
 
     from .models import ConcursoPage, Sinal
 
-    no_radar = ConcursoPage.objects.filter(status__in=STATUS_DO_RADAR).values("orgao")
+    no_radar = ConcursoPage.objects.filter(status__in=STATUS_DO_RADAR + STATUS_EM_ANDAMENTO).values("orgao")
     ligados = Sinal.objects.filter(concurso__isnull=False).values("orgao")
     return list(Sinal.objects.filter(concurso__isnull=True)
                 .filter(Q(orgao__in=no_radar) | Q(orgao__in=ligados))
