@@ -198,6 +198,26 @@ def _por_lugar(concursos: list) -> list[tuple[str, list]]:
     return [("Nacional" if uf == "BR" else ESTADO[uf], blocos[uf]) for uf in ordem]
 
 
+# Na home, lugar com vários concursos no grupo (Nacional, SP) ganha uma faixa
+# inteira com os cards lado a lado, até CARDS_POR_FAIXA, e o link para a lista
+# completa do lugar (?uf=); os lugares com um só concurso ficam compactos, juntos
+# numa grade abaixo. Assim o Nacional não vira uma coluna enorme ao lado de dois
+# cards minúsculos.
+FAIXA_A_PARTIR_DE = 2
+CARDS_POR_FAIXA = 6
+
+
+def _em_faixas(blocos: list[tuple[str, list]], limite: int | None = CARDS_POR_FAIXA) -> tuple[list, list]:
+    """(largos, pequenos), cada um com nome, uf, os cards visíveis e o total."""
+    largos, pequenos = [], []
+    for nome, lista in blocos:
+        b = {"nome": nome, "uf": lista[0].orgao.lugar, "total": len(lista),
+             "visiveis": lista[:limite] if limite else lista}
+        b["mais"] = b["total"] > len(b["visiveis"])
+        (largos if len(lista) >= FAIXA_A_PARTIR_DE else pequenos).append(b)
+    return largos, pequenos
+
+
 class ConcursosIndexPage(Page):
     """Página inicial do portal: lista os concursos publicados."""
 
@@ -254,7 +274,8 @@ class ConcursosIndexPage(Page):
             do_grupo = [c for c in lista if c.situacao_classe in situacoes]
             if chave == "reta-final":
                 do_grupo.sort(key=lambda c: c.data_prova)      # a prova mais próxima primeiro
-            ctx["grupos"].append((chave, titulo, _por_lugar(do_grupo)))
+            # com um estado escolhido, a lista dele vem inteira: é o índice do lugar
+            ctx["grupos"].append((chave, titulo, *_em_faixas(_por_lugar(do_grupo), None if uf else CARDS_POR_FAIXA)))
         # "acompanhada" = ativa e com watch no changedetection: o número da
         # página é o que está sendo vigiado de fato, não o que está cadastrado
         ativas = (Fonte.objects.filter(ativa=True).exclude(changedetection_uuid="")

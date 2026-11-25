@@ -291,6 +291,13 @@ a:hover { text-decoration: underline; }
 .blocos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px 14px;
   align-items: start; }
 .blocos .lista { grid-template-columns: 1fr; }
+/* lugar com vários concursos: faixa inteira, cards lado a lado (a .lista já é grade) */
+.bloco-largo { margin-bottom: 22px; }
+/* cada card com a altura do seu conteúdo: um card rico não estica os vizinhos vazios */
+.lista { align-items: start; }
+.lugar-total { font-weight: 500; letter-spacing: .02em; text-transform: none; }
+.ver-todos { margin: 10px 0 0; font-weight: 600; }
+.ver-todos a { color: var(--brasa); }
 .lugar { font-family: var(--texto); font-size: .8rem; font-weight: 600; letter-spacing: .06em;
   text-transform: uppercase; color: var(--suave); margin: 0 0 8px; }
 .filtro-uf { margin: 30px 0 0; padding: 10px 14px; border-radius: var(--raio-sm);

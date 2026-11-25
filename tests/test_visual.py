@@ -229,3 +229,35 @@ def test_sem_url_do_lexlearn_o_cabecalho_nao_tem_link_morto(client, exemplo, set
 def test_legenda_do_radar_conta_o_que_esta_no_banco(client, exemplo):
     html = client.get("/").content.decode()
     assert re.search(r"<strong>1</strong> concurso publicado\s+nos últimos 90 dias", html)
+
+
+def test_lugar_com_varios_concursos_vira_faixa_e_os_pequenos_ficam_juntos():
+    from types import SimpleNamespace as N
+
+    from concursos.models import CARDS_POR_FAIXA, _em_faixas, _por_lugar
+
+    def c(uf):
+        return N(orgao=N(lugar=uf))
+    lista = [c("BR")] * 8 + [c("SP")] * 3 + [c("AC"), c("AP")]
+    largos, pequenos = _em_faixas(_por_lugar(lista))
+    assert [(b["nome"], b["total"], len(b["visiveis"]), b["mais"]) for b in largos] == \
+        [("Nacional", 8, CARDS_POR_FAIXA, True), ("São Paulo", 3, 3, False)]
+    assert [b["nome"] for b in pequenos] == ["Acre", "Amapá"]
+    # com o estado escolhido, a lista vem inteira
+    largos, _ = _em_faixas(_por_lugar(lista), None)
+    assert len(largos[0]["visiveis"]) == 8 and not largos[0]["mais"]
+
+
+def test_faixa_cheia_leva_a_lista_completa_do_lugar(client, exemplo):
+    from concursos.models import ConcursoPage, ConcursosIndexPage, Orgao
+
+    indice = ConcursosIndexPage.objects.first()
+    al = exemplo["concurso"].orgao
+    for i in range(7):
+        indice.add_child(instance=ConcursoPage(title=f"Alagoas extra {i}", orgao=al, ano=2030 + i,
+                                               status="previsto", fonte_url=exemplo["concurso"].fonte_url))
+    html = client.get("/").content.decode()
+    assert 'class="bloco-lugar bloco-largo"' in html
+    assert 'href="?uf=AL#concursos">Ver os 7 concursos de Alagoas →' in html
+    filtrado = client.get("/?uf=AL").content.decode()
+    assert "Alagoas extra 6" in filtrado and "Ver os 7" not in filtrado
