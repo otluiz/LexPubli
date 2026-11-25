@@ -262,6 +262,10 @@
          30 dias. Pista é auditoria, não fila; não conta como fonte oficial.
          O coletor do PNCP agora acha o órgão da pista pela sigla e grava o
          CNPJ nele (sem duplicar órgão)
+   - [ ] RFB 2026 (página no ar, 25/11): gravar o Sinal da Portaria MGI
+         5.505 (03/07/2026) quando houver o link do DOU; conferir que o slug
+         da banca "fgv" é o mesmo do LexCorpus; trocar a faixa salarial
+         pelo valor do edital (dezembro) e limpar salario_ate
    - [X] Receita/FGV escapou do radar (25/11): as manchetes de 23/11
          ("Concurso Receita Federal: FGV é a banca") viraram pista SEM
          órgão; no gpu01, 1.590 de 1.702 pistas estavam sem órgão. Corrigido:
@@ -293,6 +297,16 @@
    - [ ] Fontes oficiais das Fazendas municipais do catálogo (onda C):
          página de concursos/notícias da Sefin/Semfaz das maiores, no
          changedetection
+   - [ ] PRÓXIMO (dono do produto, 25/11): pistas de ISS nos cursinhos.
+         Cadastrar como fonte de pista (não sinal, ADR-0008 §3) as páginas
+         de concursos ISS do Estratégia
+         (estrategiaconcursos.com.br/blog/concursos-iss/) e do Gran Cursos
+         (grancursosonline.com.br, cursos/notícias de ISS e fisco
+         municipal). Antes: rodar no gpu01 o medir_municipais.py (só
+         leitura) depois do deploy do #20 e conferir falso positivo
+   - [ ] Medir no gpu01 quantas pistas SEM_ORGAO viram prefeitura
+         (script só leitura; resultado decide se libera "auditor fiscal
+         de X" sem termo municipal)
    - [ ] "auditor fiscal de Maringá" (sem ISS/prefeitura/municipal no
          título) fica de fora de propósito: liberar faria "Sefaz de São
          Paulo" virar a prefeitura. Rever se a medição mostrar perda
@@ -569,6 +583,10 @@
          saturar; a home já tem a chamada no rodapé
    - [ ] Padronizar a mensagem única num só lugar (fragmento/trecho) para não
          divergir entre páginas
+   - [ ] AGUARDA DECISÃO (proposta de 25/11, dono do produto achou a
+         chamada "muito tímida"): (1) bloco forte logo abaixo do resumo na
+         página do concurso, com o nº de questões/provas da banca; (2) barra
+         fixa no rodapé no celular; (3) a copy num só fragmento (item acima)
    - FRONTEIRA: todo CTA é só LINK de saída (nova aba). O LexPubli NÃO cadastra
      usuário, não tem login, não cobra — isso é do LexLearn (ADR-0005: "os
      serviços pagos usam o LexLearn"). Ver jornada abaixo.
