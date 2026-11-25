@@ -310,6 +310,36 @@
       "ativa": false,
       "conferida_em": "2026-10-13",
       "motivo_inativa": "robots.txt proíbe tudo (Disallow /). Pedir autorização à DPU ou achar fonte alternativa oficial."
+    },
+    {
+      "nome": "RFB — Notícias",
+      "poder": "executivo",
+      "esfera": "federal",
+      "onda": "A",
+      "tipo": "pagina",
+      "url": "https://www.gov.br/receitafederal/pt-br/assuntos/noticias",
+      "carreira_sugerida": "fiscal",
+      "prioridade": 1,
+      "intervalo_horas": 6,
+      "ativa": true,
+      "conferida_em": "2026-11-25",
+      "motivo_inativa": "",
+      "conteudo": "noticias"
+    },
+    {
+      "nome": "RFB — Concursos públicos (perguntas frequentes)",
+      "poder": "executivo",
+      "esfera": "federal",
+      "onda": "A",
+      "tipo": "pagina",
+      "url": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/perguntas-frequentes/concursos-publicos",
+      "carreira_sugerida": "fiscal",
+      "prioridade": 2,
+      "intervalo_horas": 6,
+      "ativa": true,
+      "conferida_em": "2026-11-25",
+      "motivo_inativa": "",
+      "conteudo": "concursos"
     }
   ]
 }

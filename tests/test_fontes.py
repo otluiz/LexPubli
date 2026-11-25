@@ -101,13 +101,17 @@ def test_carregar_onda_a(db):
     from django.core.management import call_command
 
     call_command("carregar_fontes", "A", stdout=StringIO())
-    assert Fonte.objects.count() == 22
-    assert Fonte.objects.filter(ativa=True).count() == 17
+    assert Fonte.objects.count() == 24
+    assert Fonte.objects.filter(ativa=True).count() == 19
     inativas = Fonte.objects.filter(ativa=False)
     assert all(f.motivo_inativa for f in inativas)          # conferida e inativa: diz por quê
     assert set(Fonte.objects.values_list("poder", flat=True)) == set(Fonte.Poder.values)
     dou = Fonte.objects.get(tipo=Fonte.Tipo.DOU)
     assert dou.intervalo_horas == 24 and not dou.ativa
+    # a Receita: o comunicado "avança na contratação da FGV" (11/2026) saiu nas notícias
+    from concursos.orgaos import fontes_da_chave
+    rfb = fontes_da_chave("RFB")
+    assert {f.conteudo for f in rfb} == {"noticias", "concursos"} and all(f.ativa for f in rfb)
 
 
 def test_carregar_de_novo_nao_desfaz_o_curador(db):
@@ -121,7 +125,7 @@ def test_carregar_de_novo_nao_desfaz_o_curador(db):
     stj.save()
     saida = StringIO()
     call_command("carregar_fontes", "A", stdout=saida)
-    assert "22 mantida(s)" in saida.getvalue()
+    assert "24 mantida(s)" in saida.getvalue()
     assert Fonte.objects.get(pk=stj.pk).prioridade == 1
     call_command("carregar_fontes", "A", "--atualizar", stdout=StringIO())
     assert Fonte.objects.get(pk=stj.pk).prioridade == 2

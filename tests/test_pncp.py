@@ -207,3 +207,24 @@ def test_sinal_antigo_ganha_o_processo_quando_relido(db, exemplo):
     Sinal.objects.update(processo_pncp="")
     pncp.por_orgao("02390435000115", hoje=date(2026, 10, 13), get=falso, pausa=0)
     assert Sinal.objects.get().processo_pncp == "02390435000115-1-000021/2026"
+
+
+def test_receita_compra_pelo_cnpj_da_fazenda_e_o_concurso_e_da_rfb(db, exemplo):
+    from concursos.orgaos import FAZENDA
+    x = contratacao(cnpj=FAZENDA)
+    x["orgaoEntidade"]["razaoSocial"] = "MINISTERIO DA FAZENDA"
+    x["unidadeOrgao"] = {"ufSigla": "DF", "nomeUnidade": "SECRETARIA ESPECIAL DA RECEITA FEDERAL DO BRASIL"}
+    x["objetoCompra"] = ("Contratação da Fundação Getulio Vargas para planejamento, organização e realização "
+                         "de concurso público para provimento de cargos de Auditor-Fiscal e Analista-Tributário")
+    rel = pncp.coletar(dias=1, hoje=date(2026, 11, 25), get=PncpFalso(contratacoes=[x]), pausa=0)
+    rfb = Orgao.objects.get(sigla="RFB")
+    assert rfb.sinais.count() == 1 and rel.orgaos_novos == ["Receita Federal do Brasil"]
+    assert not rfb.cnpj and not Orgao.objects.filter(cnpj=FAZENDA).exists()   # CNPJ é do ministério
+
+
+def test_unidade_so_decide_quando_a_razao_social_nao_resolve(db, exemplo):
+    x = contrato()
+    x["unidadeOrgao"] = {"ufSigla": "PA", "nomeUnidade": "SECRETARIA DE GESTAO DE PESSOAS - CONCURSO PF"}
+    pncp.coletar(dias=1, hoje=date(2026, 10, 13), get=PncpFalso(contratos=[x]), pausa=0)
+    assert Orgao.objects.get(cnpj="02390435000115").sinais.count() == 1
+    assert not Orgao.objects.filter(sigla="PF").exists()

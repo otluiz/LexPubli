@@ -18,4 +18,4 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"{r['buscadas']} pista(s) buscada(s): {r['checagens']} checagem(ns) de fonte oficial, "
             f"{r['pncp']} consulta(s) ao PNCP; {r['confirmadas']} confirmada(s), "
-            f"{r['expiradas']} expirada(s)"))
+            f"{r['expiradas']} expirada(s); {r['reavaliadas']} sem órgão reavaliada(s)"))

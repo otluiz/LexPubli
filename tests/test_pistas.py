@@ -120,3 +120,60 @@ def test_carregar_pistas(db):
     call_command("carregar_fontes", "P", stdout=StringIO())
     p = Fonte.objects.filter(tipo="pista")
     assert p.count() == 4 and p.filter(ativa=True).count() == 3
+
+
+# manchetes reais (Estratégia e Gran, 23/11/2026) que ficaram SEM órgão no gpu01
+RECEITA = ("(added) Concurso Receita Federal: FGV é a banca; 146 vagas!\n"
+           "(added) Fiscal - Federal (RFB e AFT) Concurso Analista RFB: edital iminente\n"
+           "(added) Controladorias/Gestão (CGU, STN) Concurso Tesouro: o que se sabe\n")
+
+
+@pytest.mark.parametrize("texto,esperado", [
+    ("Concurso Receita Federal: FGV é a banca; 146 vagas!", ["RFB"]),
+    ("Fiscal - Federal (RFB e AFT) Concurso Analista RFB", ["RFB", "MTE"]),
+    ("Concurso PF e PRF: autorização publicada", ["PF", "PRF"]),
+    ("Concurso Polícia Rodoviária Federal", ["PRF"]),
+    ("Concurso Bacen: banca definida", ["BACEN"]),
+    ("CNU 2026: o que se sabe", ["MGI"]),
+    ("Concurso CPNU 2", ["MGI"]),
+    ("Concurso SEFAZ AL: Receita Estadual", []),
+    ("Concurso Prefeitura de Itu", []),
+])
+def test_resolvedor_conhece_o_executivo_federal(texto, esperado):
+    from concursos.orgaos import chaves
+    assert chaves(texto) == esperado
+
+
+def test_pista_da_receita_tem_orgao_e_consulta_o_pncp_pelo_ministerio(gran):
+    from concursos.orgaos import FAZENDA
+    pistas.registrar(gran, RECEITA)
+    rfb = Orgao.objects.get(sigla="RFB")
+    assert rfb.nome == "Receita Federal do Brasil" and rfb.esfera == "federal" and not rfb.cnpj
+    assert Pista.objects.filter(chave_orgao="STN").exists() and not Pista.objects.filter(chave_orgao="")
+    consultas = []
+    pistas.processar(hoje=date(2026, 11, 25), cliente_cd=None,
+                     pncp_por_orgao=lambda cnpj, hoje: consultas.append(cnpj) or pncp.Relatorio())
+    assert consultas.count(FAZENDA) == 1           # RFB e STN compram pela Fazenda: um pedido só
+
+
+def test_pista_sem_orgao_recente_ganha_segunda_chance(gran):
+    titulo = "Concurso Receita Federal: FGV é a banca; 146 vagas!"
+    velha = Pista.objects.create(fonte=gran, titulo="Concurso RFB: o último edital", chave_dedup="v",
+                                 status="sem_orgao", detectada_em=timezone.now() - timedelta(days=40))
+    recente = Pista.objects.create(fonte=gran, titulo=titulo, chave_dedup="r", status="sem_orgao",
+                                   detectada_em=timezone.now() - timedelta(days=2))
+    dupla = Pista.objects.create(fonte=gran, titulo="Concurso PF e PRF: autorização", chave_dedup="d",
+                                 status="sem_orgao")
+    r = pistas.processar(hoje=date(2026, 11, 25), cliente_cd=None,
+                         pncp_por_orgao=lambda *a, **k: pncp.Relatorio())
+    assert r["reavaliadas"] == 3
+    recente.refresh_from_db()
+    assert recente.chave_orgao == "RFB" and recente.orgao.sigla == "RFB" and recente.status == "aguardando"
+    velha.refresh_from_db()
+    assert velha.status == "sem_orgao"                       # fora do prazo de busca
+    assert set(Pista.objects.filter(titulo__startswith="Concurso PF").values_list("chave_orgao", flat=True)) \
+        == {"PF", "PRF"}
+    dupla.refresh_from_db()
+    assert dupla.chave_orgao == "PF"
+    # a mensagem repetida do RSS não duplica a pista reavaliada
+    assert pistas.registrar(gran, f"(added) {titulo}\n") == 0
