@@ -311,12 +311,24 @@
          título) fica de fora de propósito: liberar faria "Sefaz de São
          Paulo" virar a prefeitura. Rever se a medição mostrar perda
    - [ ] Anexo V do PLOA/LOA (anual)
+** TODO [#A] RETOMAR AQUI (sessão de 25/11)
+   - [ ] Revisar e mergear o PR #19 (home em faixas) e o PR #20 (prefeituras);
+         nenhum tem migração. Deploy no gpu01 é feito pelo dono do produto
+   - [ ] Rodar no gpu01 a medição só leitura (cópia fora do repo em
+         ~/Workspace/Lex/medir_municipais.py) e conferir falso positivo
+   - [ ] Depois: Estratégia e Gran Cursos como fontes de pista de ISS (ver
+         item "PRÓXIMO" na seção do radar)
+   - [ ] Decidir a proposta do CTA do LexLearn (seção Marketing)
 ** FEITO [#A] Página inicial e chamada ao LexLearn
    (13/10) A página inicial explica o portal e agrupa os concursos pela fase
    (no radar, inscrições abertas, em andamento); número de fontes = ativas
    COM watch. Chamada ao LexLearn em todas as páginas (contextual na página
    do concurso). LEXPUBLI_LEXLEARN_URL: padrão http://localhost:5175/ até o
    LexLearn ter endereço público (dono do produto, 13/10); trocar no lançamento
+   - [X] Home em faixas por lugar (PR #19, 25/11): lugar com 2+ concursos
+         (Nacional, SP) ocupa uma faixa horizontal com até 6 cards e o link
+         "Ver os N concursos de X" (filtro ?uf=); lugar com 1 concurso fica
+         compacto abaixo. Cards com a altura do próprio conteúdo
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
