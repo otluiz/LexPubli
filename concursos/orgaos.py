@@ -54,7 +54,36 @@ FEDERAIS = {
     "DPU": (r"\bdpu\b|defensoria publica da uniao", "Defensoria Pública da União"),
     "CAMARA": (r"camara dos deputados", "Câmara dos Deputados"),
     "SENADO": (r"senado federal", "Senado Federal"),
+    # executivo federal: os concursos grandes que os sites de concursos mais citam
+    # (medido nas pistas sem órgão do gpu01, 25/11/2026)
+    "RFB": (r"\brfb\b|receita federal", "Receita Federal do Brasil"),
+    "PGFN": (r"\bpgfn\b|procuradoria[- ]geral da fazenda nacional", "Procuradoria-Geral da Fazenda Nacional"),
+    "STN": (r"\bstn\b|tesouro nacional", "Secretaria do Tesouro Nacional"),
+    "PF": (r"\bpf\b|policia federal", "Polícia Federal"),
+    "PRF": (r"\bprf\b|policia rodoviaria federal", "Polícia Rodoviária Federal"),
+    "CGU": (r"\bcgu\b|controladoria[- ]geral da uniao", "Controladoria-Geral da União"),
+    "BACEN": (r"\bbacen\b|\bbcb\b|banco central", "Banco Central do Brasil"),
+    "INSS": (r"\binss\b|instituto nacional do seguro social", "Instituto Nacional do Seguro Social"),
+    "IBGE": (r"\bibge\b|instituto brasileiro de geografia", "Instituto Brasileiro de Geografia e Estatística"),
+    "CVM": (r"\bcvm\b|comissao de valores mobiliarios", "Comissão de Valores Mobiliários"),
+    "SUSEP": (r"\bsusep\b|superintendencia de seguros privados", "Superintendência de Seguros Privados"),
+    "PREVIC": (r"\bprevic\b|superintendencia nacional de previdencia complementar",
+               "Superintendência Nacional de Previdência Complementar"),
+    "MTE": (r"\bmte\b|ministerio do trabalho|auditor[- ]fiscal do trabalho|\baft\b",
+            "Ministério do Trabalho e Emprego"),
+    "MGI": (r"\bmgi\b|ministerio da gestao|\bcp?nu\b|concurso nacional unificado",
+            "Ministério da Gestão e da Inovação em Serviços Públicos"),
+    "EBSERH": (r"\bebserh\b", "Empresa Brasileira de Serviços Hospitalares"),
+    "BNDES": (r"\bbndes\b", "Banco Nacional de Desenvolvimento Econômico e Social"),
+    "BB": (r"\bbb\b|banco do brasil", "Banco do Brasil"),
+    "CAIXA": (r"\bcef\b|caixa economica federal", "Caixa Econômica Federal"),
 }
+
+# Órgãos sem CNPJ próprio no PNCP: compram pelo CNPJ do ministério e aparecem
+# lá como UNIDADE compradora (a Receita é "MINISTERIO DA FAZENDA" / "SECRETARIA
+# ESPECIAL DA RECEITA FEDERAL"). CNPJs conferidos na API do PNCP em 25/11/2026.
+FAZENDA, MJSP = "00394460000141", "00394494000136"
+CNPJ_DO_MINISTERIO = {"RFB": FAZENDA, "PGFN": FAZENDA, "STN": FAZENDA, "PF": MJSP, "PRF": MJSP}
 
 # famílias numeradas ou por UF: (padrão com um grupo, construtor da chave)
 FAMILIAS = [
@@ -134,6 +163,14 @@ def orgao_da_chave(chave: str, *, criar: bool = False):
     nome, esfera = nome_e_esfera(chave)
     uf = chave[-2:] if re.fullmatch(r"(TRE-|TJ|MP)[A-Z]{2}", chave) else ""
     return Orgao.objects.create(nome=nome, sigla=chave, esfera=esfera, uf=uf)
+
+
+def cnpj_para_pncp(orgao) -> str:
+    """O CNPJ com que o PNCP publica as compras do órgão: o dele ou, se ele
+    compra pelo ministério (CNPJ_DO_MINISTERIO), o do ministério."""
+    if orgao.cnpj:
+        return orgao.cnpj
+    return CNPJ_DO_MINISTERIO.get(normalizar_sigla(orgao.sigla), "") if orgao.sigla else ""
 
 
 def fontes_da_chave(chave: str):

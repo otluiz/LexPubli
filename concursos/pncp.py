@@ -184,10 +184,25 @@ class Relatorio:
 def orgao_do_achado(a: Achado, rel: Relatorio | None = None):
     """O Orgao da publicação: pelo CNPJ; senão pela sigla (o resolvedor lê a
     razão social: 'TRIBUNAL REGIONAL DO TRABALHO DA 8A REGIAO' -> TRT8), e aí
-    o CNPJ é gravado nele; senão é criado com o nome do PNCP."""
+    o CNPJ é gravado nele; senão é criado com o nome do PNCP.
+
+    Antes de tudo, a UNIDADE compradora: quando a razão social é de um
+    ministério que o resolvedor não conhece ('MINISTERIO DA FAZENDA') e a
+    unidade é um órgão conhecido ('SECRETARIA ESPECIAL DA RECEITA FEDERAL'),
+    o concurso é do órgão da unidade (RFB). O CNPJ, do ministério, não é
+    gravado nele: é o mesmo da PGFN e do Tesouro."""
     from .models import Orgao
     from .orgaos import _plano, chaves, orgao_da_chave
     from .util import slug_lex
+
+    pela_unidade = chaves(a.unidade) if a.unidade and a.esfera in ESFERAS and not chaves(a.razao) else []
+    if pela_unidade:
+        orgao = orgao_da_chave(pela_unidade[0])
+        if orgao is None:
+            orgao = orgao_da_chave(pela_unidade[0], criar=True)
+            if rel is not None:
+                rel.orgaos_novos.append(orgao.nome)
+        return orgao
 
     orgao = Orgao.objects.filter(cnpj=a.cnpj).first() if a.cnpj else None
     if orgao:

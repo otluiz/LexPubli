@@ -37,13 +37,48 @@ def registrar(fonte, mensagem: str) -> int:
         link = (RE_URL.findall(linha) or [""])[0]
         titulo = RE_URL.sub("", linha).strip(" -|·")[:300]
         for chave in chaves(titulo) or [""]:
-            dedup = hashlib.sha256(f"{fonte.pk}|{chave}|{titulo}".encode()).hexdigest()
+            dedup = _dedup(fonte.pk, chave, titulo)
             _, criada = Pista.objects.get_or_create(chave_dedup=dedup, defaults={
                 "fonte": fonte, "titulo": titulo, "link": link, "chave_orgao": chave,
                 "orgao": orgao_da_chave(chave, criar=True) if chave else None,
                 "status": Pista.Status.A_BUSCAR if chave else Pista.Status.SEM_ORGAO})
             novas += criada
     return novas
+
+
+def _dedup(fonte_pk, chave: str, titulo: str) -> str:
+    return hashlib.sha256(f"{fonte_pk}|{chave}|{titulo}".encode()).hexdigest()
+
+
+def reavaliar_sem_orgao(*, agora=None) -> int:
+    """Pistas recentes que ficaram sem órgão ganham uma segunda chance quando o
+    resolvedor passa a conhecer o órgão citado (ex.: "Concurso Receita Federal:
+    FGV é a banca", 23/11/2026, antes de a RFB entrar em orgaos.FEDERAIS).
+    Só as do prazo de busca (PRAZO_DIAS): as mais velhas já teriam expirado.
+    A própria pista vira a do primeiro órgão; os demais citados ganham pista
+    nova com a mesma data. Devolve quantas pistas foram para a busca."""
+    from .models import Pista
+    from .orgaos import chaves, orgao_da_chave
+
+    agora = agora or timezone.now()
+    n = 0
+    for pista in Pista.objects.filter(status=Pista.Status.SEM_ORGAO,
+                                      detectada_em__gte=agora - timedelta(days=PRAZO_DIAS)):
+        achadas = chaves(pista.titulo)
+        for i, chave in enumerate(achadas):
+            dedup = _dedup(pista.fonte_id, chave, pista.titulo)
+            if Pista.objects.filter(chave_dedup=dedup).exists():
+                continue
+            orgao = orgao_da_chave(chave, criar=True)
+            if i == 0:
+                Pista.objects.filter(pk=pista.pk).update(
+                    chave_orgao=chave, orgao=orgao, status=Pista.Status.A_BUSCAR, chave_dedup=dedup)
+            else:
+                Pista.objects.create(fonte_id=pista.fonte_id, titulo=pista.titulo, link=pista.link,
+                                     chave_orgao=chave, orgao=orgao, status=Pista.Status.A_BUSCAR,
+                                     detectada_em=pista.detectada_em, chave_dedup=dedup)
+            n += 1
+    return n
 
 
 def _confirmar(pista) -> bool:
@@ -62,7 +97,7 @@ def _confirmar(pista) -> bool:
 def processar(*, hoje: date | None = None, cliente_cd=None, pncp_por_orgao=None) -> dict:
     """Busca oficial das pistas novas; reavalia e expira as que aguardam."""
     from .models import Pista
-    from .orgaos import fontes_da_chave
+    from .orgaos import cnpj_para_pncp, fontes_da_chave
 
     agora = timezone.now()
     hoje = hoje or agora.date()
@@ -73,8 +108,8 @@ def processar(*, hoje: date | None = None, cliente_cd=None, pncp_por_orgao=None)
 
         conf = configurado()
         cliente_cd = conf[0] if conf else None
-    resumo = {"buscadas": 0, "confirmadas": 0, "expiradas": 0, "checagens": 0, "pncp": 0, "erros": []}
-    pncp_feito: set[int] = set()
+    resumo = {"reavaliadas": reavaliar_sem_orgao(agora=agora), "buscadas": 0, "confirmadas": 0, "expiradas": 0, "checagens": 0, "pncp": 0, "erros": []}
+    pncp_feito: set[str] = set()
     for pista in Pista.objects.filter(status=Pista.Status.A_BUSCAR).select_related("orgao"):
         orgao = pista.orgao
         if cliente_cd is not None:
@@ -87,9 +122,10 @@ def processar(*, hoje: date | None = None, cliente_cd=None, pncp_por_orgao=None)
                         resumo["erros"].append(f"changedetection: {exc}")
         recente = Pista.objects.filter(orgao=orgao, buscada_em__gte=agora - timedelta(
             days=PNCP_INTERVALO_DIAS)).exclude(pk=pista.pk).exists()
-        if orgao and orgao.cnpj and orgao.pk not in pncp_feito and not recente:
-            rel = pncp_por_orgao(orgao.cnpj, hoje=hoje)
-            pncp_feito.add(orgao.pk)
+        cnpj = cnpj_para_pncp(orgao) if orgao else ""
+        if cnpj and cnpj not in pncp_feito and not recente:     # RFB e STN: o mesmo CNPJ, um pedido
+            rel = pncp_por_orgao(cnpj, hoje=hoje)
+            pncp_feito.add(cnpj)
             resumo["pncp"] += 1
             if rel.erro:
                 resumo["erros"].append(rel.erro)

@@ -262,6 +262,22 @@
          30 dias. Pista é auditoria, não fila; não conta como fonte oficial.
          O coletor do PNCP agora acha o órgão da pista pela sigla e grava o
          CNPJ nele (sem duplicar órgão)
+   - [X] Receita/FGV escapou do radar (25/11): as manchetes de 23/11
+         ("Concurso Receita Federal: FGV é a banca") viraram pista SEM
+         órgão; no gpu01, 1.590 de 1.702 pistas estavam sem órgão. Corrigido:
+         executivo federal no resolvedor (RFB, PGFN, STN, PF, PRF, CGU,
+         Bacen, INSS, IBGE, CVM, Susep, Previc, MTE, MGI/CNU, Ebserh, BNDES,
+         BB, Caixa); pista sem órgão dos últimos 30 dias é reavaliada;
+         RFB/PGFN/STN e PF/PRF consultam o PNCP pelo CNPJ do ministério e o
+         coletor atribui pela UNIDADE compradora; fontes "RFB — Notícias" e
+         "RFB — Concursos públicos" na onda A (o comunicado oficial da FGV
+         saiu nas notícias da Receita; o FAQ diz que a contratação da banca
+         é sigilosa, então o PNCP pode nem mostrar)
+   - [ ] Pistas: ruído do RSS. O Estratégia repete a categoria do post
+         ("Bancária (BB, CEF e Bancos Estaduais)") e o diff do
+         changedetection traz "(into)" (pista duplicada). Limpar o título
+   - [ ] Pistas sem órgão restantes (~1.440): quase todas estaduais e
+         municipais (SP, PM, ICMS, Unesp, prefeituras). Resolvedor estadual
    - [ ] Anexo V do PLOA/LOA (anual)
 ** FEITO [#A] Página inicial e chamada ao LexLearn
    (13/10) A página inicial explica o portal e agrupa os concursos pela fase
