@@ -10,8 +10,12 @@ Serve a dois caminhos que precisam concordar:
 """
 from __future__ import annotations
 
+import json
 import re
 import unicodedata
+from collections import defaultdict
+from functools import lru_cache
+from pathlib import Path
 
 UFS = {
     "acre": "AC", "alagoas": "AL", "amapa": "AP", "amazonas": "AM", "bahia": "BA", "ceara": "CE",
@@ -111,10 +115,69 @@ def normalizar_sigla(sigla: str) -> str:
     return achadas[0] if achadas else re.sub(r"[^A-Z0-9]", "", _plano(sigla).upper())
 
 
+# --- municípios (ADR-0012 D2) ------------------------------------------------
+# "ISS Jaboatão", "auditor fiscal de Maringá", "procurador do município de
+# Natal": a prefeitura entra quando o texto é da trilha fiscal ou jurídica e
+# o município vem logo depois de uma destas palavras. A chave é MUN + código
+# IBGE; o órgão é a "Prefeitura de X", a mesma que o coletor do PNCP cria.
+DADOS = Path(__file__).resolve().parent / "dados"
+_ANTES_DO_MUNICIPIO = (r"(?:\biss(?:qn)?|prefeitura(?: municipal)?(?: d[aeo]s?)?|municipio d[aeo]s?|"
+                       r"\bd[aeo]s?|\bem|\bsefin|\bsemfaz|\bsemef|\bpgm|\bcgm)\s+")
+RE_MUNICIPAL = re.compile(r"\biss(qn)?\b|prefeitura|municipi|\bpgm\b|\bcgm\b|\bsefin\b|\bsemfaz\b|\bsemef\b|"
+                          r"tesouro municipal")
+
+
+@lru_cache(maxsize=1)
+def _municipios():
+    """(nome sem acento -> [(ibge, nome, uf)], catálogo das prioritárias por ibge, regex)."""
+    por_nome: dict[str, list] = defaultdict(list)
+    for ibge, nome, uf in json.loads((DADOS / "municipios.json").read_text(encoding="utf-8"))["municipios"]:
+        por_nome[_plano(nome)].append((ibge, nome, uf))
+    fiscais = {m["ibge"]: m for m in
+               json.loads((DADOS / "municipios_fiscais.json").read_text(encoding="utf-8"))["municipios"]}
+    for m in fiscais.values():                       # "ISS Jaboatão" = Jaboatão dos Guararapes
+        for apelido in m.get("aliases", []):
+            por_nome[_plano(apelido)].append((m["ibge"], m["nome"], m["uf"]))
+    nomes = sorted(por_nome, key=len, reverse=True)  # o nome mais longo primeiro
+    # "auditor do tesouro municipal": Tesouro (MT) não; nome seguido de "municipal" é o órgão
+    padrao = re.compile(_ANTES_DO_MUNICIPIO + "(" + "|".join(re.escape(n) for n in nomes) + r")(?![a-z])(?! municipal)")
+    return por_nome, fiscais, padrao
+
+
+def municipio(ibge: str) -> dict | None:
+    """O município do catálogo das prioritárias (com CNPJ), ou None."""
+    return _municipios()[1].get(ibge)
+
+
+def _uf_no_texto(texto: str, plano: str) -> set[str]:
+    ufs = {m.group(1) for m in re.finditer(r"(?:^|[\s/(\-–])([A-Z]{2})(?=$|[\s)/:,.\-–])", texto)} & set(ESTADO)
+    # o estado por extenso só depois de preposição: "para" sozinho é a preposição
+    return ufs | {uf for nome, uf in UFS.items() if re.search(rf"\b(?:d[aeo]|n[ao]|em)\s+{nome}\b", plano)}
+
+
+def _municipios_citados(texto: str, plano: str) -> list[tuple[int, str]]:
+    from .trilhas import RE_FISCAL_OBJETO, RE_FISCAL_ORGAO, RE_JURIDICA_OBJETO, RE_JURIDICA_ORGAO
+
+    if not RE_MUNICIPAL.search(plano):
+        return []
+    if not any(r.search(plano) for r in (RE_FISCAL_ORGAO, RE_FISCAL_OBJETO, RE_JURIDICA_ORGAO, RE_JURIDICA_OBJETO)):
+        return []                                    # guarda municipal, saúde...: fora das trilhas
+    por_nome, fiscais, padrao = _municipios()
+    achados, ufs = [], None
+    for m in padrao.finditer(plano):
+        candidatos = {c[0]: c for c in por_nome[m.group(1)]}.values()
+        if len(candidatos) > 1:                      # Bom Jesus existe em 5 estados
+            ufs = _uf_no_texto(texto, plano) if ufs is None else ufs
+            candidatos = [c for c in candidatos if c[2] in ufs] or [c for c in candidatos if c[0] in fiscais]
+        if len(candidatos) == 1:
+            achados.append((m.start(1), f"MUN{next(iter(candidatos))[0]}"))
+    return achados
+
+
 def chaves(texto: str) -> list[str]:
     """As chaves dos órgãos citados no texto, na ordem em que aparecem."""
     plano = _plano(texto)
-    achados: list[tuple[int, str]] = []
+    achados: list[tuple[int, str]] = _municipios_citados(texto, plano)
     for padrao, montar in FAMILIAS:
         for m in re.finditer(padrao, plano):
             grupo = next(g for g in m.groups() if g)
@@ -137,6 +200,10 @@ def nome_e_esfera(chave: str) -> tuple[str, str]:
     """Nome por extenso e esfera de uma chave, para criar o Orgao."""
     if chave in FEDERAIS:
         return FEDERAIS[chave][1], "federal"
+    m = re.fullmatch(r"MUN(\d{7})", chave)
+    if m:
+        nome = next(n for i, n, _ in _municipio_ibge() if i == m.group(1))
+        return f"Prefeitura de {nome}", "municipal"
     m = re.fullmatch(r"(TRT|TRF)(\d+)", chave)
     if m:
         tipo = "do Trabalho" if m.group(1) == "TRT" else "Federal"
@@ -151,9 +218,42 @@ def nome_e_esfera(chave: str) -> tuple[str, str]:
     return chave, "federal"
 
 
+def _municipio_ibge() -> list:
+    return [c for lista in _municipios()[0].values() for c in lista]
+
+
+def _prefeitura(ibge: str, criar: bool):
+    """A Prefeitura do município: a do catálogo (pelo CNPJ) ou a que o PNCP
+    criou ("Prefeitura de X", mesmo código IBGE). Nunca a Câmara."""
+    from .models import Orgao
+    from .util import slug_lex
+
+    cat = municipio(ibge) or {}
+    qs = Orgao.objects.filter(esfera=Orgao.Esfera.MUNICIPAL)
+    orgao = ((qs.filter(cnpj=cat["cnpj"]).first() if cat.get("cnpj") else None)
+             or qs.filter(codigo_ibge=ibge, nome__startswith="Prefeitura").first())
+    if orgao is not None:
+        if cat.get("cnpj") and not orgao.cnpj:
+            orgao.cnpj = cat["cnpj"]
+            orgao.save(update_fields=["cnpj"])
+        return orgao
+    if not criar:
+        return None
+    _, nome, uf = next(c for c in _municipio_ibge() if c[0] == ibge)
+    slug = slug_lex(f"Prefeitura de {nome} {uf}")[:70]
+    if Orgao.objects.filter(slug=slug).exists():
+        slug = f"{slug[:60]}_{ibge}"
+    return Orgao.objects.create(nome=f"Prefeitura de {nome}", slug=slug, esfera=Orgao.Esfera.MUNICIPAL, uf=uf,
+                                municipio=nome, codigo_ibge=ibge, cnpj=cat.get("cnpj", ""))
+
+
 def orgao_da_chave(chave: str, *, criar: bool = False):
     """O Orgao cuja sigla normalizada é a chave; criado se `criar`."""
     from .models import Orgao
+
+    m = re.fullmatch(r"MUN(\d{7})", chave)
+    if m:
+        return _prefeitura(m.group(1), criar)
 
     for o in Orgao.objects.exclude(sigla=""):
         if normalizar_sigla(o.sigla) == chave:

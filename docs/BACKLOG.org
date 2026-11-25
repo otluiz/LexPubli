@@ -278,6 +278,24 @@
          changedetection traz "(into)" (pista duplicada). Limpar o título
    - [ ] Pistas sem órgão restantes (~1.440): quase todas estaduais e
          municipais (SP, PM, ICMS, Unesp, prefeituras). Resolvedor estadual
+   - [X] Prefeituras na trilha fiscal e jurídica (ADR-0012 D2, 25/11):
+         "ISS Jaboatão", "Prefeitura de X: auditor fiscal", "procurador do
+         município de Natal" viram a chave MUN<IBGE> e a "Prefeitura de X"
+         (a mesma que o PNCP cria). Lista do IBGE em dados/municipios.json;
+         catálogo das prioritárias (capitais + grandes arrecadadores de ISS,
+         63, 51 com CNPJ-matriz conferido no PNCP) em
+         dados/municipios_fiscais.json, com apelidos ("Jaboatão"). Nome
+         repetido em outro estado só com a UF no título ou no catálogo
+   - [ ] Calibrar o catálogo fiscal municipal pela arrecadação de ISS
+         (Siconfi/DCA) e completar o CNPJ das 12 sem ele (Salvador,
+         Curitiba, Belém, Natal, Vitória, Aracaju, Palmas, Osasco, Niterói,
+         Contagem, Serra, Vila Velha)
+   - [ ] Fontes oficiais das Fazendas municipais do catálogo (onda C):
+         página de concursos/notícias da Sefin/Semfaz das maiores, no
+         changedetection
+   - [ ] "auditor fiscal de Maringá" (sem ISS/prefeitura/municipal no
+         título) fica de fora de propósito: liberar faria "Sefaz de São
+         Paulo" virar a prefeitura. Rever se a medição mostrar perda
    - [ ] Anexo V do PLOA/LOA (anual)
 ** FEITO [#A] Página inicial e chamada ao LexLearn
    (13/10) A página inicial explica o portal e agrupa os concursos pela fase
@@ -507,6 +525,23 @@
    LexPubli entra como vigente (aguardando_banca) no catalogo.yaml do
    LexCorpus. A partir daí o fluxo do ADR-0006 (buscador → orquestrador →
    watchlist) segue intacto, sob decisão do operador do LexCorpus.
+** TODO [#A] Fisco municipal: provas e questões de legislação municipal :ALINHAR_LexCorpus:ALINHAR_LexLearn:
+   Decisão do dono do produto (25/11/2026): concurso fiscal de prefeitura
+   grande paga como a Receita Federal (ISS Jaboatão, ISS Recife, ISS
+   Caruaru...) e é nicho para nós. O LexPubli já descobre (trilha fiscal
+   municipal, ADR-0012) e publica com carreira=fiscal; o resto é dos
+   outros projetos, pela fronteira de sempre (ADR-0002, ADR-0005):
+   - (LexCorpus) priorizar a coleta de provas de ISS/fisco municipal
+     (FCC, FGV, Cebraspe, IBAM, Fundatec...), a começar pelas prefeituras
+     do catálogo concursos/dados/municipios_fiscais.json (ex.: ISS
+     Jaboatão, FCC, Auditor Fiscal Tributário)
+   - (LexLearn) questões de legislação tributária municipal, hoje rara no
+     acervo: CF art. 156 (IPTU, ITBI, ISS), CTN (arts. 32-42 IPTU, 35-42
+     ITBI), LC 116/2003 (ISS, lista de serviços, local da incidência), LC
+     157/2016, a reforma tributária (EC 132/2023: IBS substitui o ISS na
+     transição) e o código tributário do município do concurso
+   - NÃO abre canal novo: o LexPubli só publica o concurso (evento
+     contest.discovery.*) e o link de saída
 ** TODO [#B] Página do concurso mostra o acervo do LexCorpus/LexLearn
    "Provas anteriores disponíveis" + CTA "estude para este concurso" no
    LexLearn. Fonte: consulta/evento a definir (não ler o storage

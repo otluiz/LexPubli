@@ -93,6 +93,13 @@ Rede Federal, volume maior.
   Federal, conferida como as demais (texto sem JavaScript, robots.txt), no
   changedetection.
 
+> **Implementado em 25/11/2026 (pistas, município):** o resolvedor
+> (`concursos/orgaos.py`) reconhece "ISS <cidade>", "Prefeitura de <cidade>",
+> "município de <cidade>" e afins quando o texto é da trilha fiscal ou
+> jurídica (o vocabulário de `trilhas.py`). Chave `MUN<código IBGE>`, órgão
+> "Prefeitura de <cidade>". Lista do IBGE e catálogo das prefeituras
+> prioritárias (com CNPJ para a busca no PNCP) em `concursos/dados/`.
+
 ### D3: Órgão municipal tem município
 
 O `Orgao` ganha `municipio` e `codigo_ibge`. O nome no portal fica

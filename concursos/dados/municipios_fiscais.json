@@ -1,0 +1,454 @@
+{
+ "origem": "Lista inicial (25/11/2026, ADR-0012): capitais (sem o DF, que é distrital) e grandes arrecadadores de ISS conhecidos. A calibrar pela arrecadação de ISS (Siconfi/DCA). CNPJ: a matriz (0001) do 'MUNICIPIO DE ...' na API do PNCP, conferida pelo código IBGE das unidades; vazio quando o PNCP registra a prefeitura com outro nome.",
+ "municipios": [
+  {
+   "ibge": "1200401",
+   "nome": "Rio Branco",
+   "uf": "AC",
+   "cnpj": "04034583000122",
+   "aliases": []
+  },
+  {
+   "ibge": "2704302",
+   "nome": "Maceió",
+   "uf": "AL",
+   "cnpj": "12200135000180",
+   "aliases": []
+  },
+  {
+   "ibge": "1600303",
+   "nome": "Macapá",
+   "uf": "AP",
+   "cnpj": "05995766000177",
+   "aliases": []
+  },
+  {
+   "ibge": "1302603",
+   "nome": "Manaus",
+   "uf": "AM",
+   "cnpj": "04365326000173",
+   "aliases": []
+  },
+  {
+   "ibge": "2927408",
+   "nome": "Salvador",
+   "uf": "BA",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "2304400",
+   "nome": "Fortaleza",
+   "uf": "CE",
+   "cnpj": "07954605000160",
+   "aliases": []
+  },
+  {
+   "ibge": "3205309",
+   "nome": "Vitória",
+   "uf": "ES",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "5208707",
+   "nome": "Goiânia",
+   "uf": "GO",
+   "cnpj": "01612092000123",
+   "aliases": []
+  },
+  {
+   "ibge": "2111300",
+   "nome": "São Luís",
+   "uf": "MA",
+   "cnpj": "06307102000130",
+   "aliases": []
+  },
+  {
+   "ibge": "5103403",
+   "nome": "Cuiabá",
+   "uf": "MT",
+   "cnpj": "03533064000146",
+   "aliases": []
+  },
+  {
+   "ibge": "5002704",
+   "nome": "Campo Grande",
+   "uf": "MS",
+   "cnpj": "03501509000106",
+   "aliases": []
+  },
+  {
+   "ibge": "3106200",
+   "nome": "Belo Horizonte",
+   "uf": "MG",
+   "cnpj": "18715383000140",
+   "aliases": []
+  },
+  {
+   "ibge": "1501402",
+   "nome": "Belém",
+   "uf": "PA",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "2507507",
+   "nome": "João Pessoa",
+   "uf": "PB",
+   "cnpj": "08778326000156",
+   "aliases": []
+  },
+  {
+   "ibge": "4106902",
+   "nome": "Curitiba",
+   "uf": "PR",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "2611606",
+   "nome": "Recife",
+   "uf": "PE",
+   "cnpj": "10565000000192",
+   "aliases": []
+  },
+  {
+   "ibge": "2211001",
+   "nome": "Teresina",
+   "uf": "PI",
+   "cnpj": "06554869000164",
+   "aliases": []
+  },
+  {
+   "ibge": "3304557",
+   "nome": "Rio de Janeiro",
+   "uf": "RJ",
+   "cnpj": "42498733000148",
+   "aliases": []
+  },
+  {
+   "ibge": "2408102",
+   "nome": "Natal",
+   "uf": "RN",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "4314902",
+   "nome": "Porto Alegre",
+   "uf": "RS",
+   "cnpj": "92963560000160",
+   "aliases": []
+  },
+  {
+   "ibge": "1100205",
+   "nome": "Porto Velho",
+   "uf": "RO",
+   "cnpj": "05903125000145",
+   "aliases": []
+  },
+  {
+   "ibge": "1400100",
+   "nome": "Boa Vista",
+   "uf": "RR",
+   "cnpj": "05943030000155",
+   "aliases": []
+  },
+  {
+   "ibge": "4205407",
+   "nome": "Florianópolis",
+   "uf": "SC",
+   "cnpj": "82892282000143",
+   "aliases": []
+  },
+  {
+   "ibge": "3550308",
+   "nome": "São Paulo",
+   "uf": "SP",
+   "cnpj": "46395000000139",
+   "aliases": []
+  },
+  {
+   "ibge": "2800308",
+   "nome": "Aracaju",
+   "uf": "SE",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "1721000",
+   "nome": "Palmas",
+   "uf": "TO",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "3505708",
+   "nome": "Barueri",
+   "uf": "SP",
+   "cnpj": "46523015000135",
+   "aliases": []
+  },
+  {
+   "ibge": "3509502",
+   "nome": "Campinas",
+   "uf": "SP",
+   "cnpj": "51885242000140",
+   "aliases": []
+  },
+  {
+   "ibge": "3518800",
+   "nome": "Guarulhos",
+   "uf": "SP",
+   "cnpj": "46319000000150",
+   "aliases": []
+  },
+  {
+   "ibge": "3534401",
+   "nome": "Osasco",
+   "uf": "SP",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "3548708",
+   "nome": "São Bernardo do Campo",
+   "uf": "SP",
+   "cnpj": "46523239000147",
+   "aliases": [
+    "São Bernardo"
+   ]
+  },
+  {
+   "ibge": "3547809",
+   "nome": "Santo André",
+   "uf": "SP",
+   "cnpj": "46522942000130",
+   "aliases": []
+  },
+  {
+   "ibge": "3548500",
+   "nome": "Santos",
+   "uf": "SP",
+   "cnpj": "58200015000183",
+   "aliases": []
+  },
+  {
+   "ibge": "3549904",
+   "nome": "São José dos Campos",
+   "uf": "SP",
+   "cnpj": "46643466000106",
+   "aliases": []
+  },
+  {
+   "ibge": "3525904",
+   "nome": "Jundiaí",
+   "uf": "SP",
+   "cnpj": "45780103000150",
+   "aliases": []
+  },
+  {
+   "ibge": "3552205",
+   "nome": "Sorocaba",
+   "uf": "SP",
+   "cnpj": "46634044000174",
+   "aliases": []
+  },
+  {
+   "ibge": "3543402",
+   "nome": "Ribeirão Preto",
+   "uf": "SP",
+   "cnpj": "56024581000156",
+   "aliases": []
+  },
+  {
+   "ibge": "3536505",
+   "nome": "Paulínia",
+   "uf": "SP",
+   "cnpj": "45751435000106",
+   "aliases": []
+  },
+  {
+   "ibge": "3303302",
+   "nome": "Niterói",
+   "uf": "RJ",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "3301702",
+   "nome": "Duque de Caxias",
+   "uf": "RJ",
+   "cnpj": "29138328000150",
+   "aliases": []
+  },
+  {
+   "ibge": "3302403",
+   "nome": "Macaé",
+   "uf": "RJ",
+   "cnpj": "29115474000160",
+   "aliases": []
+  },
+  {
+   "ibge": "3302700",
+   "nome": "Maricá",
+   "uf": "RJ",
+   "cnpj": "29131075000193",
+   "aliases": []
+  },
+  {
+   "ibge": "3118601",
+   "nome": "Contagem",
+   "uf": "MG",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "3106705",
+   "nome": "Betim",
+   "uf": "MG",
+   "cnpj": "18715391000196",
+   "aliases": []
+  },
+  {
+   "ibge": "3170206",
+   "nome": "Uberlândia",
+   "uf": "MG",
+   "cnpj": "18431312000115",
+   "aliases": []
+  },
+  {
+   "ibge": "4209102",
+   "nome": "Joinville",
+   "uf": "SC",
+   "cnpj": "83169623000110",
+   "aliases": []
+  },
+  {
+   "ibge": "4208203",
+   "nome": "Itajaí",
+   "uf": "SC",
+   "cnpj": "83102277000152",
+   "aliases": []
+  },
+  {
+   "ibge": "3205002",
+   "nome": "Serra",
+   "uf": "ES",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "3205200",
+   "nome": "Vila Velha",
+   "uf": "ES",
+   "cnpj": "",
+   "aliases": []
+  },
+  {
+   "ibge": "2905701",
+   "nome": "Camaçari",
+   "uf": "BA",
+   "cnpj": "14109763000180",
+   "aliases": []
+  },
+  {
+   "ibge": "2910800",
+   "nome": "Feira de Santana",
+   "uf": "BA",
+   "cnpj": "14043574000151",
+   "aliases": []
+  },
+  {
+   "ibge": "2607901",
+   "nome": "Jaboatão dos Guararapes",
+   "uf": "PE",
+   "cnpj": "10377679000196",
+   "aliases": [
+    "Jaboatão"
+   ]
+  },
+  {
+   "ibge": "2607208",
+   "nome": "Ipojuca",
+   "uf": "PE",
+   "cnpj": "11294386000108",
+   "aliases": []
+  },
+  {
+   "ibge": "2602902",
+   "nome": "Cabo de Santo Agostinho",
+   "uf": "PE",
+   "cnpj": "11294402000162",
+   "aliases": [
+    "Cabo"
+   ]
+  },
+  {
+   "ibge": "2604106",
+   "nome": "Caruaru",
+   "uf": "PE",
+   "cnpj": "10091536000113",
+   "aliases": []
+  },
+  {
+   "ibge": "2611101",
+   "nome": "Petrolina",
+   "uf": "PE",
+   "cnpj": "10358190000177",
+   "aliases": []
+  },
+  {
+   "ibge": "1505536",
+   "nome": "Parauapebas",
+   "uf": "PA",
+   "cnpj": "22980999000115",
+   "aliases": []
+  },
+  {
+   "ibge": "1502152",
+   "nome": "Canaã dos Carajás",
+   "uf": "PA",
+   "cnpj": "01613321000124",
+   "aliases": [
+    "Canaã"
+   ]
+  },
+  {
+   "ibge": "4113700",
+   "nome": "Londrina",
+   "uf": "PR",
+   "cnpj": "75771477000170",
+   "aliases": []
+  },
+  {
+   "ibge": "4115200",
+   "nome": "Maringá",
+   "uf": "PR",
+   "cnpj": "76282656000106",
+   "aliases": []
+  },
+  {
+   "ibge": "4305108",
+   "nome": "Caxias do Sul",
+   "uf": "RS",
+   "cnpj": "88830609000139",
+   "aliases": []
+  },
+  {
+   "ibge": "5201108",
+   "nome": "Anápolis",
+   "uf": "GO",
+   "cnpj": "01067479000146",
+   "aliases": []
+  },
+  {
+   "ibge": "5201405",
+   "nome": "Aparecida de Goiânia",
+   "uf": "GO",
+   "cnpj": "01005727000124",
+   "aliases": []
+  }
+ ]
+}
