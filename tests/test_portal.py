@@ -243,3 +243,47 @@ def test_ate_exige_valor_inicial_menor(exemplo):
     cargo.salario, cargo.salario_ate = None, Decimal("100")
     with pytest.raises(ValidationError):
         cargo.full_clean()
+
+
+# --- card da home ---------------------------------------------------------------
+
+def _cartao(html, titulo):
+    ini = html.index("<strong>" + titulo, html.index('class="cartao-link"'))
+    return html[html.rindex('<li class="cartao">', 0, ini):html.index("</li>", ini)]
+
+
+def test_card_resume_o_concurso_com_cargos(client, exemplo):
+    card = _cartao(client.get("/").content.decode(), "Sefaz-AL 2026")
+    assert "40 vagas" in card and "R$ 25.270,68" in card and "nível superior" in card
+    assert "Auditor Fiscal da Administração Tributária Estadual" in card
+    assert "Ver o concurso" in card and 'class="cartao-link"' in card
+
+
+def test_card_do_radar_diz_o_que_falta_e_o_que_ja_e_oficial(client, exemplo):
+    from datetime import date
+
+    from concursos import radar
+    from concursos.models import Orgao, Sinal
+
+    trt8 = Orgao.objects.create(nome="Tribunal Regional do Trabalho da 8ª Região", sigla="TRT-8",
+                                esfera=Orgao.Esfera.FEDERAL, uf="PA")
+    Sinal.objects.create(orgao=trt8, tipo="banca_contratada", data_documento=date.today(),
+                         documento_url="https://pncp.gov.br/app/contratos/1", resumo="contrato")
+    radar.aplicar(trt8)
+    card = _cartao(client.get("/").content.decode(), "TRT-8")
+    assert "banca a definir" in card
+    assert "Cargos, vagas e salários saem no edital" in card
+    assert "Banca contratada (" in card and "edital esperado entre" in card
+
+
+def test_home_nao_consulta_cargos_e_sinais_por_card(client, exemplo, django_assert_max_num_queries):
+    from concursos.models import ConcursoPage, ConcursosIndexPage
+
+    indice = ConcursosIndexPage.objects.first()
+    base = exemplo["concurso"]
+    for i in range(5):
+        indice.add_child(instance=ConcursoPage(title=f"Extra {i}", orgao=base.orgao, ano=2030 + i,
+                                               status="previsto", fonte_url=base.fonte_url))
+    client.get("/")                                       # aquece caches do Wagtail
+    with django_assert_max_num_queries(25):
+        client.get("/")

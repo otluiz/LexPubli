@@ -1,0 +1,28 @@
+{% load wagtailcore_tags lexpubli %}
+{% comment %} O card da home é o argumento para o clique: quem chega reconhece o concurso
+   e o que já se sabe. Mesma estrutura em todos; dado que falta é dito (sai no edital,
+   banca a definir), nunca some. O card inteiro é clicável (o link estica sobre ele). {% endcomment %}
+<li class="cartao">
+  <span class="selo selo-{{ c.situacao_classe }}">{{ c.situacao }}</span>
+  <a class="cartao-link" href="{% pageurl c %}"><strong>{{ c.title }}</strong></a>
+  <p>{{ c.orgao.nome_com_estado }} · {% if c.banca %}{{ c.banca.nome }}{% else %}banca a definir{% endif %}</p>
+  {% if c.cargos.all %}
+    <p class="numeros">
+      {% if c.total_vagas %}{{ c.total_vagas }} vaga{{ c.total_vagas|pluralize }}{% else %}vagas no edital{% endif %}
+      {% if c.maior_salario %} · até {% if c.tem_salario_estimado %}cerca de {% endif %}{{ c.maior_salario|brl }}{% endif %}
+      {% if c.escolaridades %} · nível {{ c.escolaridades }}{% endif %}
+    </p>
+    <p class="cartao-cargos">{{ c.cargos_curto }}</p>
+  {% else %}
+    <p class="numeros">Cargos, vagas e salários saem no edital</p>
+  {% endif %}
+  {% if c.situacao_classe == "prova-marcada" %}
+    <p class="cartao-quando"><strong class="contagem">{{ c.contagem_prova }}</strong></p>
+  {% elif c.prazo_inscricoes %}
+    <p class="cartao-quando">{{ c.prazo_inscricoes|capfirst }}</p>
+  {% else %}{% with r=c.radar %}{% if r %}
+    {% comment %} o sinal mais forte e a previsão: o diferencial do portal, no card {% endcomment %}
+    <p class="cartao-quando cartao-radar">{{ r.av.sinal.get_tipo_display|slice:"4:" }} ({{ r.av.sinal.data_documento|date:"d/m/Y" }}){% if r.av.inicio %} · edital esperado {% if r.av.prazo == "atrasado" %}desde {{ r.av.inicio|date:"b/Y" }}{% else %}entre {{ r.av.inicio|date:"b/Y" }} e {{ r.av.fim|date:"b/Y" }}{% endif %}{% endif %}</p>
+  {% endif %}{% endwith %}{% endif %}
+  <span class="cartao-mais" aria-hidden="true">Ver o concurso →</span>
+</li>

@@ -42,17 +42,7 @@
         {% if not uf_ativa %}<h3 class="lugar">{{ lugar }}</h3>{% endif %}
         <ul class="lista">
           {% for c in lista %}
-            <li class="cartao">
-              <a href="{% pageurl c %}"><strong>{{ c.title }}</strong></a>
-              <span class="selo selo-{{ c.situacao_classe }}">{{ c.situacao }}</span>
-              <p>{{ c.orgao.nome_com_estado }}{% if c.banca %} · {{ c.banca.nome }}{% endif %}</p>
-              <p class="numeros">
-                {% if c.total_vagas %}{{ c.total_vagas }} vaga{{ c.total_vagas|pluralize }}{% endif %}
-                {% if c.maior_salario %} · até {% if c.tem_salario_estimado %}cerca de {% endif %}{{ c.maior_salario|brl }}{% endif %}
-                {% if c.situacao_classe == "prova-marcada" %} · <strong class="contagem">{{ c.contagem_prova }}</strong>
-                {% elif c.prazo_inscricoes %} · {{ c.prazo_inscricoes }}{% endif %}
-              </p>
-            </li>
+            {% include "concursos/_cartao.html" %}
           {% endfor %}
         </ul>
         </div>

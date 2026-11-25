@@ -233,7 +233,8 @@ class ConcursosIndexPage(Page):
         ctx = super().get_context(request, *args, **kwargs)
         concursos = list(
             ConcursoPage.objects.child_of(self).live().public()
-            .select_related("orgao", "banca").order_by("-first_published_at")
+            .select_related("orgao", "banca").prefetch_related("cargos", "sinais")   # o card resume os dois
+            .order_by("-first_published_at")
         )
         ctx["concursos"] = concursos
         from .orgaos import ESTADO
@@ -333,6 +334,20 @@ class ConcursoPage(Page):
         salarios = [c.salario_ate if c.salario_estimado else c.salario
                     for c in self.cargos.all() if c.salario is not None]
         return max(salarios) if salarios else None
+
+    @property
+    def escolaridades(self) -> str:
+        """"superior", "médio e superior": o nível dos cargos, para o card."""
+        niveis = dict.fromkeys(c.escolaridade.strip().lower() for c in self.cargos.all() if c.escolaridade.strip())
+        return " e ".join(niveis)
+
+    @property
+    def cargos_curto(self) -> str:
+        """Os cargos em uma linha: dois nomes e "mais N"."""
+        nomes = [c.nome for c in self.cargos.all()]
+        if len(nomes) <= 2:
+            return " e ".join(nomes)
+        return f"{nomes[0]}, {nomes[1]} e mais {len(nomes) - 2}"
 
     @property
     def tem_salario_estimado(self) -> bool:
