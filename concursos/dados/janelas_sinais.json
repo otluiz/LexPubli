@@ -11,6 +11,8 @@
                               "nota": "A contratação vem a seguir e o edital 3 a 4 meses depois dela: 4 a 6 meses, estimativa a calibrar."},
     "banca_contratada":      {"forca": 7, "rotulo": "Banca contratada", "janela": {"meses": [3, 4]}}
   },
+  "prova_apos_edital": {"meses": [3, 5],
+                        "nota": "Com o edital anunciado pelo órgão (curadoria), a janela passa a ser da prova. Receita 2026: edital em 12/2026, prova mar-mai/2027 (dono do produto, 25/11/2026)."},
   "fim_de_ano_meses": [10, 11, 12],
   "forca_para_publicar_sozinho": 4
 }

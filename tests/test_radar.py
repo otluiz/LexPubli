@@ -254,3 +254,27 @@ def test_autorizacao_de_concurso_anterior_nao_da_o_ano(trt8):
     _sinal(trt8, "autorizacao", date(2022, 3, 1), url="https://www.in.gov.br/web/dou/-/portaria-2022")
     _sinal(trt8, "licitacao_banca", date(2026, 11, 23), url=PNCP)
     assert radar.ano_do_concurso(radar.avaliar(trt8.sinais.all()), trt8.sinais.all()) == 2026
+
+
+# --- edital anunciado pelo órgão --------------------------------------------------
+
+def test_edital_de_dezembro_leva_a_prova_para_marco_a_maio():
+    assert radar.janela_da_prova(date(2026, 12, 1)) == (date(2027, 3, 1), date(2027, 5, 1))
+
+
+def test_edital_anunciado_troca_a_previsao_do_edital_pela_da_prova(client, trt8):
+    _sinal(trt8, "licitacao_banca", date(2026, 11, 23), url=PNCP)
+    chamada = radar.aplicar(trt8, hoje=date(2026, 11, 25))
+    chamada.edital_previsto = date(2026, 12, 1)
+    chamada.save_revision().publish()
+
+    html = client.get(chamada.url).content.decode()
+    assert "O órgão prevê o edital para <strong>dezembro de 2026</strong>" in html
+    assert "março de 2027" in html and "maio de 2027" in html and "Edital esperado entre" not in html
+    inicio = client.get("/").content.decode()
+    assert "Edital previsto para dez/2026, segundo o órgão · prova esperada entre mar/2027 e mai/2027" in inicio
+
+    # saiu o edital: a previsão do órgão não vale mais
+    chamada.edital_url = "https://www.in.gov.br/web/dou/-/edital-1"
+    chamada.save_revision().publish()
+    assert chamada.radar()["edital_previsto"] is None

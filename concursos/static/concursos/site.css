@@ -300,6 +300,7 @@ a:hover { text-decoration: underline; }
 .lista { list-style: none; padding: 0; margin: 0;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .cartao {
+  position: relative; display: flex; flex-direction: column; gap: 2px;
   background: var(--cartao); border: 1px solid var(--borda);
   border-radius: var(--raio-sm); padding: 16px 18px;
   box-shadow: var(--sombra);
@@ -313,6 +314,16 @@ a:hover { text-decoration: underline; }
 .cartao p { margin: 6px 0; color: var(--suave); font-size: .94rem; }
 .cartao .numeros { color: var(--tinta); font-size: .9rem; }
 .grupo-radar .cartao { border-left: 3px solid var(--sinal); }
+.cartao .selo { align-self: flex-start; margin-bottom: 6px; }
+/* o link do título cobre o card inteiro: um alvo só, sem link duplicado */
+.cartao-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.cartao-link:focus-visible { outline: none; }
+.cartao:has(.cartao-link:focus-visible) { outline: 2px solid var(--brasa); outline-offset: 2px; }
+.cartao .cartao-cargos { font-size: .88rem; }
+.cartao .cartao-quando { color: var(--tinta); font-size: .9rem; }
+.cartao .cartao-radar { color: var(--ambar-txt); }
+.cartao-mais { margin-top: auto; padding-top: 10px; font-size: .88rem; font-weight: 600; color: var(--brasa); }
+.cartao:hover .cartao-mais { text-decoration: underline; }
 
 /* ---- selos de status --------------------------------------------------- */
 .selo {
