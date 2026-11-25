@@ -273,7 +273,7 @@ def test_card_do_radar_diz_o_que_falta_e_o_que_ja_e_oficial(client, exemplo):
     card = _cartao(client.get("/").content.decode(), "TRT-8")
     assert "banca a definir" in card
     assert "Cargos, vagas e salários saem no edital" in card
-    assert "Banca contratada (" in card and "edital esperado entre" in card
+    assert "Banca contratada (" in card and "Edital esperado entre" in card
 
 
 def test_home_nao_consulta_cargos_e_sinais_por_card(client, exemplo, django_assert_max_num_queries):

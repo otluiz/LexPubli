@@ -280,6 +280,10 @@ class ConcursoPage(Page):
     carreira = models.CharField(max_length=20, choices=Carreira.choices, blank=True,
                                 help_text="Orienta a busca de provas relacionadas no LexCorpus.")
     data_prova = models.DateField("data da prova", null=True, blank=True)
+    edital_previsto = models.DateField(
+        "edital previsto pelo órgão", null=True, blank=True,
+        help_text="Antes do edital: o mês que o próprio órgão anunciou (use o dia 1). Com ele, a "
+                  "previsão do radar passa a ser a da prova.")
     inscricoes_inicio = models.DateField(null=True, blank=True)
     inscricoes_fim = models.DateField(null=True, blank=True)
     edital_url = models.URLField("URL do edital", blank=True)
@@ -289,7 +293,7 @@ class ConcursoPage(Page):
     content_panels = Page.content_panels + [
         FieldRowPanel([FieldPanel("orgao"), FieldPanel("banca")]),
         FieldRowPanel([FieldPanel("ano"), FieldPanel("status"), FieldPanel("contest_slug")]),
-        FieldRowPanel([FieldPanel("carreira"), FieldPanel("data_prova")]),
+        FieldRowPanel([FieldPanel("carreira"), FieldPanel("edital_previsto"), FieldPanel("data_prova")]),
         MultiFieldPanel(
             [FieldRowPanel([FieldPanel("inscricoes_inicio"), FieldPanel("inscricoes_fim")])],
             heading="Inscrições",
@@ -315,14 +319,18 @@ class ConcursoPage(Page):
         _exigir_oficial("fonte_url", self.fonte_url)
 
     def radar(self):
-        """Nota, previsão e linha do tempo dos sinais (ADR-0008), ou None."""
-        from .radar import ROTULO_PRAZO, avaliar, em_ordem
+        """Nota, previsão e linha do tempo dos sinais (ADR-0008), ou None.
+        Com o edital anunciado pelo órgão (e ainda não publicado), a previsão
+        é a da prova: "prova" = (início, fim)."""
+        from .radar import ROTULO_PRAZO, avaliar, em_ordem, janela_da_prova
 
         sinais = em_ordem(self.sinais.all())
         av = avaliar(sinais)
         if av is None:
             return None
-        return {"av": av, "sinais": sinais, "prazo": ROTULO_PRAZO[av.prazo]}
+        anunciado = self.edital_previsto if self.edital_previsto and not self.edital_url else None
+        return {"av": av, "sinais": sinais, "prazo": ROTULO_PRAZO[av.prazo], "edital_previsto": anunciado,
+                "prova": janela_da_prova(anunciado) if anunciado else None}
 
     @property
     def total_vagas(self) -> int | None:

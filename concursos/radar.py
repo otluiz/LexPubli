@@ -51,6 +51,12 @@ def janela(tipo: str, data_doc: date, data_autorizacao: date | None = None) -> t
     return somar_meses(data_doc, meses[0]), somar_meses(data_doc, meses[1])
 
 
+def janela_da_prova(edital: date) -> tuple[date, date]:
+    """Quando o órgão anuncia o mês do edital, a estimativa vira a da prova."""
+    meses = regras()["prova_apos_edital"]["meses"]
+    return somar_meses(edital, meses[0]), somar_meses(edital, meses[1])
+
+
 @dataclass
 class Avaliacao:
     forca: int

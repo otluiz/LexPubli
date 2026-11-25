@@ -22,7 +22,12 @@
     <p class="cartao-quando">{{ c.prazo_inscricoes|capfirst }}</p>
   {% else %}{% with r=c.radar %}{% if r %}
     {% comment %} o sinal mais forte e a previsão: o diferencial do portal, no card {% endcomment %}
-    <p class="cartao-quando cartao-radar">{{ r.av.sinal.get_tipo_display|slice:"4:" }} ({{ r.av.sinal.data_documento|date:"d/m/Y" }}){% if r.av.inicio %} · edital esperado {% if r.av.prazo == "atrasado" %}desde {{ r.av.inicio|date:"b/Y" }}{% else %}entre {{ r.av.inicio|date:"b/Y" }} e {{ r.av.fim|date:"b/Y" }}{% endif %}{% endif %}</p>
+    <p class="cartao-quando cartao-radar">{{ r.av.sinal.get_tipo_display|slice:"4:" }} ({{ r.av.sinal.data_documento|date:"d/m/Y" }})</p>
+    {% if r.edital_previsto %}
+      <p class="cartao-quando">Edital previsto para {{ r.edital_previsto|date:"b/Y" }}, segundo o órgão · prova esperada entre {{ r.prova.0|date:"b/Y" }} e {{ r.prova.1|date:"b/Y" }}</p>
+    {% elif r.av.inicio %}
+      <p class="cartao-quando">Edital esperado {% if r.av.prazo == "atrasado" %}desde {{ r.av.inicio|date:"b/Y" }}{% else %}entre {{ r.av.inicio|date:"b/Y" }} e {{ r.av.fim|date:"b/Y" }}{% endif %}</p>
+    {% endif %}
   {% endif %}{% endwith %}{% endif %}
   <span class="cartao-mais" aria-hidden="true">Ver o concurso →</span>
 </li>
