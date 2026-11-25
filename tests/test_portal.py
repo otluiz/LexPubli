@@ -205,3 +205,41 @@ def test_links_oficiais_abrem_em_nova_aba_e_cargos_vazios_avisam(client, exemplo
     c.cargos.all().delete()
     html = client.get(c.url).content.decode()
     assert "saem no edital" in html and '<table class="cargos">' not in html
+
+
+def test_salario_divergente_antes_do_edital_aparece_como_faixa(client, exemplo):
+    from decimal import Decimal
+
+    cargo = exemplo["concurso"].cargos.first()
+    cargo.salario, cargo.salario_ate = Decimal("22921.71"), Decimal("24113.71")
+    cargo.full_clean()
+    cargo.save()
+
+    html = client.get("/sefaz-al-2026/").content.decode()
+    assert "entre R$ 22.921,71 e R$ 24.113,71*" in html
+    assert "O valor oficial sai no edital" in html
+    bloco = re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S).group(1)
+    valor = json.loads(bloco)["@graph"][0]["baseSalary"]["value"]
+    assert (valor["minValue"], valor["maxValue"]) == (22921.71, 24113.71) and "value" not in valor
+    assert "até cerca de R$ 24.113,71" in client.get("/").content.decode()
+
+
+def test_valor_unico_do_edital_nao_tem_aviso(client, exemplo):
+    html = client.get("/sefaz-al-2026/").content.decode()
+    assert "entre R$" not in html and "O valor oficial sai no edital" not in html
+    assert "cerca de" not in client.get("/").content.decode()
+
+
+def test_ate_exige_valor_inicial_menor(exemplo):
+    from decimal import Decimal
+
+    import pytest
+    from django.core.exceptions import ValidationError
+
+    cargo = exemplo["concurso"].cargos.first()
+    cargo.salario_ate = cargo.salario - Decimal("1")
+    with pytest.raises(ValidationError):
+        cargo.full_clean()
+    cargo.salario, cargo.salario_ate = None, Decimal("100")
+    with pytest.raises(ValidationError):
+        cargo.full_clean()

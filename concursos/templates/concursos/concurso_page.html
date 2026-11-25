@@ -64,11 +64,16 @@
           <tr>
             <td>{{ cargo.nome }}{% if cargo.escolaridade %} <small>({{ cargo.escolaridade }})</small>{% endif %}</td>
             <td>{{ cargo.vagas|default:"—" }}</td>
-            <td>{{ cargo.salario|brl|default:"—" }}</td>
+            <td>{% if cargo.salario_estimado %}entre {{ cargo.salario|brl }} e {{ cargo.salario_ate|brl }}*{% else %}{{ cargo.salario|brl|default:"—" }}{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+    {% if page.tem_salario_estimado %}
+      <p class="meta">* Estimativa antes do edital: as fontes divergem e alguns valores podem estar
+        desatualizados. O valor oficial sai no edital e, com a correção salarial em curso, tende a
+        ficar um pouco acima.</p>
+    {% endif %}
     {% endif %}
 
     <h2>Fontes oficiais</h2>

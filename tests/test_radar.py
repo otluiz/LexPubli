@@ -118,7 +118,8 @@ def test_pagina_mostra_nota_previsao_e_linha_do_tempo(client, trt8):
     assert "Edital esperado entre" in html and "janeiro de 2027" in html and "fevereiro de 2027" in html
     assert html.count("documento oficial") >= 2 and PNCP in html
     inicio = client.get("/").content.decode()
-    assert "No radar" in inicio and "TRT-8 2027" in inicio      # contratada em out/26: edital em 2027
+    # autorizado em set/26: é o concurso de 2026, ainda que o edital saia em 2027
+    assert "No radar" in inicio and "TRT-8 2026" in inicio
 
 
 # --- ADR-0013 D2: só junta o que é do mesmo processo ---------------------------------
@@ -223,3 +224,33 @@ def test_sinal_de_orgao_com_concurso_em_andamento_nao_cria_outra_pagina(trt8, ex
     assert radar.aplicar(trt8) is None
     assert ConcursoPage.objects.filter(orgao=trt8).count() == 1
     assert radar.sinais_de_outro_processo() == [s]
+
+
+# --- o ano que nomeia o concurso -----------------------------------------------
+
+def test_licitacao_de_novembro_nomeia_o_concurso_pelo_ano_do_documento(trt8):
+    """A janela da licitação de 23/11 começa em 2027; o concurso é o de 2026
+    (caso RFB, 25/11/2026: a página saía rfb_2027)."""
+    _sinal(trt8, "licitacao_banca", date(2026, 11, 23), url="https://pncp.gov.br/app/editais/1/2026/828",
+           processo_pncp="1-1-000828/2026")
+    chamada = radar.aplicar(trt8, hoje=date(2026, 11, 25))
+    assert chamada.ano == 2026 and chamada.contest_slug.endswith("_2026")
+
+
+def test_autorizacao_vale_mais_que_o_sinal_principal_para_o_ano(trt8):
+    _sinal(trt8, "autorizacao", date(2026, 7, 3))
+    _sinal(trt8, "banca_contratada", date(2027, 1, 20), url=PNCP)
+    assert radar.aplicar(trt8, hoje=date(2027, 1, 25)).ano == 2026
+
+
+def test_autorizacao_de_fim_de_ano_fica_no_ano_dela(trt8):
+    # a janela (Carnaval) cai em 2027; o documento é de 2026
+    _sinal(trt8, "autorizacao", date(2026, 11, 10))
+    assert radar.aplicar(trt8, hoje=date(2026, 11, 12)).ano == 2026
+
+
+def test_autorizacao_de_concurso_anterior_nao_da_o_ano(trt8):
+    # autorização de 2022 esquecida solta: não é deste ciclo
+    _sinal(trt8, "autorizacao", date(2022, 3, 1), url="https://www.in.gov.br/web/dou/-/portaria-2022")
+    _sinal(trt8, "licitacao_banca", date(2026, 11, 23), url=PNCP)
+    assert radar.ano_do_concurso(radar.avaliar(trt8.sinais.all()), trt8.sinais.all()) == 2026

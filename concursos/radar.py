@@ -96,6 +96,21 @@ def em_ordem(sinais) -> list:
                                          forca(s.tipo), s.data_documento))
 
 
+def ano_do_concurso(av, sinais) -> int:
+    """O ano que nomeia o concurso ({órgão}_{ano}, ADR-0013). Sai de um
+    documento, nunca da janela: a janela é estimativa do edital e atravessa
+    o ano quando o sinal sai no fim do exercício (a licitação da RFB de
+    23/11/2026 dava 2027, mas o concurso autorizado em 07/2026, com edital
+    previsto para 12/2026, é o "Receita 2026"). Vale o ano da autorização
+    mais recente do ciclo (até 18 meses antes do sinal principal: uma
+    autorização esquecida de um concurso anterior não conta); sem ela, o ano
+    do sinal principal."""
+    base = av.sinal.data_documento
+    autorizacoes = [s.data_documento for s in sinais
+                    if s.tipo == "autorizacao" and s.data_documento >= somar_meses(base, -18)]
+    return (max(autorizacoes) if autorizacoes else base).year
+
+
 ROTULO_PRAZO = {"no_prazo": "no prazo", "atrasado": "atrasado", "sem_janela": "sem previsão"}
 STATUS_DO_RADAR = ("previsto", "autorizado")
 # concurso do órgão já com edital e ainda não encerrado: o radar não cria outra página por cima
@@ -134,7 +149,7 @@ def aplicar(orgao, hoje: date | None = None):
         av = avaliar(soltos, hoje)
         if not av.publica_sozinho:
             return None
-        chamada = _nova_chamada(orgao, av, sinais)
+        chamada = _nova_chamada(orgao, av, soltos)
         if chamada is None:
             return None
         grupo = av.sinal.processo_pncp
@@ -164,7 +179,7 @@ def _nova_chamada(orgao, av, sinais):
     indice = ConcursosIndexPage.objects.first()
     if indice is None:
         return None
-    ano = (av.inicio or av.sinal.data_documento).year
+    ano = ano_do_concurso(av, sinais)
     if ConcursoPage.objects.filter(contest_slug=f"{orgao.slug}_{ano}").exists():
         return None      # já há concurso do órgão naquele ano: decisão do curador
     banca = next((s.banca for s in sinais if s.banca_id), None)

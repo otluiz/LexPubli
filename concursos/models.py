@@ -330,8 +330,13 @@ class ConcursoPage(Page):
 
     @property
     def maior_salario(self):
-        salarios = [c.salario for c in self.cargos.all() if c.salario is not None]
+        salarios = [c.salario_ate if c.salario_estimado else c.salario
+                    for c in self.cargos.all() if c.salario is not None]
         return max(salarios) if salarios else None
+
+    @property
+    def tem_salario_estimado(self) -> bool:
+        return any(c.salario_estimado for c in self.cargos.all())
 
     # A situação exibida segue as datas, não o status gravado: o status é
     # preenchido na curadoria e não envelhece; as datas envelhecem sozinhas.
@@ -402,13 +407,33 @@ class Cargo(Orderable):
     slug = models.SlugField(max_length=120, blank=True)
     vagas = models.PositiveIntegerField(null=True, blank=True)
     salario = models.DecimalField("remuneração inicial (R$)", max_digits=10, decimal_places=2,
-                                  null=True, blank=True)
+                                  null=True, blank=True,
+                                  help_text="Valor do edital. Antes dele, se as fontes divergem, "
+                                            "o menor valor e o maior em \"até\".")
+    salario_ate = models.DecimalField(
+        "até (R$)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Só antes do edital, quando as fontes divergem: o portal mostra \"entre\" "
+                  "e avisa que o valor oficial sai no edital. Apague quando o edital sair.")
     escolaridade = models.CharField(max_length=60, blank=True)
 
     panels = [
         FieldPanel("nome"),
-        FieldRowPanel([FieldPanel("vagas"), FieldPanel("salario"), FieldPanel("escolaridade")]),
+        FieldRowPanel([FieldPanel("vagas"), FieldPanel("salario"), FieldPanel("salario_ate"),
+                       FieldPanel("escolaridade")]),
     ]
+
+    @property
+    def salario_estimado(self) -> bool:
+        """Faixa de pré-edital: as fontes divergem e o valor oficial sai no edital."""
+        return self.salario is not None and self.salario_ate is not None and self.salario_ate > self.salario
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.salario_ate is not None and (self.salario is None or self.salario_ate <= self.salario):
+            raise ValidationError({"salario_ate": "Use \"até\" só com a remuneração inicial preenchida "
+                                                  "e maior do que ela."})
 
     def save(self, *args, **kwargs):
         if not self.slug:
