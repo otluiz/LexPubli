@@ -28,26 +28,31 @@
     <p class="filtro-uf">Mostrando os concursos de <strong>{{ uf_ativa_nome }}</strong>.
       <a href="{% pageurl page %}#concursos">Ver todos os estados</a></p>
   {% endif %}
-  {% for chave, titulo, blocos in grupos %}
-    {% if blocos %}
+  {% for chave, titulo, largos, pequenos in grupos %}
+    {% if largos or pequenos %}
       <section class="grupo grupo-{{ chave }}">
         <h2>{{ titulo }}</h2>
         {% if chave == "reta-final" %}
           <p class="grupo-nota">Inscrições encerradas, prova com data. Se você está em uma destas, é hora de treinar
             com as provas da banca{% if LEXLEARN_URL %}: <a href="{{ LEXLEARN_URL }}" target="_blank" rel="noopener">conhecer o LexLearn<span class="so-leitor"> (abre em nova aba)</span></a>{% endif %}.</p>
         {% endif %}
-        <div class="{% if not uf_ativa %}blocos{% endif %}">
-        {% for lugar, lista in blocos %}
-        <div class="bloco-lugar">
-        {% if not uf_ativa %}<h3 class="lugar">{{ lugar }}</h3>{% endif %}
-        <ul class="lista">
-          {% for c in lista %}
-            {% include "concursos/_cartao.html" %}
-          {% endfor %}
-        </ul>
-        </div>
+        {% for b in largos %}
+          <div class="bloco-lugar bloco-largo">
+            {% if not uf_ativa %}<h3 class="lugar">{{ b.nome }} <span class="lugar-total">· {{ b.total }} concursos</span></h3>{% endif %}
+            <ul class="lista">{% for c in b.visiveis %}{% include "concursos/_cartao.html" %}{% endfor %}</ul>
+            {% if b.mais %}<p class="ver-todos"><a href="?uf={{ b.uf }}#concursos">Ver os {{ b.total }} concursos {% if b.uf == "BR" %}nacionais{% else %}de {{ b.nome }}{% endif %} →</a></p>{% endif %}
+          </div>
         {% endfor %}
-        </div>
+        {% if pequenos %}
+          <div class="{% if not uf_ativa %}blocos{% endif %}">
+          {% for b in pequenos %}
+            <div class="bloco-lugar">
+              {% if not uf_ativa %}<h3 class="lugar">{{ b.nome }}</h3>{% endif %}
+              <ul class="lista">{% for c in b.visiveis %}{% include "concursos/_cartao.html" %}{% endfor %}</ul>
+            </div>
+          {% endfor %}
+          </div>
+        {% endif %}
       </section>
     {% endif %}
   {% endfor %}
