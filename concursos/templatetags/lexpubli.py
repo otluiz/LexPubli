@@ -50,7 +50,10 @@ def json_ld(context, pagina):
             item["baseSalary"] = {
                 "@type": "MonetaryAmount",
                 "currency": "BRL",
-                "value": {"@type": "QuantitativeValue", "value": float(cargo.salario), "unitText": "MONTH"},
+                "value": ({"@type": "QuantitativeValue", "minValue": float(cargo.salario),
+                           "maxValue": float(cargo.salario_ate), "unitText": "MONTH"}
+                          if cargo.salario_estimado else
+                          {"@type": "QuantitativeValue", "value": float(cargo.salario), "unitText": "MONTH"}),
             }
         grafo.append(item)
 
