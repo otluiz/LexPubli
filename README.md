@@ -10,6 +10,11 @@ caminho para estudar no LexLearn.
 
 > **LexPubli descobre concursos e publica. LexCorpus adquire os documentos. LexLearn transforma documentos em conhecimento.**
 
+> 🗺️ **Suíte Lex:** o mapa estrutural dos três projetos (fronteiras, contratos,
+> brokers, storage, máquinas) está em
+> [`../ARQUITETURA-DA-SUITE.md`](../ARQUITETURA-DA-SUITE.md), fora deste
+> repositório. Leia antes de qualquer mudança estrutural.
+
 > 🚧 **Status:** plataforma decidida (ADR-0001 *Aceito*: Wagtail) e spike
 > concluído com um concurso real (Sefaz-AL 2026). Próxima etapa: o MVP.
 
