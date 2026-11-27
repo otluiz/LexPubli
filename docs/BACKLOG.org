@@ -262,6 +262,10 @@
          30 dias. Pista é auditoria, não fila; não conta como fonte oficial.
          O coletor do PNCP agora acha o órgão da pista pela sigla e grava o
          CNPJ nele (sem duplicar órgão)
+   - [ ] RFB 2026 (página no ar, 25/11): gravar o Sinal da Portaria MGI
+         5.505 (03/07/2026) quando houver o link do DOU; conferir que o slug
+         da banca "fgv" é o mesmo do LexCorpus; trocar a faixa salarial
+         pelo valor do edital (dezembro) e limpar salario_ate
    - [X] Receita/FGV escapou do radar (25/11): as manchetes de 23/11
          ("Concurso Receita Federal: FGV é a banca") viraram pista SEM
          órgão; no gpu01, 1.590 de 1.702 pistas estavam sem órgão. Corrigido:
@@ -278,13 +282,53 @@
          changedetection traz "(into)" (pista duplicada). Limpar o título
    - [ ] Pistas sem órgão restantes (~1.440): quase todas estaduais e
          municipais (SP, PM, ICMS, Unesp, prefeituras). Resolvedor estadual
+   - [X] Prefeituras na trilha fiscal e jurídica (ADR-0012 D2, 25/11):
+         "ISS Jaboatão", "Prefeitura de X: auditor fiscal", "procurador do
+         município de Natal" viram a chave MUN<IBGE> e a "Prefeitura de X"
+         (a mesma que o PNCP cria). Lista do IBGE em dados/municipios.json;
+         catálogo das prioritárias (capitais + grandes arrecadadores de ISS,
+         63, 51 com CNPJ-matriz conferido no PNCP) em
+         dados/municipios_fiscais.json, com apelidos ("Jaboatão"). Nome
+         repetido em outro estado só com a UF no título ou no catálogo
+   - [ ] Calibrar o catálogo fiscal municipal pela arrecadação de ISS
+         (Siconfi/DCA) e completar o CNPJ das 12 sem ele (Salvador,
+         Curitiba, Belém, Natal, Vitória, Aracaju, Palmas, Osasco, Niterói,
+         Contagem, Serra, Vila Velha)
+   - [ ] Fontes oficiais das Fazendas municipais do catálogo (onda C):
+         página de concursos/notícias da Sefin/Semfaz das maiores, no
+         changedetection
+   - [ ] PRÓXIMO (dono do produto, 25/11): pistas de ISS nos cursinhos.
+         Cadastrar como fonte de pista (não sinal, ADR-0008 §3) as páginas
+         de concursos ISS do Estratégia
+         (estrategiaconcursos.com.br/blog/concursos-iss/) e do Gran Cursos
+         (grancursosonline.com.br, cursos/notícias de ISS e fisco
+         municipal). Antes: rodar no gpu01 o medir_municipais.py (só
+         leitura) depois do deploy do #20 e conferir falso positivo
+   - [ ] Medir no gpu01 quantas pistas SEM_ORGAO viram prefeitura
+         (script só leitura; resultado decide se libera "auditor fiscal
+         de X" sem termo municipal)
+   - [ ] "auditor fiscal de Maringá" (sem ISS/prefeitura/municipal no
+         título) fica de fora de propósito: liberar faria "Sefaz de São
+         Paulo" virar a prefeitura. Rever se a medição mostrar perda
    - [ ] Anexo V do PLOA/LOA (anual)
+** TODO [#A] RETOMAR AQUI (sessão de 25/11)
+   - [ ] Revisar e mergear o PR #19 (home em faixas) e o PR #20 (prefeituras);
+         nenhum tem migração. Deploy no gpu01 é feito pelo dono do produto
+   - [ ] Rodar no gpu01 a medição só leitura (cópia fora do repo em
+         ~/Workspace/Lex/medir_municipais.py) e conferir falso positivo
+   - [ ] Depois: Estratégia e Gran Cursos como fontes de pista de ISS (ver
+         item "PRÓXIMO" na seção do radar)
+   - [ ] Decidir a proposta do CTA do LexLearn (seção Marketing)
 ** FEITO [#A] Página inicial e chamada ao LexLearn
    (13/10) A página inicial explica o portal e agrupa os concursos pela fase
    (no radar, inscrições abertas, em andamento); número de fontes = ativas
    COM watch. Chamada ao LexLearn em todas as páginas (contextual na página
    do concurso). LEXPUBLI_LEXLEARN_URL: padrão http://localhost:5175/ até o
    LexLearn ter endereço público (dono do produto, 13/10); trocar no lançamento
+   - [X] Home em faixas por lugar (PR #19, 25/11): lugar com 2+ concursos
+         (Nacional, SP) ocupa uma faixa horizontal com até 6 cards e o link
+         "Ver os N concursos de X" (filtro ?uf=); lugar com 1 concurso fica
+         compacto abaixo. Cards com a altura do próprio conteúdo
 ** TODO [#B] Discovery: monitorar APIs/fontes estruturadas, não páginas JS
    A página pública da Cebraspe é renderizada por JS (o changedetection não
    vê texto). A API de eventos funciona. Mapear o equivalente para FGV, FCC,
@@ -507,6 +551,23 @@
    LexPubli entra como vigente (aguardando_banca) no catalogo.yaml do
    LexCorpus. A partir daí o fluxo do ADR-0006 (buscador → orquestrador →
    watchlist) segue intacto, sob decisão do operador do LexCorpus.
+** TODO [#A] Fisco municipal: provas e questões de legislação municipal :ALINHAR_LexCorpus:ALINHAR_LexLearn:
+   Decisão do dono do produto (25/11/2026): concurso fiscal de prefeitura
+   grande paga como a Receita Federal (ISS Jaboatão, ISS Recife, ISS
+   Caruaru...) e é nicho para nós. O LexPubli já descobre (trilha fiscal
+   municipal, ADR-0012) e publica com carreira=fiscal; o resto é dos
+   outros projetos, pela fronteira de sempre (ADR-0002, ADR-0005):
+   - (LexCorpus) priorizar a coleta de provas de ISS/fisco municipal
+     (FCC, FGV, Cebraspe, IBAM, Fundatec...), a começar pelas prefeituras
+     do catálogo concursos/dados/municipios_fiscais.json (ex.: ISS
+     Jaboatão, FCC, Auditor Fiscal Tributário)
+   - (LexLearn) questões de legislação tributária municipal, hoje rara no
+     acervo: CF art. 156 (IPTU, ITBI, ISS), CTN (arts. 32-42 IPTU, 35-42
+     ITBI), LC 116/2003 (ISS, lista de serviços, local da incidência), LC
+     157/2016, a reforma tributária (EC 132/2023: IBS substitui o ISS na
+     transição) e o código tributário do município do concurso
+   - NÃO abre canal novo: o LexPubli só publica o concurso (evento
+     contest.discovery.*) e o link de saída
 ** TODO [#B] Página do concurso mostra o acervo do LexCorpus/LexLearn
    "Provas anteriores disponíveis" + CTA "estude para este concurso" no
    LexLearn. Fonte: consulta/evento a definir (não ler o storage
@@ -534,6 +595,10 @@
          saturar; a home já tem a chamada no rodapé
    - [ ] Padronizar a mensagem única num só lugar (fragmento/trecho) para não
          divergir entre páginas
+   - [ ] AGUARDA DECISÃO (proposta de 25/11, dono do produto achou a
+         chamada "muito tímida"): (1) bloco forte logo abaixo do resumo na
+         página do concurso, com o nº de questões/provas da banca; (2) barra
+         fixa no rodapé no celular; (3) a copy num só fragmento (item acima)
    - FRONTEIRA: todo CTA é só LINK de saída (nova aba). O LexPubli NÃO cadastra
      usuário, não tem login, não cobra — isso é do LexLearn (ADR-0005: "os
      serviços pagos usam o LexLearn"). Ver jornada abaixo.

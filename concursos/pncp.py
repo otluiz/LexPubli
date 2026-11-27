@@ -214,6 +214,13 @@ def orgao_do_achado(a: Achado, rel: Relatorio | None = None):
         orgao.save(update_fields=["cnpj"])
         return orgao
     municipal = a.esfera not in ESFERAS
+    if municipal and a.ibge and _plano(a.razao).startswith("municipio d"):
+        # a pista pode ter criado a prefeitura antes, sem CNPJ ("ISS Jaboatão")
+        ja = Orgao.objects.filter(codigo_ibge=a.ibge, cnpj="", nome__startswith="Prefeitura").first()
+        if ja:
+            ja.cnpj = a.cnpj
+            ja.save(update_fields=["cnpj"])
+            return ja
     if municipal and a.municipio and _plano(a.razao).startswith("municipio de"):
         nome = f"Prefeitura de {a.municipio}"            # 'MUNICIPIO DE CARUARU' -> 'Prefeitura de Caruaru'
     else:
