@@ -140,9 +140,11 @@ As mesmas regras do ADR-0014 D4, aplicadas ao conteúdo:
 
 A vitrine só vai ao ar quando estas quatro estiverem prontas:
 
-1. **Edital anterior**: aceite do ADR-0014 D2 pelo LexCorpus (papel `edital`
-   em `document.acquisition.completed`). Sem esse aceite, o curador acha o
-   edital à mão, como no próprio ADR-0014.
+1. **Edital anterior**: aceite do ADR-0014 D2, revisado em 27/11, pelo
+   LexCorpus. O LexCorpus informa o link oficial (`previous_edital_url`, no
+   `document.acquisition.completed` v1.1) e o curador confere e grava o PDF
+   pelo ADR-0003. Sem esse aceite, o curador acha o edital à mão, como no
+   próprio ADR-0014.
 2. **Verticalização**: PoC A do backlog (ADR-0011 D3).
 3. **Incidência no portal**: a incidência sai do DNA das bancas, que é do
    LexLearn. Exibi-la no LexPubli depende da via do **ADR-0010**
@@ -150,7 +152,11 @@ A vitrine só vai ao ar quando estas quatro estiverem prontas:
    LexCorpus). **É o gargalo deste ADR**, e o ADR-0010 deve subir de
    prioridade se este for aceito.
 4. **Destino das chamadas**: aceite do ADR-0013_LL (§5 em diante) e das
-   amostras da D4 pelo Administrador do LexLearn.
+   amostras da D4 pelo Administrador do LexLearn. As amostras abertas da D8
+   precisam de uma rota pública no LexLearn, e o ADR-0007_LL registra que a
+   autenticação e a checagem de papel **ainda não estão implementadas**. Ou
+   a autenticação vem antes, ou a rota pública fica limitada às amostras e é
+   decidida à parte pelo Administrador.
 
 A peça 3 **não bloqueia a janela pré-edital**: a D7 abre essa exceção. As
 peças 1, 2 e 4 continuam obrigatórias.

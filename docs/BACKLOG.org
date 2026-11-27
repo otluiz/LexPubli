@@ -601,9 +601,17 @@
          incidência (revisa o ADR-0011 D4), D8 amostras abertas e depois conta
          no LexLearn, D9 só prioridade alta do radar
    - [ ] Aceite, depois dos dois alinhamentos abaixo
-   - [ ] Alinhar com o LexCorpus: ADR-0014 D2 (edital anterior, papel `edital`)
-   - [ ] Alinhar com o Administrador do LexLearn: ADR-0013_LL e as amostras
-         pré-geradas (D4)
+   - [X] ADR-0014 D2 revisado (27/11): o LexCorpus informa só o link
+         (`previous_edital_url`, v1.1, consumidor primeiro), e o curador grava
+         o PDF pelo ADR-0003. O papel `edital` em `files` foi descartado, porque
+         o schema o recusaria
+   - [ ] Alinhar com o LexCorpus: aceite do ADR-0014 D2 (item no BACKLOG do
+         LexCorpus, "Link do edital anterior")
+   - [ ] Alinhar com o Administrador do LexLearn: ADR-0013_LL, amostras
+         pré-geradas (D4) e rota pública (D6.4) (item no BACKLOG do LexLearn,
+         "Pedido do LexPubli: vitrine antes do edital")
+   - [ ] Depois do aceite: schema v1.1 no LexPubli (consumidor primeiro) e
+         painel "Edital anterior para conferir" (ADR-0014 D3)
    - [ ] Se aceito: subir a prioridade do ADR-0010 (é o gargalo, D6.3)
 
 ** TODO [#B] Portal mostra "provas disponíveis" via LexCorpus :ALINHAR_LexCorpus:
