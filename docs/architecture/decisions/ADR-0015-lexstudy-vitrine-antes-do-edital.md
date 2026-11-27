@@ -13,7 +13,7 @@
 - Autor: Prof. Othon Luiz
 - Relacionados: ADR-0005 (fronteira com o LexLearn), ADR-0008 (radar de
   sinais), ADR-0010 (dados do acervo no portal, em estudo), ADR-0011
-  (LexStudy é módulo do LexPubli; **revisa a D3**), ADR-0014 (último concurso
+  (LexStudy é módulo do LexPubli; **revisa a D3 e a D4**), ADR-0014 (último concurso
   na página; **depende da D2**), ADR-0012_LL (isolamento do LexLearn),
   ADR-0013_LL (itinerário de estudos; **§5, o plano antes do edital**)
 
@@ -152,22 +152,50 @@ A vitrine só vai ao ar quando estas quatro estiverem prontas:
 4. **Destino das chamadas**: aceite do ADR-0013_LL (§5 em diante) e das
    amostras da D4 pelo Administrador do LexLearn.
 
-Até a peça 3 existir, a vitrine pode ir ao ar só com o **verticalizado e as
-chamadas**, sem incidência? O ADR-0011 D4 diz que não, e este ADR mantém. Ver
-a pergunta 1.
+A peça 3 **não bloqueia a janela pré-edital**: a D7 abre essa exceção. As
+peças 1, 2 e 4 continuam obrigatórias.
 
-## Perguntas em aberto (para o dono do produto)
+As decisões D7 a D9 respondem às perguntas que a primeira versão deste ADR
+deixou em aberto. Foram tomadas pelo dono do produto em 27/11/2026.
 
-1. **Vitrine sem incidência.** O ADR-0011 D4 proíbe. Pesa contra o fato de
-   que, antes do edital, o verticalizado do edital **anterior** não é
-   commodity: o concorrente costuma verticalizar o edital novo, depois que
-   ele sai. Manter a proibição ou abrir uma exceção para a janela pré-edital?
-2. **Cadastro para as amostras.** Abertas, cadastro leve (e-mail) ou conta
-   completa no LexLearn? É decisão comercial, e é também onde a captação vira
-   lead.
-3. **Quais concursos entram.** Todos os previstos com edital anterior, ou só
-   os de prioridade alta do radar? O custo de curadoria e de amostras é por
-   concurso.
+### D7: Antes do edital, a vitrine pode ir ao ar sem incidência
+
+**Revisa o ADR-0011 D4**, só para a janela pré-edital.
+
+- Enquanto o concurso estiver previsto, a vitrine vai ao ar com o **edital
+  anterior verticalizado, o esqueleto do roteiro e as chamadas**, mesmo sem
+  incidência. As regras da D5 valem inteiras: o ano, o aviso e o link oficial.
+- **Por quê:** antes do edital, o verticalizado do edital **anterior** não é
+  commodity, porque o concorrente costuma verticalizar o edital novo, depois
+  que ele sai. Esperar o ADR-0010 seria perder a janela que dá sentido a
+  este ADR.
+- Sem incidência, o esqueleto do roteiro ordena os tópicos **só pelo peso no
+  edital**. A página diz isso.
+- A incidência entra na vitrine assim que o ADR-0010 permitir exibi-la.
+- **Quando o edital novo sai, volta a valer o ADR-0011 D4:** o verticalizado
+  do edital novo só é publicado com incidência.
+
+### D8: Algumas amostras abertas, e depois conta no LexLearn
+
+- Em cada disciplina, **algumas questões de amostra ficam abertas, sem
+  cadastro**, no LexLearn (D4 a).
+- **Para continuar**, o candidato cria uma conta no LexLearn. É o `/cadastro`
+  dos protótipos do Lovable (`quantumlearn-page`), que já leva a ele.
+- O lead nasce **no LexLearn**. O LexPubli continua sem guardar identidade
+  nem progresso do candidato (D2), e a captura de interesse por concurso
+  (SPEC-0002) segue como está.
+- Quantas questões ficam abertas, e a passagem da conta gratuita para a
+  assinatura, são decisões comerciais do LexLearn, fora deste ADR.
+
+### D9: Começa só pelos concursos de prioridade alta do radar
+
+- Entram na vitrine os concursos previstos que têm **prioridade alta no
+  radar** (ADR-0008) **e** edital anterior oficial (D5.4).
+- **Por quê:** cada concurso custa curadoria, para conferir o edital
+  anterior, e um lote de amostras geradas. Começar pelos que mais atraem
+  testa a vitrine com custo controlado.
+- Ampliar para mais concursos é decisão a tomar **depois de medir** os
+  resultados (cliques nas chamadas, contas criadas a partir da vitrine).
 
 ## Consequências
 
@@ -201,6 +229,7 @@ a pergunta 1.
 
 ## Decisão
 
-PENDENTE do aceite do dono do produto. Se for aceito: registrar no backlog as
-peças da D6, alinhar a D6.1 com o LexCorpus e a D6.4 com o Administrador do
-LexLearn, e revisar a §1.1 do `ARQUITETURA-DA-SUITE.md`.
+As perguntas do dono do produto estão respondidas (D7 a D9, 27/11/2026). O
+ADR continua **Proposto** até o alinhamento da D6.1 com o LexCorpus e da D6.4
+com o Administrador do LexLearn. Depois do aceite: registrar no backlog as
+peças da D6 e revisar a §1.1 do `ARQUITETURA-DA-SUITE.md`.

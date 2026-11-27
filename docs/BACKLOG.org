@@ -597,7 +597,10 @@
    incidência, um esqueleto de roteiro e chamadas para o LexLearn (só link,
    ADR-0005). O plano personalizado e o gerador ficam no LexLearn
    (ADR-0013_LL §5). Revisa o ADR-0011 D3.
-   - [ ] Aceite do dono do produto (e as 3 perguntas em aberto)
+   - [X] Perguntas respondidas (27/11): D7 exceção pré-edital sem
+         incidência (revisa o ADR-0011 D4), D8 amostras abertas e depois conta
+         no LexLearn, D9 só prioridade alta do radar
+   - [ ] Aceite, depois dos dois alinhamentos abaixo
    - [ ] Alinhar com o LexCorpus: ADR-0014 D2 (edital anterior, papel `edital`)
    - [ ] Alinhar com o Administrador do LexLearn: ADR-0013_LL e as amostras
          pré-geradas (D4)
