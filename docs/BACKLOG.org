@@ -570,6 +570,26 @@
      de como o portal exibiria um reflexo. Ver ADR-0010 §Encaminhamento.
    - [ ] Maturar ADR-0010 com o parceiro do LexCorpus antes de qualquer código.
 
+** TODO [#B] LexStudy — PoC A: verticalização de edital
+   ADR-0011 D3 (aceito em 11/11). O LexStudy é MÓDULO do LexPubli, não 4ª
+   aplicação (D1). Do levantamento inteiro, só esta PoC entrou na fila. A
+   PoC B (planejamento, ciclos, calendário) ficou fora.
+   Escopo: componente que recebe o edital em PDF e produz JSON canônico
+   versionado, com conferência humana e rastreabilidade de origem (página e
+   posição no documento).
+   - [ ] Auditar a licença do `edital-verticalizado` (MIT) e das dependências
+         no momento da incorporação, preservando os avisos de copyright e
+         registrando no inventário de componentes (D5). Do Track Concursos
+         não se reusa nada (licença proprietária). O Edital-Esquematizado só
+         serve de referência de fluxo (não tem licença).
+   - [ ] Definir o schema do JSON canônico (versionado)
+   - [ ] PoC: PDF → JSON, com tela de conferência humana no painel
+   - [ ] Testar com editais reais de /data/raw/editais/
+   NÃO VAI AO AR SOZINHO (D4): o verticalizado só é publicado COM
+   INCIDÊNCIA, ou seja, quanto cada tópico foi cobrado nas provas anteriores
+   da banca. A incidência depende do acervo e da via de exibição em estudo no
+   ADR-0010 (ver o item acima). A PoC pode avançar. A publicação, não.
+
 ** TODO [#B] Portal mostra "provas disponíveis" via LexCorpus :ALINHAR_LexCorpus:
    A parte LIMPA das ideias #3/#5/#6: mostrar na página do concurso quantas
    provas anteriores existem, consultando SÓ o LexCorpus (que é o dono desse
