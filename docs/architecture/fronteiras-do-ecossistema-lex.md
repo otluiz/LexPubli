@@ -32,4 +32,4 @@ Resumo das ADR-0002 e ADR-0005 do repositório LexPubli (`docs/architecture/deci
 
 ## Decisão de 11/11/2026 — LexStudy
 
-LexStudy é nome de produto e **módulo do LexPubli**, não quarta aplicação (ver `adr/ADR-LexStudy-modulo-do-LexPubli.md`). A integração por eventos proposta no levantamento foi recusada por contrariar a ADR-0002 e a ADR-0005. Avança só a PoC A (verticalização de edital); o verticalizado só vai ao ar **com incidência**.
+LexStudy é nome de produto e **módulo do LexPubli**, não quarta aplicação (ver [ADR-0011](decisions/ADR-0011-lexstudy-modulo-do-lexpubli.md)). A integração por eventos proposta no levantamento foi recusada por contrariar a ADR-0002 e a ADR-0005. Avança só a PoC A (verticalização de edital); o verticalizado só vai ao ar **com incidência**.
