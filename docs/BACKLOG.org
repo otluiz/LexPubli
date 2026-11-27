@@ -590,6 +590,19 @@
    da banca. A incidência depende do acervo e da via de exibição em estudo no
    ADR-0010 (ver o item acima). A PoC pode avançar. A publicação, não.
 
+** TODO [#A] ADR-0015: LexStudy como vitrine antes do edital :ALINHAR_LexCorpus:ALINHAR_LexLearn:
+   PROPOSTO em 27/11.
+   docs/architecture/decisions/ADR-0015-lexstudy-vitrine-antes-do-edital.md
+   Na página do concurso previsto: o edital anterior verticalizado, com
+   incidência, um esqueleto de roteiro e chamadas para o LexLearn (só link,
+   ADR-0005). O plano personalizado e o gerador ficam no LexLearn
+   (ADR-0013_LL §5). Revisa o ADR-0011 D3.
+   - [ ] Aceite do dono do produto (e as 3 perguntas em aberto)
+   - [ ] Alinhar com o LexCorpus: ADR-0014 D2 (edital anterior, papel `edital`)
+   - [ ] Alinhar com o Administrador do LexLearn: ADR-0013_LL e as amostras
+         pré-geradas (D4)
+   - [ ] Se aceito: subir a prioridade do ADR-0010 (é o gargalo, D6.3)
+
 ** TODO [#B] Portal mostra "provas disponíveis" via LexCorpus :ALINHAR_LexCorpus:
    A parte LIMPA das ideias #3/#5/#6: mostrar na página do concurso quantas
    provas anteriores existem, consultando SÓ o LexCorpus (que é o dono desse
